@@ -87,12 +87,56 @@ Register this endpoint URL with your EasyTrans carrier.
 
 ## 4. Testing
 
-Run the included test suite:
+### Unit Tests (no credentials needed)
 
 ```bash
 pip install easytrans-sdk[dev]
 pytest
 ```
+
+### Integration Tests (validates against the real EasyTrans API)
+
+The integration tests call the API in **`mode="test"`** — the server validates
+every payload but **no real orders or customers are ever created**.
+
+#### Environment variables
+
+A `.env.example` template is included. Copy it and fill in your values:
+
+```bash
+cp .env.example .env
+# edit .env
+```
+
+The variables it expects (`.env` is git-ignored):
+
+```bash
+EASYTRANS_SERVER=mytrans.nl        # hostname only, no https://
+EASYTRANS_ENV=demo
+EASYTRANS_USERNAME=your_username
+EASYTRANS_PASSWORD=your_password
+EASYTRANS_TEST_PRODUCTNO=2         # valid product number (Customer Portal → Products)
+EASYTRANS_TEST_CUSTOMERNO=3        # only needed for branch accounts
+```
+
+#### Run
+
+```bash
+# Load .env and run (works in bash, zsh and sh)
+export $(grep -v '^#' .env | grep -v '^$' | xargs)
+pytest tests/integration/ -m integration -v --no-cov
+```
+
+#### What gets skipped automatically
+
+| Condition | Tests skipped |
+|---|---|
+| `EASYTRANS_USERNAME` not set | Entire integration suite |
+| `EASYTRANS_TEST_PRODUCTNO` not set | All order import tests |
+| `EASYTRANS_TEST_CUSTOMERNO` not set | Nothing — `customerno=None` is omitted (correct for direct-customer accounts) |
+
+See the [Testing section in README.md](README.md#testing) for the full
+breakdown of what each test proves and which SDK bugs were found.
 
 ## Need Help?
 

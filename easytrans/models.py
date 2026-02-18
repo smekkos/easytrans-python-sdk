@@ -347,20 +347,26 @@ class OrderResult:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "OrderResult":
         """Create OrderResult from dictionary."""
-        # Convert order_tracktrace
-        if "order_tracktrace" in data and data["order_tracktrace"]:
+        # Normalise order_tracktrace. The API returns:
+        #   - {"29145": {...}}  in effect mode (orders created)
+        #   - [] or {}          in test mode  (nothing created)
+        # Ensure callers always receive Dict[str, OrderTrackTrace].
+        raw_tt = data.get("order_tracktrace", {})
+        if isinstance(raw_tt, dict) and raw_tt:
             data["order_tracktrace"] = {
                 orderno: OrderTrackTrace.from_dict(tt_data)
-                for orderno, tt_data in data["order_tracktrace"].items()
+                for orderno, tt_data in raw_tt.items()
             }
-        
+        else:
+            data["order_tracktrace"] = {}
+
         # Convert order_rates if present
         if "order_rates" in data and data["order_rates"]:
             data["order_rates"] = {
                 orderno: OrderRate.from_dict(rate_data)
                 for orderno, rate_data in data["order_rates"].items()
             }
-        
+
         return cls(**{k: v for k, v in data.items() if k in cls.__annotations__})
 
 
@@ -382,12 +388,16 @@ class CustomerResult:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "CustomerResult":
         """Create CustomerResult from dictionary."""
-        # Convert new_userids keys to int if they're strings
-        if "new_userids" in data and data["new_userids"]:
-            data["new_userids"] = {
-                int(k): v for k, v in data["new_userids"].items()
-            }
-        
+        # The API can return new_userids as either:
+        #   - {} or {"12345": [201]}  when customers were created (effect mode)
+        #   - []                      when no users were created (test mode)
+        # Normalise both to a plain dict so callers always get Dict[int, List[int]].
+        raw = data.get("new_userids", {})
+        if isinstance(raw, dict) and raw:
+            data["new_userids"] = {int(k): v for k, v in raw.items()}
+        else:
+            data["new_userids"] = {}
+
         return cls(**{k: v for k, v in data.items() if k in cls.__annotations__})
 
 

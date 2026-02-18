@@ -482,34 +482,105 @@ See [`easytrans/models.py`](easytrans/models.py) for complete model definitions.
 
 ## Testing
 
-The SDK includes comprehensive tests using pytest and the responses library for mocking HTTP calls.
+The SDK ships with two complementary test suites:
 
-### Run Tests
+| Suite | Location | Needs real API? | What it proves |
+|---|---|---|---|
+| **Unit tests** | `tests/` | ❌ No | Internal logic: serialisation, error mapping, webhook parsing |
+| **Integration tests** | `tests/integration/` | ✅ Yes | Real API accepts the exact JSON your SDK sends |
+
+### Unit Tests (default)
+
+Run without any credentials — all HTTP calls are intercepted by the
+[`responses`](https://github.com/getsentry/responses) library.
 
 ```bash
 # Install dev dependencies
 pip install -e .[dev]
 
-# Run all tests
+# Run unit tests (default — integration tests excluded automatically)
 pytest
 
-# Run with coverage
+# Run with HTML coverage report
 pytest --cov=easytrans --cov-report=html
 
-# Run specific test file
+# Run a single file
 pytest tests/test_client.py -v
+```
+
+### Integration Tests
+
+Integration tests make real HTTP requests to the EasyTrans demo environment
+using **`mode="test"`** — which validates every payload on the server but
+**never creates real orders or customers**.
+
+#### 1. Set credentials
+
+Copy the provided template and fill in your values:
+
+```bash
+cp .env.example .env
+# edit .env with your server, credentials, and product/customer numbers
+```
+
+`.env` is git-ignored. The variables it expects:
+
+```bash
+# ── Connection ──────────────────────────────────────────────────────────────
+EASYTRANS_SERVER=mytrans.nl        # hostname only, no https://
+EASYTRANS_ENV=demo                  # environment path segment
+EASYTRANS_USERNAME=your_username
+EASYTRANS_PASSWORD=your_password
+
+# ── Order tests ─────────────────────────────────────────────────────────────
+# Product number valid in your environment (Customer Portal → Products/Services)
+EASYTRANS_TEST_PRODUCTNO=2
+
+# Customer number — required only for branch accounts (errorno 23 if absent)
+# Leave blank for direct-customer accounts
+EASYTRANS_TEST_CUSTOMERNO=3
+```
+
+#### 2. Run integration tests
+
+```bash
+# Run the full integration suite
+pytest tests/integration/ -m integration -v
+
+# Run a single file
+pytest tests/integration/test_order_simple.py -m integration -v
+
+# Run everything (unit + integration) — skip integration if no credentials
+pytest -m integration --no-cov -v
+
+# Quick one-liner with inline env vars
+EASYTRANS_SERVER=mytrans.nl EASYTRANS_ENV=demo \
+EASYTRANS_USERNAME=user EASYTRANS_PASSWORD=pass \
+EASYTRANS_TEST_PRODUCTNO=2 EASYTRANS_TEST_CUSTOMERNO=3 \
+pytest tests/integration/ -m integration -v --no-cov
 ```
 
 ### Test Structure
 
 ```
 tests/
-├── conftest.py          # Pytest fixtures
-├── test_client.py       # Client functionality tests
-└── test_models.py       # Model serialization tests
+├── conftest.py                          # Unit-test fixtures (mocked responses)
+├── test_client.py                       # EasyTransClient unit tests
+├── test_models.py                       # Model serialisation unit tests
+└── integration/
+    ├── conftest.py                      # Real client fixture + auto-skip logic
+    ├── test_order_minimal.py            # Bare-minimum 2-destination order
+    ├── test_order_simple.py             # All common fields + one package
+    ├── test_order_extended.py           # 3 destinations, routed packages, rates/documents
+    ├── test_order_with_document.py      # base64 PDF attached to a destination
+    ├── test_order_batch.py              # Multiple orders in one request
+    ├── test_customer_simple.py          # Single customer, one contact
+    ├── test_customer_extended.py        # Two contacts with portal credentials
+    ├── test_customer_update.py          # Update existing customer record
+    └── test_error_paths.py             # Auth errors, unknown productno, missing fields
 ```
 
-### Writing Custom Tests
+### Writing Custom Unit Tests
 
 ```python
 import responses
@@ -521,14 +592,19 @@ def test_my_integration():
     responses.add(
         responses.POST,
         "https://mytrans.nl/demo/import_json.php",
-        json={"result": {...}},
+        json={"result": {"mode": "test", "total_orders": 1,
+                          "total_order_destinations": 2, "total_order_packages": 0,
+                          "result_description": "OK", "new_ordernos": [],
+                          "order_tracktrace": {}}},
         status=200,
     )
-    
-    # Test your code
-    client = EasyTransClient(...)
+
+    client = EasyTransClient(
+        server_url="mytrans.nl", environment_name="demo",
+        username="user", password="pass",
+    )
     result = client.import_orders([order])
-    
+
     assert result.total_orders == 1
 ```
 
