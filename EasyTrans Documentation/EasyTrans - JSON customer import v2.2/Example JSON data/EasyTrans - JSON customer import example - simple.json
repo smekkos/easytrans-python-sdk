@@ -1,0 +1,45 @@
+{
+	"comments": "EasyTrans Software JSON import format for customers",
+	"authentication": {
+		"username": "user1234",
+		"password": "abcd1234",
+		"type": "customer_import",
+		"mode": "test"
+	},
+	"customers": [
+		{
+			"company_name": "Example Company A",
+			"attn": "Administration",
+			"address": "Keizersgracht",
+			"houseno": "1a",
+			"address2": "2nd floor",
+			"postal_code": "1015CC",
+			"city": "Amsterdam",
+			"country": "NL",
+			"mail_address": "Postbus",
+			"mail_houseno": "73",
+			"mail_postal_code": "1010AA",
+			"mail_city": "Amsterdam",
+			"mail_country": "NL",
+			"website": "www.easytrans.nl",
+			"remark": "Customer remark",
+			"ibanno": "NL63INGB0004511811",
+			"bicno": "INGBNL2A",
+			"cocno": "50725769",
+			"vatno": "NL822891682B01",
+			"vat_liable": 1,
+			"customer_contacts": [
+				{
+					"salutation": 1,
+					"contact_name": "Bram Pietersen",
+					"telephone": "020-7654321",
+					"mobile": "06-12345678",
+					"email": "bram@easytrans.nl",
+					"use_email_for_invoice": true,
+                    "use_email_for_reminder": true,
+					"contact_remark": "Warehouse manager"
+				}
+			]
+		}
+	]
+}

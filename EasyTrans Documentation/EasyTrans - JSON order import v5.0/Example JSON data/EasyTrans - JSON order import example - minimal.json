@@ -1,0 +1,34 @@
+{
+	"comments": "EasyTrans Software JSON import format for orders",
+	"authentication": {
+		"username": "user1234",
+		"password": "abcd1234",
+		"type": "order_import",
+		"mode": "test",
+		"version": 2
+	},
+	"orders": [
+		{
+			"date": "2024-01-01",
+			"time": "14:45",
+			"status": "submit",
+			"productno": 2,
+			"order_destinations": [
+				{
+					"company_name": "Example company A",
+					"address": "Keizersgracht",
+					"houseno": "1a",
+					"postal_code": "1015CC",
+					"city": "Amsterdam"
+				},
+				{
+					"company_name": "Example company B",
+					"address": "Kanaalweg",
+					"houseno": "14",
+					"postal_code": "3526KL",
+					"city": "Utrecht"
+				}
+			]
+		}
+	]
+}

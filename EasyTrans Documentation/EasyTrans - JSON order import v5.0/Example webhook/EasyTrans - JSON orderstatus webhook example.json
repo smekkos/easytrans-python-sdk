@@ -1,0 +1,48 @@
+{
+	"companyId": 2000,
+	"eventTime": "2024-06-12T14:56:09+02:00",
+	"order": {
+		"orderNo": 1234,
+		"customerNo": 8,
+		"status": "finished",
+		"subStatusId": 12,
+		"subStatusName": "Delivered at the neighbours",
+		"destinations": [
+			{
+				"addressId": 28626,
+				"stopNo": 1,
+				"customerReference": "",
+				"waybillNo": "",
+				"notes": "Notes with the pickup destination",
+				"taskType": "pickup",
+				"taskResult": {
+					"date": "2024-06-11",
+					"arrivalTime": "10:00",
+					"departureTime": "10:15",
+					"signedBy": "Mr. Johnson",
+					"base64EncodedSignature": "",
+					"latitude": null,
+					"longitude": null
+				}
+			},
+			{
+				"addressId": 28627,
+				"stopNo": 2,
+				"customerReference": "ABCD1234",
+				"waybillNo": "NL1234567",
+				"notes": "Notes with the delivery destination",
+				"taskType": "delivery",
+				"taskResult": {
+					"date": "2024-06-12",
+					"arrivalTime": "16:00",
+					"departureTime": "16:15",
+					"signedBy": "Mike",
+					"base64EncodedSignature": "",
+					"latitude": "52.1234567",
+					"longitude": "5.1234567"
+				}
+			}
+		],
+		"externalId": "3625f9c9-f820-4cc7-8d9a-3849b21f7854"
+	}
+}

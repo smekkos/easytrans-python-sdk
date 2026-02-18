@@ -1,0 +1,192 @@
+{
+	"comments": "EasyTrans Software JSON import format for orders",
+	"authentication": {
+		"username": "user1234",
+		"password": "abcd1234",
+		"type": "order_import",
+		"mode": "test",
+		"return_rates": true,
+		"return_documents": "label10x15",
+		"version": 2
+	},
+	"orders": [
+		{
+			"date": "2024-01-01",
+			"time": "12:00",
+			"status": "save",
+			"productno": 1,
+			"customerno": 1,
+			"carrierno": 1,
+			"vehicleno": 1,
+			"fleetno": 1,
+			"substatusno": 1,
+			"remark": "Remarks on the delivery note",
+			"remark_invoice": "Remarks on the invoice",
+			"remark_internal": "Internal remarks",
+			"remark_purchase": "Purchase remarks",
+			"no_confirmation_email": false,
+			"email_receiver": "info@easytrans.nl",
+			"price": 65.85,
+			"price_description": "Transport price",
+			"purchase_price": 54.75,
+			"purchase_price_description": "Transport price",
+			"carrier_service": "",
+			"carrier_options": "",
+			"external_id": "3625f9c9-f820-4cc7-8d9a-3849b21f7854",
+			"order_destinations": [
+				{
+					"destinationno": 1,
+					"collect_deliver": 0,
+					"company_name": "Example company A",
+					"contact": "Mr. Johnson",
+					"address": "Keizersgracht",
+					"houseno": "1",
+					"addition": "a",
+					"address2": "2nd floor",
+					"postal_code": "1015CC",
+					"city": "Amsterdam",
+					"country": "NL",
+					"telephone": "020-1234567",
+					"destination_remark": "Call before arrival",
+					"customer_reference": "",
+					"delivery_date": "2024-01-01",
+					"delivery_time": "12:00",
+					"delivery_time_from": "09:00"
+				},
+				{
+					"destinationno": 2,
+					"collect_deliver": 2,
+					"company_name": "Example company B",
+					"contact": "Mr. Pietersen",
+					"address": "Kanaalweg",
+					"houseno": "14",
+					"addition": "",
+					"address2": "",
+					"postal_code": "3526KL",
+					"city": "Utrecht",
+					"country": "NL",
+					"telephone": "030-7654321",
+					"destination_remark": "Delivery at neighbours if not at home",
+					"customer_reference": "ABC1234",
+					"delivery_date": "2024-01-01",
+					"delivery_time": "15:00",
+					"delivery_time_from": "12:00"
+				},
+				{
+					"destinationno": 3,
+					"collect_deliver": 1,
+					"company_name": "Example company C",
+					"contact": "Mr. Klaassen",
+					"address": "Steenstraat",
+					"houseno": "17",
+					"addition": "",
+					"address2": "",
+					"postal_code": "6828CA",
+					"city": "Arnhem",
+					"country": "NL",
+					"telephone": "026-3456789",
+					"destination_remark": "",
+					"customer_reference": "DEF5678",
+					"delivery_date": "2024-01-02",
+					"delivery_time": "17:00",
+					"delivery_time_from": "15:00"
+				}
+			],
+			"order_packages": [
+				{
+					"collect_destinationno": 1,
+					"deliver_destinationno": 2,
+					"ratetypeno": 1,
+					"amount": 2,
+					"weight": 150,
+					"length": 120,
+					"width": 80,
+					"height": 50,
+					"description": "Euro pallet"
+				},
+				{
+					"collect_destinationno": 1,
+					"deliver_destinationno": 3,
+					"amount": 1,
+					"weight": 10,
+					"length": 40,
+					"width": 30,
+					"height": 20,
+					"description": "Box with brochures"
+				},
+				{
+					"collect_destinationno": 2,
+					"deliver_destinationno": 3,
+					"weight": "",
+					"length": "",
+					"width": "",
+					"height": "",
+					"description": "Mail"
+				}
+			]
+		},
+		{
+			"date": "2024-01-01",
+			"time": "14:45",
+			"status": "submit",
+			"productno": 2,
+			"customerno": 3,
+			"carrierno": 0,
+			"vehicleno": 0,
+			"fleetno": 0,
+			"substatusno": 0,
+			"remark": "1 Euro pallet with brochures",
+			"remark_invoice": "",
+			"remark_internal": "",
+			"remark_purchase": "",
+			"email_receiver": "info@example.nl",
+			"external_id": "3625f9c9-f820-4cc7-8d9a-3849b21f7854",
+			"order_destinations": [
+				{
+					"destinationno": 1,
+					"collect_deliver": 0,
+					"company_name": "Example company A",
+					"contact": "Mr. Johnson",
+					"address": "Keizersgracht",
+					"houseno": "1",
+					"addition": "a",
+					"address2": "2nd floor",
+					"postal_code": "1015CC",
+					"city": "Amsterdam",
+					"country": "NL",
+					"telephone": "020-1234567",
+					"destination_remark": "Call before arrival",
+					"customer_reference": ""
+				},
+				{
+					"destinationno": 2,
+					"collect_deliver": 1,
+					"company_name": "Example company B",
+					"contact": "Mr. Pietersen",
+					"address": "Kanaalweg",
+					"houseno": "14",
+					"addition": "",
+					"address2": "",
+					"postal_code": "3526KL",
+					"city": "Utrecht",
+					"country": "NL",
+					"telephone": "030-7654321",
+					"destination_remark": "Delivery at neighbours if not at home",
+					"customer_reference": "ABCD1234"
+				}
+			],
+			"order_packages": [
+				{
+					"collect_destinationno": "",
+					"deliver_destinationno": "",
+					"amount": 2,
+					"weight": 150,
+					"length": 120,
+					"width": 80,
+					"height": 50,
+					"description": "Euro pallet"
+				}
+			]
+		}
+	]
+}

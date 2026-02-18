@@ -1,0 +1,42 @@
+{
+	"info": {
+		"_postman_id": "2ff3d901-b3a7-4753-8d9a-b1fba92ffb5b",
+		"name": "EasyTrans - JSON customer import - Postman example",
+		"description": "EasyTrans Software B.V.  \nWeb: [www.easytrans.nl](http://www.easytrans.nl) / [www.easytrans.co.uk](http://www.easytrans.co.uk)  \nMail: [info@easytrans.nl](https://mailto:info@easytrans.nl) / [info@easytrans.co.uk](https://mailto:info@easytrans.co.uk)  \nPhone: +31 85 0479 475 / +44 20 3966 3373\n\nExample of the use of the JSON Customer import API using Postman.\n\n**Please note:** You need to replace the request URL with the URL that is used by your carrier.\n\nFull documentation is available on: [https://www.easytrans.nl/kennisbank/koppelingen/module-koppeling-externe-systemen/developers-api-documentation/](https://www.easytrans.nl/kennisbank/koppelingen/module-koppeling-externe-systemen/developers-api-documentation/)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "2920751",
+		"_collection_link": "https://www.postman.com/easytrans/workspace/easytrans-api/collection/2920751-2ff3d901-b3a7-4753-8d9a-b1fba92ffb5b?action=share&source=collection_link&creator=2920751"
+	},
+	"item": [
+		{
+			"name": "EasyTrans - JSON customer import - Postman example",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"authentication\": {\r\n        \"username\": \"user1234\",\r\n        \"password\": \"abcd1234\",\r\n        \"type\": \"customer_import\",\r\n        \"mode\": \"test\"\r\n    },\r\n    \"customers\": [\r\n        {\r\n            \"company_name\": \"Example Company A\",\r\n            \"attn\": \"Administration\",\r\n            \"address\": \"Keizersgracht\",\r\n            \"houseno\": \"1a\",\r\n            \"address2\": \"2nd floor\",\r\n            \"postal_code\": \"1015CC\",\r\n            \"city\": \"Amsterdam\",\r\n            \"country\": \"NL\",\r\n            \"mail_address\": \"Postbus\",\r\n            \"mail_houseno\": \"73\",\r\n            \"mail_postal_code\": \"1010AA\",\r\n            \"mail_city\": \"Amsterdam\",\r\n            \"mail_country\": \"NL\",\r\n            \"website\": \"www.easytrans.nl\",\r\n            \"remark\": \"Customer remark\",\r\n            \"ibanno\": \"NL63INGB0004511811\",\r\n            \"bicno\": \"INGBNL2A\",\r\n            \"bankno\": \"4511811\",\r\n            \"uk_sort_code\": \"12-34-56\",\r\n            \"cocno\": \"50725769\",\r\n            \"vatno\": \"NL822891682B01\",\r\n            \"eorino\": \"NL822891682\",\r\n            \"payment_method\": \"bank_transfer\",\r\n            \"vat_liable\": 1,\r\n            \"language\": \"nl\",\r\n            \"customer_contacts\": [\r\n                {\r\n                    \"salutation\": 1,\r\n                    \"contact_name\": \"Bram Pietersen\",\r\n                    \"telephone\": \"020-7654321\",\r\n                    \"mobile\": \"06-12345678\",\r\n                    \"email\": \"bram@easytrans.nl\",\r\n                    \"use_email_for_invoice\": true,\r\n                    \"use_email_for_reminder\": true,\r\n                    \"contact_remark\": \"Warehouse manager\"\r\n                }\r\n            ]\r\n        }\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://www.mytrans.nl/demo/import_json.php",
+					"protocol": "https",
+					"host": [
+						"www",
+						"mytrans",
+						"nl"
+					],
+					"path": [
+						"demo",
+						"import_json.php"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
