@@ -7,10 +7,12 @@ A pure Python SDK for integrating with **EasyTrans Software** (Dutch TMS - Trans
 
 ## Features
 
-✅ **Pure Python** - Framework-agnostic, works with Django, Flask, FastAPI, or standalone  
-✅ **Strongly Typed** - Dataclass models with full type hints  
-✅ **Error Handling** - Specific exceptions for all API error codes  
-✅ **Webhook Support** - Parse and validate status update webhooks  
+✅ **Pure Python** - Framework-agnostic, works with Django, Flask, FastAPI, or standalone
+✅ **Strongly Typed** - Dataclass models with full type hints
+✅ **Error Handling** - Specific exceptions for all API error codes
+✅ **Webhook Support** - Parse and validate status update webhooks
+✅ **Unified client** - JSON Import API and REST API in one object — zero extra configuration
+✅ **REST API** - Read orders, customers, carriers, invoices, reference data from `/api/v1/`
 
 ## Installation
 
@@ -59,6 +61,14 @@ print(f"Order created: {result.new_ordernos[0]}")
 - [Authentication](#authentication)
 - [Order Management](#order-management)
 - [Customer Management](#customer-management)
+- [REST API](#rest-api)
+  - [Reading Orders](#reading-orders)
+  - [Filtering and Sorting](#filtering-and-sorting)
+  - [Pagination](#pagination)
+  - [Updating an Order](#updating-an-order)
+  - [Reference Data](#reference-data)
+  - [Customers Carriers and Fleet](#customers-carriers-and-fleet)
+  - [Invoices](#invoices)
 - [Webhook Handling](#webhook-handling)
 - [Django Integration](#django-integration)
 - [Error Handling](#error-handling)
@@ -268,6 +278,195 @@ customer = Customer(
 result = client.import_customers([customer], mode="effect")
 ```
 
+## REST API
+
+The REST API (`/api/v1/`) lets you **read** data from EasyTrans — orders, customers,
+carriers, invoices, and reference data. It uses the same credentials as the
+JSON Import API; no extra configuration is needed.
+
+> **Account types**
+> - **Customer accounts**: access orders, products, substatuses, package types, vehicle types, invoices.
+> - **Branch accounts**: the above plus customers, carriers, and fleet.
+
+### Reading Orders
+
+```python
+from easytrans import EasyTransClient
+
+client = EasyTransClient(
+    server_url="mytrans.nl",
+    environment_name="production",
+    username="your_username",
+    password="your_password",
+)
+
+# List all orders (paginated, 100 per page)
+response = client.get_orders()
+print(f"Total orders: {response.meta.total}")
+
+for order in response.data:
+    print(order.attributes.order_no, order.attributes.status)
+
+# Single order with Track & Trace history
+order = client.get_order(35558, include_track_history=True)
+print(f"Status:    {order.attributes.status}")
+print(f"Tracking:  {order.attributes.tracking_id}")
+for event in order.attributes.track_history:
+    print(f"  {event.date} {event.time}  {event.name}  ({event.location})")
+
+# With embedded customer and sales rates
+order = client.get_order(
+    35558,
+    include_customer=True,
+    include_sales_rates=True,
+)
+print(order.attributes.customer.company_name)
+print(order.attributes.sales_rates[0].description)
+```
+
+### Filtering and Sorting
+
+```python
+# Simple equality filter
+response = client.get_orders(filter={"status": "planned"})
+
+# Comparison operators: gte, gt, lte, lt, neq
+response = client.get_orders(filter={"date": {"gte": "2024-01-01"}})
+
+# Range filter
+response = client.get_orders(
+    filter={"orderNo": {"gte": 1000, "lt": 2000}}
+)
+
+# Multiple filters combined
+response = client.get_orders(
+    filter={
+        "status": "planned",
+        "date": {"gte": "2024-01-01"},
+    },
+    sort="-date",                  # descending date
+    include_track_history=True,
+)
+
+# Sort by multiple fields
+response = client.get_orders(sort="status,-date")
+```
+
+### Pagination
+
+```python
+# Manual pagination
+page = 1
+while True:
+    response = client.get_orders(page=page)
+    for order in response.data:
+        process(order)
+    if not response.has_next:
+        break
+    page += 1
+
+# Or check links directly
+response = client.get_orders()
+if response.links.next:
+    next_page = client.get_orders(page=response.meta.current_page + 1)
+```
+
+### Updating an Order
+
+Updating is available for **branch accounts** only.
+
+```python
+# Assign a carrier
+order = client.update_order(35558, carrier_no=44)
+
+# Remove a carrier
+order = client.update_order(35558, carrier_no=0)
+
+# Update notes
+order = client.update_order(
+    35558,
+    waybill_notes="3 pallets — handle with care",
+    internal_notes="Check delivery window before dispatch",
+    external_id="my-erp-ref-001",
+)
+
+# Update a specific destination
+order = client.update_order(
+    35558,
+    destinations=[
+        {"stopNo": 2, "date": "2024-12-31", "fromTime": "09:00", "toTime": "12:00"}
+    ],
+)
+```
+
+### Reference Data
+
+```python
+# Products
+products = client.get_products()
+product  = client.get_product(1)
+
+# Substatuses
+substatuses = client.get_substatuses(filter_name="Depot")
+substatus   = client.get_substatus(12)
+
+# Package types
+package_types = client.get_package_types(filter_name="Europallet")
+package_type  = client.get_package_type(18)
+
+# Vehicle types
+vehicle_types = client.get_vehicle_types()
+vehicle_type  = client.get_vehicle_type(2)
+```
+
+### Customers, Carriers and Fleet
+
+Branch accounts only.
+
+```python
+# Customers
+customers = client.get_customers(
+    filter={"companyName": "EasyTrans"},
+    sort="companyName",
+)
+customer = client.get_customer(2001)
+print(customer.business_address.city)
+print(customer.contacts[0].email)
+
+# Carriers
+carriers = client.get_carriers()
+carrier  = client.get_carrier(44)
+print(carrier.carrier_attributes)   # e.g. ["charter_regular", "refrigerated"]
+
+# Fleet
+fleet   = client.get_fleet(filter_registration="VH-")
+vehicle = client.get_fleet_vehicle(5)
+print(vehicle.name, vehicle.license_plate)
+```
+
+### Invoices
+
+```python
+# List invoices with date filter
+invoices = client.get_invoices(
+    filter={"invoiceDate": {"gte": "2024-01-01"}},
+    include_customer=True,
+)
+for inv in invoices.data:
+    print(inv.invoice_no, inv.total_amount, inv.paid)
+
+# Download invoice PDF (base64-encoded)
+import base64
+
+invoice = client.get_invoice(284, include_invoice_pdf=True)
+if invoice.invoice_pdf:
+    pdf_bytes = base64.b64decode(invoice.invoice_pdf)
+    with open(f"invoice_{invoice.invoice_no}.pdf", "wb") as f:
+        f.write(pdf_bytes)
+```
+
+---
+
 ## Webhook Handling
 
 EasyTrans sends webhooks when order status changes (collected, delivered, etc.).
@@ -405,12 +604,39 @@ except EasyTransAPIError as e:
 ```
 EasyTransError (base)
 ├── EasyTransAPIError (HTTP/network errors)
-├── EasyTransAuthError (authentication failures)
-├── EasyTransValidationError (general validation)
-├── EasyTransOrderError (order validation)
-├── EasyTransDestinationError (destination validation)
-├── EasyTransPackageError (package validation)
-└── EasyTransCustomerError (customer validation)
+│   ├── EasyTransNotFoundError   (REST 404 — resource not found)
+│   └── EasyTransRateLimitError  (REST 429 — 60 req/min exceeded)
+├── EasyTransAuthError (authentication failures — JSON errorno 10-19, REST 401)
+├── EasyTransValidationError (general validation — JSON errorno 5, REST 422)
+├── EasyTransOrderError (order validation — JSON errorno 20-29)
+├── EasyTransDestinationError (destination validation — JSON errorno 30-39)
+├── EasyTransPackageError (package validation — JSON errorno 40-45)
+└── EasyTransCustomerError (customer validation — JSON errorno 50-65)
+```
+
+Use a single `except EasyTransError` to catch all SDK errors, or catch specific
+subclasses for targeted handling:
+
+```python
+from easytrans import (
+    EasyTransAuthError,
+    EasyTransNotFoundError,
+    EasyTransRateLimitError,
+    EasyTransValidationError,
+)
+import time
+
+try:
+    order = client.get_order(order_no)
+except EasyTransNotFoundError:
+    print(f"Order {order_no} does not exist")
+except EasyTransRateLimitError:
+    time.sleep(60)
+    order = client.get_order(order_no)   # retry after back-off
+except EasyTransAuthError:
+    print("Check your username / password")
+except EasyTransValidationError as exc:
+    print(f"Invalid data: {exc}")
 ```
 
 ## API Reference
@@ -657,6 +883,24 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **EasyTrans Support**: support@easytrans.nl
 
 ## Changelog
+
+### Version 1.1.0 (2026-02-18)
+
+- **REST API integration** — all 19 branch/customer REST endpoints accessible
+  from the same `EasyTransClient` with zero extra configuration
+- New read methods: `get_orders`, `get_order`, `update_order`,
+  `get_customers`, `get_customer`, `get_carriers`, `get_carrier`,
+  `get_fleet`, `get_fleet_vehicle`, `get_products`, `get_product`,
+  `get_substatuses`, `get_substatus`, `get_package_types`, `get_package_type`,
+  `get_vehicle_types`, `get_vehicle_type`, `get_invoices`, `get_invoice`
+- New response models in `easytrans.rest_models`:
+  `RestOrder`, `RestCustomer`, `RestCarrier`, `RestInvoice`, `RestProduct`,
+  `RestSubstatus`, `RestPackageType`, `RestVehicleType`, `RestFleetVehicle`,
+  `PagedResponse`, `PaginationLinks`, `PaginationMeta`, and supporting types
+- New exceptions: `EasyTransNotFoundError` (404), `EasyTransRateLimitError` (429)
+- New constants: `RestOrderStatus`, `TaskType`
+- Comprehensive unit tests for REST models and mocked client methods
+- Integration tests for all REST resource groups
 
 ### Version 1.0.0 (2026-02-18)
 

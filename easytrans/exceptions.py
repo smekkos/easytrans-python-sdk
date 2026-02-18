@@ -132,3 +132,30 @@ class EasyTransCustomerError(EasyTransError):
     """
 
     pass
+
+
+# ---------------------------------------------------------------------------
+# REST API exceptions (HTTP status-code driven)
+# ---------------------------------------------------------------------------
+
+
+class EasyTransNotFoundError(EasyTransAPIError):
+    """
+    HTTP 404 — The requested resource does not exist.
+
+    Raised when a REST API endpoint returns a 404 response, e.g. when
+    fetching an order, customer, or invoice with an unknown identifier.
+    """
+
+    pass
+
+
+class EasyTransRateLimitError(EasyTransAPIError):
+    """
+    HTTP 429 — Rate limit exceeded.
+
+    EasyTrans enforces a maximum of 60 REST API requests per minute.
+    Back off and retry after a short delay when this is raised.
+    """
+
+    pass

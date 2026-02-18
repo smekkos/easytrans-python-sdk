@@ -1,0 +1,4303 @@
+{
+  "info": {
+    "title": "EasyTrans Documentation",
+    "description": "Base URL : https://www.mytrans.nl/demo/api Welcome to the EasyTrans REST API documentation! REST API to communicate with the EasyTrans Transport Management System. This documentation explains the various endpoints that are available. As you scroll down, you will see code examples for working with the API in different programming languages. Every EasyTrans account has its own URL and therefore also its own API base URL. The API URL is made up out of the following parts: https://www.YOUR_SERVER/YOUR_ENVIRONMENT/api/v1/ Please make sure that you have the correct URL of your carrier when you start making requests. If you are unsure which URL to use, please contact EasyTrans Software. Please note: The REST API is not active by default. A request for activation can be done by sending an e-mail to the address in the Contact section below. Non-backward compatible API changes will result in a new v2 URL, which will lead to updated API documentation. For now, only /api/v1/ is active. New and updated functionality in this API version can be found in the Changelog below. The EasyTrans API is only accessible through HTTPS and requests and responses are always JSON formatted. This API is written for three types of users: 1. EasyTrans users (branch accounts) Branch accounts are mainly used to connect EasyTrans to other systems that the carrier uses, such as CRM or WMS software, or a customized Web Portal. 2. The customers of EasyTrans users (customer accounts) Customer accounts are generally used to connect Web shops, ERP systems or any other software that the carrier’s customer uses. 3. The carriers of EasyTrans users (carrier accounts) Carrier accounts are used by the final party that carries out the transport. A carrier account is generally used to provide updates about the status of an order. Some methods and data are only available to specific accounts, such as customer data or order updates by carrier. A maximum of 60 requests per minute is allowed. A 429 Too Many Requests response will be given if the amount is exceeded. The EasyTrans API is a work in progress. We add new functionality based on the needs of our customers. Is information currently missing or do you need certain functionality that is not yet available? Please contact us to discuss the possibilities. Contact For more information about our API, you can contact EasyTrans via: Netherlands/Belgium: www.easytrans.nl - info@easytrans.nl United Kingdom: www.easytrans.co.uk - info@easytrans.co.uk php",
+    "base_url": "https://www.mytrans.nl/demo/api",
+    "version": "v1"
+  },
+  "endpoints": [
+    {
+      "tag": "Orders (Customer or branch account)",
+      "summary": "Get list of orders",
+      "method": "GET",
+      "path": "/v1/orders",
+      "description": "This endpoint returns all orders for the authenticated customer or branch account. The result can be filtered by the filter options below. A combination of filters is also allowed. For some filters you can filter on multiple values by separating them with a comma. For example: ?filter[orderNo]=1,2,3 You can also use the following operators on any integer or date type filter, by placing them behind the name of the filter: [gte] = Greater than or equal [gt] = Greater than [lte] = Less than or equal [lt] = Less than [neq] = Not equal For example: ?filter[date][gte]=2023-12-01 returns all orders with an order date starting from this date. Operators can also be combined. For example: ?filter[orderNo][gte]=1000&filter[orderNo][lt]=2000 returns all orders between 1000 and 1999. The result can be sorted by the sort names below. The result is paginated by 100 orders.",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [],
+      "query_parameters": [
+        {
+          "name": "filter",
+          "type": "object",
+          "required": false,
+          "description": "Fields to filter by",
+          "example": "[]"
+        },
+        {
+          "name": "filter.orderNo",
+          "type": "integer",
+          "required": false,
+          "description": "Filter by order number. Multiple orders can be retrieved by separating the order numbers with a comma or by using operators. Use the [gte] operator to retrieve all orders starting from this order number ?filter[orderNo][gte]=1234 .",
+          "example": "35558"
+        },
+        {
+          "name": "filter.date",
+          "type": "string",
+          "required": false,
+          "description": "Filter by order date. Use the [gte] operator to retrieve all orders starting from this date ?filter[date][gte]=2023-12-01 .",
+          "example": "2023-12-01"
+        },
+        {
+          "name": "filter.createdAt",
+          "type": "string",
+          "required": false,
+          "description": "Filter by created at timestamp. Use the [gte] operator to retrieve all orders that where created since this timestamp ?filter[createdAt][gte]=2023-12-01T10:05:01 .",
+          "example": "2023-12-01T10:05:01"
+        },
+        {
+          "name": "filter.updatedAt",
+          "type": "string",
+          "required": false,
+          "description": "Filter by updated at timestamp. Use the [gte] operator to retrieve all orders that where last updated since this timestamp ?filter[updatedAt][gte]=2023-12-01T10:05:01 .",
+          "example": "2023-12-01T10:05:01"
+        },
+        {
+          "name": "filter.status",
+          "type": "string",
+          "required": false,
+          "description": "Filter by order status. Possible values for customer accounts are: quote, saved-weborder, pending-acceptation, in-progress, finished. Possible values for branch accounts are: quote, saved-weborder, pending-acceptation, open, planned, signed-off, checked, invoiced. Multiple statuses can be retrieved by separating the statuses with a comma ?filter[status]=quote,saved-weborder .",
+          "example": "planned"
+        },
+        {
+          "name": "filter.substatusNo",
+          "type": "integer",
+          "required": false,
+          "description": "Filter by order substatus number. Multiple substatus numbers can be retrieved by separating the numbers with a comma or by using operators.",
+          "example": "12"
+        },
+        {
+          "name": "filter.customerReference",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the customer reference field from the order destinations.",
+          "example": "ABCDE12345"
+        },
+        {
+          "name": "filter.productNo",
+          "type": "integer",
+          "required": false,
+          "description": "Filter by product number. Multiple product numbers can be retrieved by separating the numbers with a comma or by using operators.",
+          "example": "1"
+        },
+        {
+          "name": "filter.vehicleTypeNo",
+          "type": "integer",
+          "required": false,
+          "description": "Filter by vehicle type number. Multiple vehicle type numbers can be retrieved by separating the numbers with a comma or by using operators.",
+          "example": "2"
+        },
+        {
+          "name": "filter.waybillNotes",
+          "type": "string",
+          "required": false,
+          "description": "Filter by any part of text from the notes on the waybill.",
+          "example": "16 boxes"
+        },
+        {
+          "name": "filter.invoiceNotes",
+          "type": "string",
+          "required": false,
+          "description": "Filter by any part of text from the notes on the invoice.",
+          "example": "12345"
+        },
+        {
+          "name": "filter.customerNo",
+          "type": "integer",
+          "required": false,
+          "description": "Filter by customer number (only with branch account). Multiple customer numbers can be retrieved by separating the numbers with a comma or by using operators.",
+          "example": "2001"
+        },
+        {
+          "name": "filter.carrierNo",
+          "type": "integer",
+          "required": false,
+          "description": "Filter by carrier number (only with branch account). Multiple carrier numbers can be retrieved by separating the numbers with a comma or by using operators.",
+          "example": "44"
+        },
+        {
+          "name": "filter.fleetNo",
+          "type": "integer",
+          "required": false,
+          "description": "Filter by fleet number (only with branch account). Multiple fleet numbers can be retrieved by separating the numbers with a comma or by using operators.",
+          "example": "5"
+        },
+        {
+          "name": "filter.invoiceId",
+          "type": "integer",
+          "required": false,
+          "description": "Filter by invoice Id. The invoice Id is an internal number that can be used to retrieve the orders that correspond to an invoice. Multiple invoice Id's can be retrieved by separating the invoice Id with a comma or by using operators.",
+          "example": null
+        },
+        {
+          "name": "filter.externalId",
+          "type": "string",
+          "required": false,
+          "description": "Filter by external Id. Multiple orders can be retrieved by separating the values with a comma or by using operators (only when numeric).",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        {
+          "name": "sort",
+          "type": "string",
+          "required": false,
+          "description": "Sort the response. The result can be sorted by the following property names: orderNo, date (also includes time), createdAt, updatedAt, status, substatusNo, productNo, vehicleTypeNo, waybillNotes, invoiceNotes, invoiceId, externalId. Additionally, a branch account can also sort by: customerNo, carrierNo, fleetNo. Sorting is ascending by default and can be reversed by adding a hyphen (-) to the start of the property name. You can sort by multiple properties by separating them with a comma ?sort=status,-date .",
+          "example": "status,-date"
+        },
+        {
+          "name": "include_customer",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, returns the customer details.",
+          "example": "true"
+        },
+        {
+          "name": "include_carrier",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, returns the carrier details (only with branch account).",
+          "example": "true"
+        },
+        {
+          "name": "include_track_history",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, returns an array with the available order Track & Trace history.",
+          "example": "true"
+        },
+        {
+          "name": "include_sales_rates",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, returns an array with the sales rates.",
+          "example": "true"
+        },
+        {
+          "name": "include_purchase_rates",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, returns an array with the purchase rates (only with branch account).",
+          "example": "false"
+        },
+        {
+          "name": "include_deleted",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, also returns orders that have been marked as deleted, with an additional isDeleted attribute (only with branch account).",
+          "example": "false"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [
+        {
+          "name": "createdAt",
+          "type": "string",
+          "required": false,
+          "description": "Order creation timestamp in ISO 8601 date format.",
+          "example": null
+        },
+        {
+          "name": "updatedAt",
+          "type": "string",
+          "required": false,
+          "description": "Order last updated timestamp in ISO 8601 date format.",
+          "example": null
+        },
+        {
+          "name": "date",
+          "type": "string",
+          "required": false,
+          "description": "Order date. Date on which the order needs to be performed. Usually the date on which the carrier needs to be at the pickup address. Dates are in the form ‘yyyy-mm-dd’.",
+          "example": null
+        },
+        {
+          "name": "time",
+          "type": "string",
+          "required": false,
+          "description": "Order time. Time on which the order starts. This is usually the time on which the carrier needs to arrive at the pickup address. Times are in the form ‘hh:mm’ and are local time.",
+          "example": null
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": false,
+          "description": "Order status. For customer accounts, the options are: - quote - saved-weborder (not yet send to the planning) - pending-acceptation (send to the planning but not yet accepted) - in-progress - finished For branch accounts, the options are: - quote - saved-weborder (not yet send to the planning) - pending-acceptation (send to the planning but not yet accepted) - open - planned - signed-off - checked - invoiced",
+          "example": null
+        },
+        {
+          "name": "substatusName",
+          "type": "string",
+          "required": false,
+          "description": "Optional extra order status, such as ‘Delivered at the neighbours’.",
+          "example": null
+        },
+        {
+          "name": "collected",
+          "type": "boolean",
+          "required": false,
+          "description": "Indicates the driver has picked-up the goods (goods on board).",
+          "example": null
+        },
+        {
+          "name": "distance",
+          "type": "integer",
+          "required": false,
+          "description": "Distance in kilometres for EU or miles for UK.",
+          "example": null
+        },
+        {
+          "name": "trackingId",
+          "type": "string",
+          "required": false,
+          "description": "Contains the Track & Trace number used to track the actual order status. A Track & Trace link can be generated by using the trackingId in the following URL format: https://www.YOUR_SERVER/YOUR_ENVIRONMENT/tracktrace.php?trackingnr=trackingId",
+          "example": null
+        },
+        {
+          "name": "userId,carrierNo,carrierUserId,fleetNo,orderPurchasePrice,purchaseInvoiceNotes,internalNotes,carrierNotes,readyForPurchaseInvoice,usernameCreated,usernameAssigned",
+          "type": "",
+          "required": false,
+          "description": "Only visible with branch accounts.",
+          "example": null
+        }
+      ],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": [
+              {
+                "type": "order",
+                "id": 35558,
+                "createdAt": "2023-12-01T10:05:01+01:00",
+                "updatedAt": "2023-12-01T10:05:01+01:00",
+                "attributes": {
+                  "orderNo": 35558,
+                  "date": "2023-12-01",
+                  "time": "08:00",
+                  "status": "planned",
+                  "substatusNo": 12,
+                  "substatusName": "Out for delivery",
+                  "collected": true,
+                  "productNo": 1,
+                  "productName": "Direct transport",
+                  "customerNo": 2001,
+                  "customerUserId": 271,
+                  "carrierNo": 44,
+                  "carrierUserId": 5,
+                  "branchNo": 0,
+                  "vehicleTypeNo": 2,
+                  "vehicleTypeName": "Small Van",
+                  "fleetNo": 5,
+                  "waybillNotes": "3 pallets and 16 boxes",
+                  "invoiceNotes": "P/O number: A12345",
+                  "purchaseInvoiceNotes": "Payment period 30 days",
+                  "internalNotes": "Upload POD before signing-off",
+                  "recipientEmail": "info@example.com",
+                  "distance": 99,
+                  "orderPrice": "132.48",
+                  "orderPurchasePrice": "294.82",
+                  "prepaidAmount": "0.00",
+                  "readyForPurchaseInvoice": true,
+                  "usernameCreated": "Demo planner",
+                  "usernameAssigned": "Demo planner",
+                  "invoiceId": 0,
+                  "trackingId": "GIYDAMJNGM2TKNJY",
+                  "externalId": "550e8400-e29b-41d4-a716-446655440000",
+                  "destinations": [
+                    {
+                      "addressId": 28416,
+                      "stopNo": 1,
+                      "taskType": "pickup",
+                      "company": "Demo customer",
+                      "contact": "Mr. Johnson",
+                      "address": "Keulenstraat",
+                      "houseno": "1",
+                      "address2": "Office A3.5",
+                      "postcode": "7418 ET",
+                      "city": "DEVENTER",
+                      "country": "NL",
+                      "location": {
+                        "latitude": 6.1941298,
+                        "longitude": 52.2366999
+                      },
+                      "phone": "+3185 - 0479 475",
+                      "notes": "",
+                      "customerReference": "ABCDE12345",
+                      "waybillNo": "",
+                      "date": "2024-12-31",
+                      "fromTime": "10:00",
+                      "toTime": "10:00",
+                      "eta": null,
+                      "deliveryDate": null,
+                      "deliveryTime": null,
+                      "departureTime": null,
+                      "deliveryName": "",
+                      "signatureUrl": false,
+                      "photos": [],
+                      "documents": [],
+                      "carrierNotes": ""
+                    },
+                    {
+                      "addressId": 28417,
+                      "stopNo": 2,
+                      "taskType": "delivery",
+                      "company": "Gamma Duiven",
+                      "contact": "Piet Klaassen",
+                      "address": "Lithograaf",
+                      "houseno": "1",
+                      "address2": "",
+                      "postcode": "6921 VA",
+                      "city": "DUIVEN",
+                      "country": "NL",
+                      "location": {
+                        "latitude": 6.0136513,
+                        "longitude": 51.959888
+                      },
+                      "phone": "+3185 - 0479 475",
+                      "notes": "Delivery at warehouse",
+                      "customerReference": "",
+                      "waybillNo": "123456",
+                      "date": "2024-12-31",
+                      "fromTime": "16:40",
+                      "toTime": "17:30",
+                      "eta": "00:00",
+                      "deliveryDate": null,
+                      "deliveryTime": "16:48",
+                      "departureTime": "17:06",
+                      "deliveryName": "Mr. Johnson",
+                      "signatureUrl": false,
+                      "photos": [],
+                      "documents": [],
+                      "carrierNotes": "Delivered at the neighbours"
+                    }
+                  ],
+                  "goods": [
+                    {
+                      "packageId": 21370,
+                      "packageNo": 1,
+                      "pickupDestination": 1,
+                      "deliveryDestination": 2,
+                      "amount": 16,
+                      "packageTypeNo": 1,
+                      "packageTypeName": "Colli",
+                      "weight": 10,
+                      "length": 50,
+                      "width": 40,
+                      "height": 30,
+                      "description": "Describe the contents of the box."
+                    },
+                    {
+                      "packageId": 21371,
+                      "packageNo": 2,
+                      "pickupDestination": 1,
+                      "deliveryDestination": 2,
+                      "amount": 0,
+                      "packageTypeNo": 18,
+                      "packageTypeName": "Europallet",
+                      "weight": 500,
+                      "length": 120,
+                      "width": 80,
+                      "height": 100,
+                      "description": ""
+                    }
+                  ],
+                  "customer": {
+                    "type": "customer",
+                    "id": 2001,
+                    "createdAt": "2023-12-01T10:05:01+01:00",
+                    "updatedAt": "2023-12-01T10:05:01+01:00",
+                    "attributes": {
+                      "customerNo": 2001,
+                      "companyName": "EasyTrans Software B.V.",
+                      "businessAddress": {
+                        "address": "Keulenstraat",
+                        "houseno": "1",
+                        "address2": "Kantoor A3.5",
+                        "postcode": "7418 ET",
+                        "city": "DEVENTER",
+                        "country": "NL"
+                      },
+                      "mailingAddress": {
+                        "attn": "Accounts Payable",
+                        "address": "Keulenstraat",
+                        "houseno": "1",
+                        "address2": "Kantoor A3.5",
+                        "postcode": "7418 ET",
+                        "city": "Deventer",
+                        "country": "NL"
+                      },
+                      "website": "www.easytrans.nl",
+                      "debtorNo": "123475",
+                      "paymentReference": "ABCD1234",
+                      "paymentPeriod": 21,
+                      "paymentPeriodEndOfMonth": false,
+                      "ibanNo": "NL63INGB0004511811",
+                      "bicCode": "INGBNL2A",
+                      "bankNo": "",
+                      "ukSortCode": "",
+                      "vatNo": "NL864120576B01",
+                      "vatLiable": true,
+                      "vatLiableCode": 1,
+                      "chamberOfCommerceNo": "86861239",
+                      "eoriNo": "",
+                      "language": "en",
+                      "notes": "Register at reception before loading",
+                      "crmNotes": "Agreed rates based on 50 orders per month",
+                      "invoiceSurcharge": 5.5,
+                      "active": true,
+                      "contacts": [
+                        {
+                          "userId": 271,
+                          "contactNo": 1,
+                          "salutation": 0,
+                          "name": "Demo user",
+                          "phone": "+3185 - 0479 475",
+                          "mobile": "+316 - 123 456 78",
+                          "email": "info@easytrans.nl",
+                          "useEmailForInvoice": false,
+                          "useEmailForReminder": false,
+                          "notes": "Head of logistics",
+                          "username": "klant"
+                        }
+                      ],
+                      "externalId": "550e8400-e29b-41d4-a716-446655440000"
+                    }
+                  },
+                  "carrier": {
+                    "type": "carrier",
+                    "id": 44,
+                    "createdAt": "2023-12-01T10:05:01+01:00",
+                    "updatedAt": "2023-12-01T10:05:01+01:00",
+                    "attributes": {
+                      "carrierNo": 44,
+                      "name": "External carrier",
+                      "businessAddress": {
+                        "address": "Keulenstraat",
+                        "houseno": "1",
+                        "address2": "",
+                        "postcode": "7418 ET",
+                        "city": "DEVENTER",
+                        "country": "NL"
+                      },
+                      "mailingAddress": {
+                        "attn": "",
+                        "address": "Keulenstraat",
+                        "houseno": "1",
+                        "address2": "",
+                        "postcode": "7418 ET",
+                        "city": "Deventer",
+                        "country": "NL"
+                      },
+                      "phone": "+3185 - 0479 475",
+                      "mobile": "",
+                      "email": "info@easytrans.nl",
+                      "emailPurchaseInvoice": "",
+                      "website": "www.easytrans.nl",
+                      "notes": "Available Mon-Thu",
+                      "creditorNo": "123475",
+                      "paymentPeriod": 30,
+                      "paymentPeriodEndOfMonth": false,
+                      "ibanNo": "NL63INGB0004511811",
+                      "bicCode": "INGBNL2A",
+                      "bankNo": "",
+                      "ukSortCode": "",
+                      "vatNo": "NL864120576B01",
+                      "vatLiable": true,
+                      "vatLiableCode": 1,
+                      "chamberOfCommerceNo": "86861239",
+                      "licenseNo": "123456789",
+                      "carrierAttributes": [
+                        "charter_regular",
+                        "refrigerated"
+                      ],
+                      "language": "nl",
+                      "active": true,
+                      "contacts": [
+                        {
+                          "userId": 5,
+                          "name": "Contact one",
+                          "phone": "+3185 - 0479 475",
+                          "mobile": "",
+                          "email": "info@easytrans.nl",
+                          "notes": "Available Mon-Thu",
+                          "username": "import"
+                        }
+                      ],
+                      "externalId": "18aa59a6-7eef-4491-837a-8ac2f04c0b6e"
+                    }
+                  },
+                  "salesRates": [
+                    {
+                      "rateNo": 0,
+                      "description": "Parking costs",
+                      "ratePerUnit": "0.00000",
+                      "subTotal": "10.00",
+                      "isMinimumAmount": false,
+                      "isPercentage": false
+                    },
+                    {
+                      "rateNo": 388,
+                      "description": "Distance Small Van",
+                      "ratePerUnit": "0.51000",
+                      "subTotal": "50.49",
+                      "isMinimumAmount": false,
+                      "isPercentage": false
+                    },
+                    {
+                      "rateNo": 391,
+                      "description": "Additional insurance",
+                      "ratePerUnit": "3.00000",
+                      "subTotal": "1.51",
+                      "isMinimumAmount": false,
+                      "isPercentage": true
+                    },
+                    {
+                      "rateNo": 642,
+                      "description": "Toll costs",
+                      "ratePerUnit": "25.00000",
+                      "subTotal": "25.00",
+                      "isMinimumAmount": false,
+                      "isPercentage": false
+                    },
+                    {
+                      "rateNo": 4,
+                      "description": "Waiting time",
+                      "ratePerUnit": "0.80000",
+                      "subTotal": "48.00",
+                      "isMinimumAmount": false,
+                      "isPercentage": false
+                    },
+                    {
+                      "rateNo": 345,
+                      "description": "Discount",
+                      "ratePerUnit": "-5.00000",
+                      "subTotal": "-2.52",
+                      "isMinimumAmount": false,
+                      "isPercentage": true
+                    }
+                  ],
+                  "trackHistory": [
+                    {
+                      "trackId": 6094,
+                      "name": "Order created",
+                      "location": "Deventer",
+                      "date": "2024-06-05",
+                      "time": "08:15"
+                    },
+                    {
+                      "trackId": 6095,
+                      "name": "Collected",
+                      "location": "Amsterdam",
+                      "date": "2024-06-05",
+                      "time": "15:00"
+                    },
+                    {
+                      "trackId": 10165,
+                      "name": "Delivered at the neighbours",
+                      "location": "Duiven",
+                      "date": "2024-06-06",
+                      "time": "08:30"
+                    }
+                  ]
+                }
+              }
+            ],
+            "links": {
+              "first": "http://localhost/v1/orders?page=1",
+              "last": "http://localhost/v1/orders?page=1",
+              "prev": null,
+              "next": null
+            },
+            "meta": {
+              "current_page": 1,
+              "from": 1,
+              "last_page": 1,
+              "links": [
+                {
+                  "url": null,
+                  "label": "&laquo; Previous",
+                  "active": false
+                },
+                {
+                  "url": "http://localhost/v1/orders?page=1",
+                  "label": "1",
+                  "active": true
+                },
+                {
+                  "url": null,
+                  "label": "Next &raquo;",
+                  "active": false
+                }
+              ],
+              "path": "http://localhost/v1/orders",
+              "per_page": 100,
+              "to": 1,
+              "total": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "tag": "Orders (Customer or branch account)",
+      "summary": "Get order by order number",
+      "method": "GET",
+      "path": "/v1/orders/{orderNo}",
+      "description": "This endpoint returns the specified order for the authenticated customer or branch.",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [
+        {
+          "name": "orderNo",
+          "type": "integer",
+          "required": true,
+          "description": "The order number.",
+          "example": "35558"
+        }
+      ],
+      "query_parameters": [
+        {
+          "name": "include_customer",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, returns the customer details.",
+          "example": "true"
+        },
+        {
+          "name": "include_carrier",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, returns the carrier details (only with branch account).",
+          "example": "true"
+        },
+        {
+          "name": "include_track_history",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, returns an array with the available order Track & Trace history.",
+          "example": "true"
+        },
+        {
+          "name": "include_sales_rates",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, returns an array with the sales rates.",
+          "example": "true"
+        },
+        {
+          "name": "include_purchase_rates",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, returns an array with the purchase rates (only with branch account).",
+          "example": "false"
+        },
+        {
+          "name": "include_deleted",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, also returns the order if it has been marked as deleted, with an additional isDeleted attribute (only with branch account).",
+          "example": "false"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [
+        {
+          "name": "createdAt",
+          "type": "string",
+          "required": false,
+          "description": "Order creation timestamp in ISO 8601 date format.",
+          "example": null
+        },
+        {
+          "name": "updatedAt",
+          "type": "string",
+          "required": false,
+          "description": "Order last updated timestamp in ISO 8601 date format.",
+          "example": null
+        },
+        {
+          "name": "date",
+          "type": "string",
+          "required": false,
+          "description": "Order date. Date on which the order needs to be performed. Usually the date on which the carrier needs to be at the pickup address. Dates are in the form ‘yyyy-mm-dd’.",
+          "example": null
+        },
+        {
+          "name": "time",
+          "type": "string",
+          "required": false,
+          "description": "Order time. Time on which the order starts. This is usually the time on which the carrier needs to arrive at the pickup address. Times are in the form ‘hh:mm’ and are local time.",
+          "example": null
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": false,
+          "description": "Order status. For customer accounts, the options are: - quote - saved-weborder (not yet send to the planning) - pending-acceptation (send to the planning but not yet accepted) - in-progress - finished For branch accounts, the options are: - quote - saved-weborder (not yet send to the planning) - pending-acceptation (send to the planning but not yet accepted) - open - planned - signed-off - checked - invoiced",
+          "example": null
+        },
+        {
+          "name": "substatusName",
+          "type": "string",
+          "required": false,
+          "description": "Optional extra order status, such as ‘Delivered at the neighbours’.",
+          "example": null
+        },
+        {
+          "name": "collected",
+          "type": "boolean",
+          "required": false,
+          "description": "Indicates the driver has picked-up the goods (goods on board).",
+          "example": null
+        },
+        {
+          "name": "distance",
+          "type": "integer",
+          "required": false,
+          "description": "Distance in kilometres for EU or miles for UK.",
+          "example": null
+        },
+        {
+          "name": "trackingId",
+          "type": "string",
+          "required": false,
+          "description": "Contains the Track & Trace number used to track the actual order status. A Track & Trace link can be generated by using the trackingId in the following URL format: https://www.YOUR_SERVER/YOUR_ENVIRONMENT/tracktrace.php?trackingnr=trackingId",
+          "example": null
+        },
+        {
+          "name": "userId,carrierNo,carrierUserId,fleetNo,orderPurchasePrice,purchaseInvoiceNotes,internalNotes,carrierNotes,readyForPurchaseInvoice,usernameCreated,usernameAssigned",
+          "type": "",
+          "required": false,
+          "description": "Only visible with branch accounts.",
+          "example": null
+        }
+      ],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": {
+              "type": "order",
+              "id": 35558,
+              "createdAt": "2023-12-01T10:05:01+01:00",
+              "updatedAt": "2023-12-01T10:05:01+01:00",
+              "attributes": {
+                "orderNo": 35558,
+                "date": "2023-12-01",
+                "time": "08:00",
+                "status": "planned",
+                "substatusNo": 12,
+                "substatusName": "Out for delivery",
+                "collected": true,
+                "productNo": 1,
+                "productName": "Direct transport",
+                "customerNo": 2001,
+                "customerUserId": 271,
+                "carrierNo": 44,
+                "carrierUserId": 5,
+                "branchNo": 0,
+                "vehicleTypeNo": 2,
+                "vehicleTypeName": "Small Van",
+                "fleetNo": 5,
+                "waybillNotes": "3 pallets and 16 boxes",
+                "invoiceNotes": "P/O number: A12345",
+                "purchaseInvoiceNotes": "Payment period 30 days",
+                "internalNotes": "Upload POD before signing-off",
+                "recipientEmail": "info@example.com",
+                "distance": 99,
+                "orderPrice": "132.48",
+                "orderPurchasePrice": "294.82",
+                "prepaidAmount": "0.00",
+                "readyForPurchaseInvoice": true,
+                "usernameCreated": "Demo planner",
+                "usernameAssigned": "Demo planner",
+                "invoiceId": 0,
+                "trackingId": "GIYDAMJNGM2TKNJY",
+                "externalId": "550e8400-e29b-41d4-a716-446655440000",
+                "destinations": [
+                  {
+                    "addressId": 28416,
+                    "stopNo": 1,
+                    "taskType": "pickup",
+                    "company": "Demo customer",
+                    "contact": "Mr. Johnson",
+                    "address": "Keulenstraat",
+                    "houseno": "1",
+                    "address2": "Office A3.5",
+                    "postcode": "7418 ET",
+                    "city": "DEVENTER",
+                    "country": "NL",
+                    "location": {
+                      "latitude": 6.1941298,
+                      "longitude": 52.2366999
+                    },
+                    "phone": "+3185 - 0479 475",
+                    "notes": "",
+                    "customerReference": "ABCDE12345",
+                    "waybillNo": "",
+                    "date": "2024-12-31",
+                    "fromTime": "10:00",
+                    "toTime": "10:00",
+                    "eta": null,
+                    "deliveryDate": null,
+                    "deliveryTime": null,
+                    "departureTime": null,
+                    "deliveryName": "",
+                    "signatureUrl": false,
+                    "photos": [],
+                    "documents": [],
+                    "carrierNotes": ""
+                  },
+                  {
+                    "addressId": 28417,
+                    "stopNo": 2,
+                    "taskType": "delivery",
+                    "company": "Gamma Duiven",
+                    "contact": "Piet Klaassen",
+                    "address": "Lithograaf",
+                    "houseno": "1",
+                    "address2": "",
+                    "postcode": "6921 VA",
+                    "city": "DUIVEN",
+                    "country": "NL",
+                    "location": {
+                      "latitude": 6.0136513,
+                      "longitude": 51.959888
+                    },
+                    "phone": "+3185 - 0479 475",
+                    "notes": "Delivery at warehouse",
+                    "customerReference": "",
+                    "waybillNo": "123456",
+                    "date": "2024-12-31",
+                    "fromTime": "16:40",
+                    "toTime": "17:30",
+                    "eta": "00:00",
+                    "deliveryDate": null,
+                    "deliveryTime": "16:48",
+                    "departureTime": "17:06",
+                    "deliveryName": "Mr. Johnson",
+                    "signatureUrl": false,
+                    "photos": [],
+                    "documents": [],
+                    "carrierNotes": "Delivered at the neighbours"
+                  }
+                ],
+                "goods": [
+                  {
+                    "packageId": 21370,
+                    "packageNo": 1,
+                    "pickupDestination": 1,
+                    "deliveryDestination": 2,
+                    "amount": 16,
+                    "packageTypeNo": 1,
+                    "packageTypeName": "Colli",
+                    "weight": 10,
+                    "length": 50,
+                    "width": 40,
+                    "height": 30,
+                    "description": "Describe the contents of the box."
+                  },
+                  {
+                    "packageId": 21371,
+                    "packageNo": 2,
+                    "pickupDestination": 1,
+                    "deliveryDestination": 2,
+                    "amount": 0,
+                    "packageTypeNo": 18,
+                    "packageTypeName": "Europallet",
+                    "weight": 500,
+                    "length": 120,
+                    "width": 80,
+                    "height": 100,
+                    "description": ""
+                  }
+                ],
+                "customer": {
+                  "type": "customer",
+                  "id": 2001,
+                  "createdAt": "2023-12-01T10:05:01+01:00",
+                  "updatedAt": "2023-12-01T10:05:01+01:00",
+                  "attributes": {
+                    "customerNo": 2001,
+                    "companyName": "EasyTrans Software B.V.",
+                    "businessAddress": {
+                      "address": "Keulenstraat",
+                      "houseno": "1",
+                      "address2": "Kantoor A3.5",
+                      "postcode": "7418 ET",
+                      "city": "DEVENTER",
+                      "country": "NL"
+                    },
+                    "mailingAddress": {
+                      "attn": "Accounts Payable",
+                      "address": "Keulenstraat",
+                      "houseno": "1",
+                      "address2": "Kantoor A3.5",
+                      "postcode": "7418 ET",
+                      "city": "Deventer",
+                      "country": "NL"
+                    },
+                    "website": "www.easytrans.nl",
+                    "debtorNo": "123475",
+                    "paymentReference": "ABCD1234",
+                    "paymentPeriod": 21,
+                    "paymentPeriodEndOfMonth": false,
+                    "ibanNo": "NL63INGB0004511811",
+                    "bicCode": "INGBNL2A",
+                    "bankNo": "",
+                    "ukSortCode": "",
+                    "vatNo": "NL864120576B01",
+                    "vatLiable": true,
+                    "vatLiableCode": 1,
+                    "chamberOfCommerceNo": "86861239",
+                    "eoriNo": "",
+                    "language": "en",
+                    "notes": "Register at reception before loading",
+                    "crmNotes": "Agreed rates based on 50 orders per month",
+                    "invoiceSurcharge": 5.5,
+                    "active": true,
+                    "contacts": [
+                      {
+                        "userId": 271,
+                        "contactNo": 1,
+                        "salutation": 0,
+                        "name": "Demo user",
+                        "phone": "+3185 - 0479 475",
+                        "mobile": "+316 - 123 456 78",
+                        "email": "info@easytrans.nl",
+                        "useEmailForInvoice": false,
+                        "useEmailForReminder": false,
+                        "notes": "Head of logistics",
+                        "username": "klant"
+                      }
+                    ],
+                    "externalId": "550e8400-e29b-41d4-a716-446655440000"
+                  }
+                },
+                "carrier": {
+                  "type": "carrier",
+                  "id": 44,
+                  "createdAt": "2023-12-01T10:05:01+01:00",
+                  "updatedAt": "2023-12-01T10:05:01+01:00",
+                  "attributes": {
+                    "carrierNo": 44,
+                    "name": "External carrier",
+                    "businessAddress": {
+                      "address": "Keulenstraat",
+                      "houseno": "1",
+                      "address2": "",
+                      "postcode": "7418 ET",
+                      "city": "DEVENTER",
+                      "country": "NL"
+                    },
+                    "mailingAddress": {
+                      "attn": "",
+                      "address": "Keulenstraat",
+                      "houseno": "1",
+                      "address2": "",
+                      "postcode": "7418 ET",
+                      "city": "Deventer",
+                      "country": "NL"
+                    },
+                    "phone": "+3185 - 0479 475",
+                    "mobile": "",
+                    "email": "info@easytrans.nl",
+                    "emailPurchaseInvoice": "",
+                    "website": "www.easytrans.nl",
+                    "notes": "Available Mon-Thu",
+                    "creditorNo": "123475",
+                    "paymentPeriod": 30,
+                    "paymentPeriodEndOfMonth": false,
+                    "ibanNo": "NL63INGB0004511811",
+                    "bicCode": "INGBNL2A",
+                    "bankNo": "",
+                    "ukSortCode": "",
+                    "vatNo": "NL864120576B01",
+                    "vatLiable": true,
+                    "vatLiableCode": 1,
+                    "chamberOfCommerceNo": "86861239",
+                    "licenseNo": "123456789",
+                    "carrierAttributes": [
+                      "charter_regular",
+                      "refrigerated"
+                    ],
+                    "language": "nl",
+                    "active": true,
+                    "contacts": [
+                      {
+                        "userId": 5,
+                        "name": "Contact one",
+                        "phone": "+3185 - 0479 475",
+                        "mobile": "",
+                        "email": "info@easytrans.nl",
+                        "notes": "Available Mon-Thu",
+                        "username": "import"
+                      }
+                    ],
+                    "externalId": "18aa59a6-7eef-4491-837a-8ac2f04c0b6e"
+                  }
+                },
+                "salesRates": [
+                  {
+                    "rateNo": 0,
+                    "description": "Parking costs",
+                    "ratePerUnit": "0.00000",
+                    "subTotal": "10.00",
+                    "isMinimumAmount": false,
+                    "isPercentage": false
+                  },
+                  {
+                    "rateNo": 388,
+                    "description": "Distance Small Van",
+                    "ratePerUnit": "0.51000",
+                    "subTotal": "50.49",
+                    "isMinimumAmount": false,
+                    "isPercentage": false
+                  },
+                  {
+                    "rateNo": 391,
+                    "description": "Additional insurance",
+                    "ratePerUnit": "3.00000",
+                    "subTotal": "1.51",
+                    "isMinimumAmount": false,
+                    "isPercentage": true
+                  },
+                  {
+                    "rateNo": 642,
+                    "description": "Toll costs",
+                    "ratePerUnit": "25.00000",
+                    "subTotal": "25.00",
+                    "isMinimumAmount": false,
+                    "isPercentage": false
+                  },
+                  {
+                    "rateNo": 4,
+                    "description": "Waiting time",
+                    "ratePerUnit": "0.80000",
+                    "subTotal": "48.00",
+                    "isMinimumAmount": false,
+                    "isPercentage": false
+                  },
+                  {
+                    "rateNo": 345,
+                    "description": "Discount",
+                    "ratePerUnit": "-5.00000",
+                    "subTotal": "-2.52",
+                    "isMinimumAmount": false,
+                    "isPercentage": true
+                  }
+                ],
+                "trackHistory": [
+                  {
+                    "trackId": 6094,
+                    "name": "Order created",
+                    "location": "Deventer",
+                    "date": "2024-06-05",
+                    "time": "08:15"
+                  },
+                  {
+                    "trackId": 6095,
+                    "name": "Collected",
+                    "location": "Amsterdam",
+                    "date": "2024-06-05",
+                    "time": "15:00"
+                  },
+                  {
+                    "trackId": 10165,
+                    "name": "Delivered at the neighbours",
+                    "location": "Duiven",
+                    "date": "2024-06-06",
+                    "time": "08:30"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "tag": "Orders (Customer or branch account)",
+      "summary": "Update the specified order",
+      "method": "PUT",
+      "path": "/v1/orders/{orderNo}",
+      "description": "This endpoint updates the specified order and its destinations, goods and rates for the authenticated branch. This endpoint can only be used with branch accounts, not with customer accounts. Only the body parameters below can be updated. Some elements can only be updated if the order is open for editing (not checked or invoiced). The response contains the updated order. Update destinations, goods and rates A destination can be updated by providing the addressId (or stopNo) together with the body parameters that need to be changed. A goods line can be updated by providing the packageId (or packageNo) together with the body parameters that need to be changed. Sales and purchase rates can be updated by providing the rateNo and the ratePerUnit. The destinations, goods and rates properties expect an array. This allows updating of multiple destinations/goods/rates in one request. See the example request, how to edit a destination, goods line or rate.",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [
+        {
+          "name": "orderNo",
+          "type": "integer",
+          "required": true,
+          "description": "The order number.",
+          "example": "35558"
+        }
+      ],
+      "query_parameters": [],
+      "body_parameters": [
+        {
+          "name": "carrierNo",
+          "type": "integer",
+          "required": false,
+          "description": "Sets the new carrier for this order. Supplying 0 removes the carrier. The order status and substatus will be updated accordingly (e.g. open -> planned).",
+          "example": "44"
+        },
+        {
+          "name": "fleetNo",
+          "type": "integer",
+          "required": false,
+          "description": "Sets the new vehicle in the fleet for this order. Please note: Any vehicle type specific rates will not be updated.",
+          "example": "5"
+        },
+        {
+          "name": "waybillNotes",
+          "type": "string",
+          "required": false,
+          "description": "Notes that are displayed on the transport documents. Updating this field will delete any existing waybill notes.",
+          "example": "3 pallets and 16 boxes"
+        },
+        {
+          "name": "invoiceNotes",
+          "type": "string",
+          "required": false,
+          "description": "Notes that are displayed on the sales invoice. Updating this field will delete any existing invoice notes.",
+          "example": "P/O number: A12345"
+        },
+        {
+          "name": "purchaseInvoiceNotes",
+          "type": "string",
+          "required": false,
+          "description": "Notes that are displayed on the purchase invoice. Updating this field will delete any existing purchase invoice notes.",
+          "example": "Payment period 30 days"
+        },
+        {
+          "name": "internalNotes",
+          "type": "string",
+          "required": false,
+          "description": "Notes that are only internally visible (not visible for customers and carriers). Updating this field will delete any existing internal notes.",
+          "example": "Upload POD before signing-off"
+        },
+        {
+          "name": "readyForPurchaseInvoice",
+          "type": "boolean",
+          "required": false,
+          "description": "Marks the order as ready to create a purchase invoice.",
+          "example": "false"
+        },
+        {
+          "name": "externalId",
+          "type": "string",
+          "required": false,
+          "description": "Value (string or numeric, max 50 characters) that can be used to reference an order to the corresponding data in an external system. Must not be greater than 50 characters.",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        {
+          "name": "destinations",
+          "type": "object[]",
+          "required": false,
+          "description": "",
+          "example": null
+        },
+        {
+          "name": "goods",
+          "type": "object[]",
+          "required": false,
+          "description": "",
+          "example": null
+        },
+        {
+          "name": "salesRates",
+          "type": "object[]",
+          "required": false,
+          "description": "",
+          "example": null
+        },
+        {
+          "name": "purchaseRates",
+          "type": "object[]",
+          "required": false,
+          "description": "",
+          "example": null
+        }
+      ],
+      "response_fields": [],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": {
+              "type": "order",
+              "id": 35558,
+              "createdAt": "2023-12-01T10:05:01+01:00",
+              "updatedAt": "2026-02-16T18:41:30+01:00",
+              "attributes": {
+                "orderNo": 35558,
+                "date": "2023-12-01",
+                "time": "08:00",
+                "status": "planned",
+                "substatusNo": 12,
+                "substatusName": "Out for delivery",
+                "collected": true,
+                "productNo": 1,
+                "productName": "Direct transport",
+                "customerNo": 2001,
+                "customerUserId": 271,
+                "carrierNo": 44,
+                "carrierUserId": 5,
+                "branchNo": 0,
+                "vehicleTypeNo": 2,
+                "vehicleTypeName": "Small Van",
+                "fleetNo": 5,
+                "waybillNotes": "3 pallets and 16 boxes",
+                "invoiceNotes": "P/O number: A12345",
+                "purchaseInvoiceNotes": "Payment period 30 days",
+                "internalNotes": "Upload POD before signing-off",
+                "recipientEmail": "info@example.com",
+                "distance": 99,
+                "prepaidAmount": "0.00",
+                "readyForPurchaseInvoice": false,
+                "usernameCreated": "Demo planner",
+                "usernameAssigned": "Demo planner",
+                "invoiceId": 0,
+                "trackingId": "GIYDAMJNGM2TKNJY",
+                "externalId": "550e8400-e29b-41d4-a716-446655440000",
+                "destinations": [
+                  {
+                    "addressId": 28416,
+                    "stopNo": 1,
+                    "taskType": "pickup",
+                    "company": "Demo customer",
+                    "contact": "Mr. Johnson",
+                    "address": "Keulenstraat",
+                    "houseno": "1",
+                    "address2": "Office A3.5",
+                    "postcode": "7418 ET",
+                    "city": "DEVENTER",
+                    "country": "NL",
+                    "location": {
+                      "latitude": 6.1941298,
+                      "longitude": 52.2366999
+                    },
+                    "phone": "+3185 - 0479 475",
+                    "notes": "",
+                    "customerReference": "ABCDE12345",
+                    "waybillNo": "",
+                    "date": "2024-12-31",
+                    "fromTime": "10:00",
+                    "toTime": "10:00",
+                    "eta": null,
+                    "deliveryDate": null,
+                    "deliveryTime": null,
+                    "departureTime": null,
+                    "deliveryName": "",
+                    "signatureUrl": false,
+                    "photos": [],
+                    "documents": [],
+                    "carrierNotes": ""
+                  },
+                  {
+                    "addressId": 28417,
+                    "stopNo": 2,
+                    "taskType": "delivery",
+                    "company": "Gamma Duiven",
+                    "contact": "Piet Klaassen",
+                    "address": "Lithograaf",
+                    "houseno": "1",
+                    "address2": "",
+                    "postcode": "6921 VA",
+                    "city": "DUIVEN",
+                    "country": "NL",
+                    "location": {
+                      "latitude": 6.0136513,
+                      "longitude": 51.959888
+                    },
+                    "phone": "+3185 - 0479 475",
+                    "notes": "Delivery at warehouse",
+                    "customerReference": "",
+                    "waybillNo": "123456",
+                    "date": "2026-02-14",
+                    "fromTime": "16:30",
+                    "toTime": "17:30",
+                    "eta": "00:00",
+                    "deliveryDate": null,
+                    "deliveryTime": "16:48",
+                    "departureTime": "17:05",
+                    "deliveryName": "Mr. Johnson",
+                    "signatureUrl": false,
+                    "photos": [],
+                    "documents": [],
+                    "carrierNotes": "Delivered at the neighbours"
+                  }
+                ],
+                "goods": [
+                  {
+                    "packageId": 21370,
+                    "packageNo": 1,
+                    "pickupDestination": 1,
+                    "deliveryDestination": 2,
+                    "amount": 16,
+                    "packageTypeNo": 1,
+                    "packageTypeName": "Colli",
+                    "weight": 10,
+                    "length": 50,
+                    "width": 40,
+                    "height": 30,
+                    "description": "Describe the contents of the box."
+                  },
+                  {
+                    "packageId": 21371,
+                    "packageNo": 2,
+                    "pickupDestination": 1,
+                    "deliveryDestination": 2,
+                    "amount": 3,
+                    "packageTypeNo": 18,
+                    "packageTypeName": "Europallet",
+                    "weight": 300,
+                    "length": 120,
+                    "width": 80,
+                    "height": 60,
+                    "description": "Folders"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "tag": "Products (Customer or branch account)",
+      "summary": "Get list of products",
+      "method": "GET",
+      "path": "/v1/products",
+      "description": "This endpoint returns all products for the authenticated customer or branch account. The result can be filtered by product name. For example: ?filter[productName]=Transport",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [],
+      "query_parameters": [
+        {
+          "name": "filter",
+          "type": "object",
+          "required": false,
+          "description": "Fields to filter by",
+          "example": "[]"
+        },
+        {
+          "name": "filter.productName",
+          "type": "string",
+          "required": false,
+          "description": "Filter by (part of) the product name.",
+          "example": "Direct"
+        },
+        {
+          "name": "include_deleted",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, also returns products that have been marked as deleted, with an additional isDeleted attribute (only with branch account).",
+          "example": "false"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [
+        {
+          "name": "vat",
+          "type": "string",
+          "required": false,
+          "description": "Options are: high, low, zero, none.",
+          "example": null
+        }
+      ],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": [
+              {
+                "type": "product",
+                "id": 1,
+                "attributes": {
+                  "productNo": 1,
+                  "productName": "Direct transport",
+                  "vat": "high"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "tag": "Products (Customer or branch account)",
+      "summary": "Get product by product number",
+      "method": "GET",
+      "path": "/v1/products/{productNo}",
+      "description": "This endpoint returns the specified product for the authenticated customer or branch.",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [
+        {
+          "name": "productNo",
+          "type": "integer",
+          "required": true,
+          "description": "The product number.",
+          "example": "1"
+        }
+      ],
+      "query_parameters": [
+        {
+          "name": "include_deleted",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, also returns the product if it has been marked as deleted, with an additional isDeleted attribute (only with branch account).",
+          "example": "false"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [
+        {
+          "name": "vat",
+          "type": "string",
+          "required": false,
+          "description": "Options are: high, low, zero, none.",
+          "example": null
+        }
+      ],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": {
+              "type": "product",
+              "id": 1,
+              "attributes": {
+                "productNo": 1,
+                "productName": "Direct transport",
+                "vat": "high"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "tag": "Substatuses (Customer or branch account)",
+      "summary": "Get list of substatuses",
+      "method": "GET",
+      "path": "/v1/substatuses",
+      "description": "This endpoint returns all substatuses for the authenticated customer or branch account. The result can be filtered by substatus name. For example: ?filter[substatusName]=Depot",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [],
+      "query_parameters": [
+        {
+          "name": "filter",
+          "type": "object",
+          "required": false,
+          "description": "Fields to filter by",
+          "example": "[]"
+        },
+        {
+          "name": "filter.substatusName",
+          "type": "string",
+          "required": false,
+          "description": "Filter by (part of) the substatus name.",
+          "example": "Depot"
+        },
+        {
+          "name": "include_deleted",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, also returns substatuses that have been marked as deleted, with an additional isDeleted attribute (only with branch account).",
+          "example": "false"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": [
+              {
+                "type": "substatus",
+                "id": 52,
+                "attributes": {
+                  "substatusNo": 52,
+                  "substatusName": "Arrived at Depot"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "tag": "Substatuses (Customer or branch account)",
+      "summary": "Get substatus by substatus number",
+      "method": "GET",
+      "path": "/v1/substatuses/{substatusNo}",
+      "description": "This endpoint returns the specified substatus for the authenticated customer or branch.",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [
+        {
+          "name": "substatusNo",
+          "type": "integer",
+          "required": true,
+          "description": "The substatus number.",
+          "example": "12"
+        }
+      ],
+      "query_parameters": [
+        {
+          "name": "include_deleted",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, also returns the substatus if it has been marked as deleted, with an additional isDeleted attribute (only with branch account).",
+          "example": "false"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": {
+              "type": "substatus",
+              "id": 12,
+              "attributes": {
+                "substatusNo": 12,
+                "substatusName": "Out for delivery"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "tag": "PackageTypes (Customer or branch account)",
+      "summary": "Get list of package types",
+      "method": "GET",
+      "path": "/v1/packagetypes",
+      "description": "This endpoint returns all package types for the authenticated customer or branch account. Package types (also called Rate types) are used to specify the type of goods to be transported. They are also used as Rate types to calculate the price. The result can be filtered by package type name. For example: ?filter[packageTypeName]=Europallet",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [],
+      "query_parameters": [
+        {
+          "name": "filter",
+          "type": "object",
+          "required": false,
+          "description": "Fields to filter by",
+          "example": "[]"
+        },
+        {
+          "name": "filter.packageTypeName",
+          "type": "string",
+          "required": false,
+          "description": "Filter by (part of) the package type name.",
+          "example": "Europallet"
+        },
+        {
+          "name": "include_deleted",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, also returns package types that have been marked as deleted, with an additional isDeleted attribute (only with branch account).",
+          "example": "false"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [
+        {
+          "name": "rateTypeOnly",
+          "type": "boolean",
+          "required": false,
+          "description": "Indicates if the Package type is only used in the rates and not in the goods to be transported. This is used for non-physical goods, such as warehouse storage.",
+          "example": null
+        },
+        {
+          "name": "standardDimensions",
+          "type": "object",
+          "required": false,
+          "description": "The standard dimensions are automatically filled in when goods are added to an order.",
+          "example": null
+        }
+      ],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": [
+              {
+                "type": "packageType",
+                "id": 18,
+                "attributes": {
+                  "packageTypeNo": 18,
+                  "packageTypeName": "Europallet",
+                  "rateTypeOnly": false,
+                  "standardDimensions": {
+                    "weight": 500,
+                    "length": 120,
+                    "width": 80,
+                    "height": 50,
+                    "description": "Car parts"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "tag": "PackageTypes (Customer or branch account)",
+      "summary": "Get package type by package type number",
+      "method": "GET",
+      "path": "/v1/packagetypes/{packageTypeNo}",
+      "description": "This endpoint returns the specified package type for the authenticated customer or branch. Package types (also called Rate types) are used to specify the type of goods to be transported. They are also used as Rate types to calculate the price.",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [
+        {
+          "name": "packageTypeNo",
+          "type": "integer",
+          "required": true,
+          "description": "The product number.",
+          "example": "18"
+        }
+      ],
+      "query_parameters": [
+        {
+          "name": "include_deleted",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, also returns the package type if it has been marked as deleted, with an additional isDeleted attribute (only with branch account).",
+          "example": "false"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [
+        {
+          "name": "rateTypeOnly",
+          "type": "boolean",
+          "required": false,
+          "description": "Indicates if the Package type is only used in the rates and not in the goods to be transported. This is used for non-physical goods, such as warehouse storage.",
+          "example": null
+        },
+        {
+          "name": "standardDimensions",
+          "type": "object",
+          "required": false,
+          "description": "The standard dimensions are automatically filled in when goods are added to an order.",
+          "example": null
+        }
+      ],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": {
+              "type": "packageType",
+              "id": 18,
+              "attributes": {
+                "packageTypeNo": 18,
+                "packageTypeName": "Europallet",
+                "rateTypeOnly": false,
+                "standardDimensions": {
+                  "weight": 500,
+                  "length": 120,
+                  "width": 80,
+                  "height": 50,
+                  "description": "Car parts"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "tag": "VehicleTypes (Customer or branch account)",
+      "summary": "Get list of vehicle types",
+      "method": "GET",
+      "path": "/v1/vehicletypes",
+      "description": "This endpoint returns all vehicle types for the authenticated customer or branch account. The result can be filtered by vehicle type name. For example: ?filter[vehicleTypeName]=Car",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [],
+      "query_parameters": [
+        {
+          "name": "filter",
+          "type": "object",
+          "required": false,
+          "description": "Fields to filter by",
+          "example": "[]"
+        },
+        {
+          "name": "filter.vehicleTypeName",
+          "type": "string",
+          "required": false,
+          "description": "Filter by (part of) the vehicle type name.",
+          "example": "Small Van"
+        },
+        {
+          "name": "include_deleted",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, also returns vehicle types that have been marked as deleted, with an additional isDeleted attribute (only with branch account).",
+          "example": "false"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": [
+              {
+                "type": "vehicleType",
+                "id": 2,
+                "attributes": {
+                  "vehicleTypeNo": 2,
+                  "vehicleTypeName": "Small Van"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "tag": "VehicleTypes (Customer or branch account)",
+      "summary": "Get vehicle type by vehicle type number",
+      "method": "GET",
+      "path": "/v1/vehicletypes/{vehicleTypeNo}",
+      "description": "This endpoint returns the specified vehicle type for the authenticated customer or branch.",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [
+        {
+          "name": "vehicleTypeNo",
+          "type": "integer",
+          "required": true,
+          "description": "The vehicle type number.",
+          "example": "2"
+        }
+      ],
+      "query_parameters": [
+        {
+          "name": "include_deleted",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, also returns the vehicle type if it has been marked as deleted, with an additional isDeleted attribute (only with branch account).",
+          "example": "false"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": {
+              "type": "vehicleType",
+              "id": 2,
+              "attributes": {
+                "vehicleTypeNo": 2,
+                "vehicleTypeName": "Small Van"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "tag": "Invoices (Customer or branch account)",
+      "summary": "Get list of invoices",
+      "method": "GET",
+      "path": "/v1/invoices",
+      "description": "This endpoint returns all invoices for the authenticated customer or branch account. The result can be filtered by the filter options below. A combination of filters is also allowed. For some filters you can filter on multiple values by separating them with a comma. For example: ?filter[invoiceNo]=1,2,3 You can also use the following operators on any integer or date type filter, by placing them behind the name of the filter: [gte] = Greater than or equal [gt] = Greater than [lte] = Less than or equal [lt] = Less than [neq] = Not equal For example: ?filter[invoiceDate][gte]=2024-05-30 returns all invoices with an invoice date starting from this date. Operators can also be combined. For example: ?filter[invoiceNo][gte]=1000&filter[invoiceNo][lt]=2000 returns all invoices with and invoice number between 1000 and 1999. The result is paginated by 100 invoices.",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [],
+      "query_parameters": [
+        {
+          "name": "filter",
+          "type": "object",
+          "required": false,
+          "description": "Fields to filter by",
+          "example": "[]"
+        },
+        {
+          "name": "filter.invoiceId",
+          "type": "integer",
+          "required": false,
+          "description": "Filter by invoice Id. The invoice Id is an internal number that can be used to retrieve the orders that correspond to an invoice. Multiple invoices can be retrieved by separating the invoice Id with a comma or by using operators. Use the [gte] operator to retrieve all invoices starting from this invoice Id ?filter[invoiceId][gte]=284 .",
+          "example": "284"
+        },
+        {
+          "name": "filter.invoiceNo",
+          "type": "integer",
+          "required": false,
+          "description": "Filter by invoice number. Note: This is the part of the invoice number without the prefix Multiple invoices can be retrieved by separating the invoice numbers with a comma or by using operators. Use the [gte] operator to retrieve all invoices starting from this invoice number ?filter[invoiceNo][gte]=20240123 .",
+          "example": "20240123"
+        },
+        {
+          "name": "filter.invoiceNoPrefix",
+          "type": "string",
+          "required": false,
+          "description": "Filter by invoice number prefix. Note: This is the part before the invoice number. Multiple prefixes can be retrieved by separating the values with a comma or by using operators (only when numeric).",
+          "example": null
+        },
+        {
+          "name": "filter.customerNo",
+          "type": "integer",
+          "required": false,
+          "description": "Filter by customer number (only with branch account). Multiple customer numbers can be retrieved by separating the numbers with a comma or by using operators.",
+          "example": "2001"
+        },
+        {
+          "name": "filter.invoiceDate",
+          "type": "string",
+          "required": false,
+          "description": "Filter by invoice date. Use the [gte] operator to retrieve all invoices starting from this date ?filter[invoiceDate][gte]=2024-05-30 .",
+          "example": "2024-05-30"
+        },
+        {
+          "name": "include_customer",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, returns the customer details.",
+          "example": "true"
+        },
+        {
+          "name": "include_invoice",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, returns the base64 encoded PDF invoice.",
+          "example": "false"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [
+        {
+          "name": "invoiceId",
+          "type": "integer",
+          "required": false,
+          "description": "The invoice Id is an internal number that is used to match orders to invoices.",
+          "example": null
+        },
+        {
+          "name": "paymentMethod,onlinePaymentStatus,discountPercentage,sentDate,paid,paidDate,exported,externalId",
+          "type": "",
+          "required": false,
+          "description": "Only visible with branch accounts.",
+          "example": null
+        },
+        {
+          "name": "paymentMethod",
+          "type": "string",
+          "required": false,
+          "description": "Options are: bank_transfer, cash, direct_debit, online_payment, bank_transfer_or_online_payment, creditcard, factoring or empty string.",
+          "example": null
+        },
+        {
+          "name": "onlinePaymentStatus",
+          "type": "string",
+          "required": false,
+          "description": "Only in use with additional module Online payment. Options are: paid, expired or empty string.",
+          "example": null
+        },
+        {
+          "name": "sentDate",
+          "type": "string",
+          "required": false,
+          "description": "The date the invoice has been sent to the customer (via email or to Billit).",
+          "example": null
+        },
+        {
+          "name": "exported",
+          "type": "boolean",
+          "required": false,
+          "description": "Whether the invoice has been exported to an accounting package.",
+          "example": null
+        }
+      ],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": [
+              {
+                "type": "invoice",
+                "id": 284,
+                "attributes": {
+                  "invoiceId": 284,
+                  "invoiceNo": 20240123,
+                  "invoiceNoPrefix": "",
+                  "customerNo": 2001,
+                  "invoiceDate": "2024-05-30",
+                  "amountExclVat": "246.30",
+                  "amountInclVat": "298.02",
+                  "currency": "",
+                  "paymentMethod": "",
+                  "onlinePaymentStatus": "",
+                  "discountPercentage": 0,
+                  "sentDate": "2024-05-30",
+                  "paid": true,
+                  "paidDate": "2025-08-09",
+                  "exported": false,
+                  "externalId": "",
+                  "customer": {
+                    "type": "customer",
+                    "id": 2001,
+                    "createdAt": "2023-12-01T10:05:01+01:00",
+                    "updatedAt": "2023-12-01T10:05:01+01:00",
+                    "attributes": {
+                      "customerNo": 2001,
+                      "companyName": "EasyTrans Software B.V.",
+                      "businessAddress": {
+                        "address": "Keulenstraat",
+                        "houseno": "1",
+                        "address2": "Kantoor A3.5",
+                        "postcode": "7418 ET",
+                        "city": "DEVENTER",
+                        "country": "NL"
+                      },
+                      "mailingAddress": {
+                        "attn": "Accounts Payable",
+                        "address": "Keulenstraat",
+                        "houseno": "1",
+                        "address2": "Kantoor A3.5",
+                        "postcode": "7418 ET",
+                        "city": "Deventer",
+                        "country": "NL"
+                      },
+                      "website": "www.easytrans.nl",
+                      "debtorNo": "123475",
+                      "paymentReference": "ABCD1234",
+                      "paymentPeriod": 21,
+                      "paymentPeriodEndOfMonth": false,
+                      "ibanNo": "NL63INGB0004511811",
+                      "bicCode": "INGBNL2A",
+                      "bankNo": "",
+                      "ukSortCode": "",
+                      "vatNo": "NL864120576B01",
+                      "vatLiable": true,
+                      "vatLiableCode": 1,
+                      "chamberOfCommerceNo": "86861239",
+                      "eoriNo": "",
+                      "language": "en",
+                      "notes": "Register at reception before loading",
+                      "crmNotes": "Agreed rates based on 50 orders per month",
+                      "invoiceSurcharge": 5.5,
+                      "active": true,
+                      "contacts": [],
+                      "externalId": "550e8400-e29b-41d4-a716-446655440000"
+                    }
+                  }
+                }
+              }
+            ],
+            "links": {
+              "first": "http://localhost/v1/invoices?page=1",
+              "last": "http://localhost/v1/invoices?page=1",
+              "prev": null,
+              "next": null
+            },
+            "meta": {
+              "current_page": 1,
+              "from": 1,
+              "last_page": 1,
+              "links": [
+                {
+                  "url": null,
+                  "label": "&laquo; Previous",
+                  "active": false
+                },
+                {
+                  "url": "http://localhost/v1/invoices?page=1",
+                  "label": "1",
+                  "active": true
+                },
+                {
+                  "url": null,
+                  "label": "Next &raquo;",
+                  "active": false
+                }
+              ],
+              "path": "http://localhost/v1/invoices",
+              "per_page": 100,
+              "to": 1,
+              "total": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "tag": "Invoices (Customer or branch account)",
+      "summary": "Get invoice by invoice Id",
+      "method": "GET",
+      "path": "/v1/invoices/{invoiceId}",
+      "description": "This endpoint returns the specified invoice for the authenticated customer or branch.",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [
+        {
+          "name": "invoiceId",
+          "type": "integer",
+          "required": true,
+          "description": "The invoice Id is an internal number that is used to match orders to invoices.",
+          "example": "284"
+        }
+      ],
+      "query_parameters": [
+        {
+          "name": "include_customer",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, returns the customer details.",
+          "example": "true"
+        },
+        {
+          "name": "include_invoice",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, returns the base64 encoded PDF invoice.",
+          "example": "false"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [
+        {
+          "name": "invoiceId",
+          "type": "integer",
+          "required": false,
+          "description": "The invoice Id is an internal number that is used to match orders to invoices.",
+          "example": null
+        },
+        {
+          "name": "paymentMethod,onlinePaymentStatus,discountPercentage,sentDate,paid,paidDate,exported,externalId",
+          "type": "",
+          "required": false,
+          "description": "Only visible with branch accounts.",
+          "example": null
+        },
+        {
+          "name": "paymentMethod",
+          "type": "string",
+          "required": false,
+          "description": "Options are: bank_transfer, cash, direct_debit, online_payment, bank_transfer_or_online_payment, creditcard, factoring or empty string.",
+          "example": null
+        },
+        {
+          "name": "onlinePaymentStatus",
+          "type": "string",
+          "required": false,
+          "description": "Only in use with additional module Online payment. Options are: paid, expired or empty string.",
+          "example": null
+        },
+        {
+          "name": "sentDate",
+          "type": "string",
+          "required": false,
+          "description": "The date the invoice has been sent to the customer (via email or to Billit).",
+          "example": null
+        },
+        {
+          "name": "exported",
+          "type": "boolean",
+          "required": false,
+          "description": "Whether the invoice has been exported to an accounting package.",
+          "example": null
+        }
+      ],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": {
+              "type": "invoice",
+              "id": 284,
+              "attributes": {
+                "invoiceId": 284,
+                "invoiceNo": 20240123,
+                "invoiceNoPrefix": "",
+                "customerNo": 2001,
+                "invoiceDate": "2024-05-30",
+                "amountExclVat": "246.30",
+                "amountInclVat": "298.02",
+                "currency": "",
+                "paymentMethod": "",
+                "onlinePaymentStatus": "",
+                "discountPercentage": 0,
+                "sentDate": "2024-05-30",
+                "paid": true,
+                "paidDate": "2025-08-09",
+                "exported": false,
+                "externalId": "",
+                "customer": {
+                  "type": "customer",
+                  "id": 2001,
+                  "createdAt": "2023-12-01T10:05:01+01:00",
+                  "updatedAt": "2023-12-01T10:05:01+01:00",
+                  "attributes": {
+                    "customerNo": 2001,
+                    "companyName": "EasyTrans Software B.V.",
+                    "businessAddress": {
+                      "address": "Keulenstraat",
+                      "houseno": "1",
+                      "address2": "Kantoor A3.5",
+                      "postcode": "7418 ET",
+                      "city": "DEVENTER",
+                      "country": "NL"
+                    },
+                    "mailingAddress": {
+                      "attn": "Accounts Payable",
+                      "address": "Keulenstraat",
+                      "houseno": "1",
+                      "address2": "Kantoor A3.5",
+                      "postcode": "7418 ET",
+                      "city": "Deventer",
+                      "country": "NL"
+                    },
+                    "website": "www.easytrans.nl",
+                    "debtorNo": "123475",
+                    "paymentReference": "ABCD1234",
+                    "paymentPeriod": 21,
+                    "paymentPeriodEndOfMonth": false,
+                    "ibanNo": "NL63INGB0004511811",
+                    "bicCode": "INGBNL2A",
+                    "bankNo": "",
+                    "ukSortCode": "",
+                    "vatNo": "NL864120576B01",
+                    "vatLiable": true,
+                    "vatLiableCode": 1,
+                    "chamberOfCommerceNo": "86861239",
+                    "eoriNo": "",
+                    "language": "en",
+                    "notes": "Register at reception before loading",
+                    "crmNotes": "Agreed rates based on 50 orders per month",
+                    "invoiceSurcharge": 5.5,
+                    "active": true,
+                    "contacts": [],
+                    "externalId": "550e8400-e29b-41d4-a716-446655440000"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "tag": "Customers (Branch account)",
+      "summary": "Get list of customers (branch accounts only)",
+      "method": "GET",
+      "path": "/v1/customers",
+      "description": "This endpoint returns all customers for the authenticated branch. The result can be filtered by the filter options below. A combination of filters is also allowed. For some filters you can filter on multiple values by separating them with a comma. For example: ?filter[customerNo]=1,2,3 You can also use the following operators on any integer or date type filter, by placing them behind the name of the filter: [gte] = Greater than or equal [gt] = Greater than [lte] = Less than or equal [lt] = Less than [neq] = Not equal For example: ?filter[createdAt][gte]=2023-12-01 returns all customers created since this date. Operators can also be combined. For example: ?filter[customerNo][gte]=1000&filter[customerNo][lt]=2000 returns all customers between 1000 and 1999. The result can be sorted by the sort names below. The result is paginated by 100 customers. This endpoint can only be used with branch accounts, not with customer accounts.",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [],
+      "query_parameters": [
+        {
+          "name": "filter",
+          "type": "object",
+          "required": false,
+          "description": "Fields to filter by",
+          "example": "[]"
+        },
+        {
+          "name": "filter.customerNo",
+          "type": "integer",
+          "required": false,
+          "description": "Filter by customer number. Multiple customers can be retrieved by separating the customer numbers with a comma or by using operators. Use the [gte] operator to retrieve all customers starting from this customer number ?filter[customer][gte]=1234 .",
+          "example": "2001"
+        },
+        {
+          "name": "filter.createdAt",
+          "type": "string",
+          "required": false,
+          "description": "Filter by created at timestamp. Use the [gte] operator to retrieve all customers that where created since this timestamp ?filter[createdAt][gte]=2023-12-01T10:05:01 .",
+          "example": "2023-12-01T10:05:01"
+        },
+        {
+          "name": "filter.updatedAt",
+          "type": "string",
+          "required": false,
+          "description": "Filter by updated at timestamp. Use the [gte] operator to retrieve all customers that where last updated since this timestamp ?filter[updatedAt][gte]=2023-12-01T10:05:01 .",
+          "example": "2023-12-01T10:05:01"
+        },
+        {
+          "name": "filter.companyName",
+          "type": "string",
+          "required": false,
+          "description": "Filter by company name.",
+          "example": "EasyTrans Software B.V."
+        },
+        {
+          "name": "filter.businessAddress.address",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the address field from the business address.",
+          "example": null
+        },
+        {
+          "name": "filter.businessAddress.postcode",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the postcode field from the business address.",
+          "example": null
+        },
+        {
+          "name": "filter.businessAddress.city",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the city field from the business address.",
+          "example": null
+        },
+        {
+          "name": "filter.mailingAddress.address",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the address field from the mailing address.",
+          "example": null
+        },
+        {
+          "name": "filter.mailingAddress.postcode",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the postcode field from the mailing address.",
+          "example": null
+        },
+        {
+          "name": "filter.mailingAddress.city",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the city field from the mailing address.",
+          "example": null
+        },
+        {
+          "name": "filter.notes",
+          "type": "string",
+          "required": false,
+          "description": "Filter by any part of text from the customer notes.",
+          "example": null
+        },
+        {
+          "name": "filter.crmNotes",
+          "type": "string",
+          "required": false,
+          "description": "Filter by any part of text from the customer CRM notes.",
+          "example": null
+        },
+        {
+          "name": "filter.debtorNo",
+          "type": "string",
+          "required": false,
+          "description": "Filter by debtor number. Multiple customers can be retrieved by separating the values with a comma or by using operators (only when numeric).",
+          "example": "123475"
+        },
+        {
+          "name": "filter.paymentReference",
+          "type": "string",
+          "required": false,
+          "description": "Filter by payment reference.",
+          "example": null
+        },
+        {
+          "name": "filter.vatNo",
+          "type": "string",
+          "required": false,
+          "description": "Filter by VAT number.",
+          "example": "NL864120576B01"
+        },
+        {
+          "name": "filter.externalId",
+          "type": "string",
+          "required": false,
+          "description": "Filter by external Id. Multiple customers can be retrieved by separating the values with a comma or by using operators (only when numeric).",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        {
+          "name": "filter.contacts.name",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the name field from the contacts.",
+          "example": null
+        },
+        {
+          "name": "filter.contacts.phone",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the phone number field from the contacts (characters must be an exact match, including spaces and punctuation marks).",
+          "example": null
+        },
+        {
+          "name": "filter.contacts.mobile",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the mobile number field from the contacts (characters must be an exact match, including spaces and punctuation marks)).",
+          "example": null
+        },
+        {
+          "name": "filter.contacts.email",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the email field from the contacts.",
+          "example": null
+        },
+        {
+          "name": "filter.contacts.notes",
+          "type": "string",
+          "required": false,
+          "description": "Filter by any part of text from the notes field from the contacts.",
+          "example": null
+        },
+        {
+          "name": "filter.contacts.username",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the username field from the contacts.",
+          "example": null
+        },
+        {
+          "name": "sort",
+          "type": "string",
+          "required": false,
+          "description": "Sort the response. The result can be sorted by the following property names: customerNo, createdAt, companyName, debtorNo, externalId. Sorting is ascending by default and can be reversed by adding a hyphen (-) to the start of the property name. You can sort by multiple properties by separating them with a comma ?sort=companyName,-createdAt .",
+          "example": "companyName,-createdAt"
+        },
+        {
+          "name": "include_deleted",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, also returns customers that have been marked as deleted, with an additional isDeleted attribute.",
+          "example": "false"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [
+        {
+          "name": "createdAt",
+          "type": "string",
+          "required": false,
+          "description": "Customer creation timestamp in ISO 8601 date format.",
+          "example": null
+        },
+        {
+          "name": "updatedAt",
+          "type": "string",
+          "required": false,
+          "description": "Customer last updated timestamp in ISO 8601 date format.",
+          "example": null
+        },
+        {
+          "name": "salutation",
+          "type": "integer",
+          "required": false,
+          "description": "Salutation. One of the following options: 0: No salutation 1: Mr. 2: Mrs. 3: Attn (for instance reception or warehouse)",
+          "example": null
+        },
+        {
+          "name": "vatLiable",
+          "type": "boolean",
+          "required": false,
+          "description": "Customer VAT liable status. True if customer is VAT liable or false if customer is not VAT liable. Check vatLiableCode for the reason a customer is not VAT liable.",
+          "example": null
+        },
+        {
+          "name": "vatLiableCode",
+          "type": "integer",
+          "required": false,
+          "description": "Customer VAT liable code. One of the following options: 0: No, within EU 1: Yes 2: No, outside EU 3: No, fiscal unity",
+          "example": null
+        }
+      ],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": [
+              {
+                "type": "customer",
+                "id": 2001,
+                "createdAt": "2023-12-01T10:05:01+01:00",
+                "updatedAt": "2023-12-01T10:05:01+01:00",
+                "attributes": {
+                  "customerNo": 2001,
+                  "companyName": "EasyTrans Software B.V.",
+                  "businessAddress": {
+                    "address": "Keulenstraat",
+                    "houseno": "1",
+                    "address2": "Kantoor A3.5",
+                    "postcode": "7418 ET",
+                    "city": "DEVENTER",
+                    "country": "NL"
+                  },
+                  "mailingAddress": {
+                    "attn": "Accounts Payable",
+                    "address": "Keulenstraat",
+                    "houseno": "1",
+                    "address2": "Kantoor A3.5",
+                    "postcode": "7418 ET",
+                    "city": "Deventer",
+                    "country": "NL"
+                  },
+                  "website": "www.easytrans.nl",
+                  "debtorNo": "123475",
+                  "paymentReference": "ABCD1234",
+                  "paymentPeriod": 21,
+                  "paymentPeriodEndOfMonth": false,
+                  "ibanNo": "NL63INGB0004511811",
+                  "bicCode": "INGBNL2A",
+                  "bankNo": "",
+                  "ukSortCode": "",
+                  "vatNo": "NL864120576B01",
+                  "vatLiable": true,
+                  "vatLiableCode": 1,
+                  "chamberOfCommerceNo": "86861239",
+                  "eoriNo": "",
+                  "language": "en",
+                  "notes": "Register at reception before loading",
+                  "crmNotes": "Agreed rates based on 50 orders per month",
+                  "invoiceSurcharge": 5.5,
+                  "active": true,
+                  "contacts": [],
+                  "externalId": "550e8400-e29b-41d4-a716-446655440000"
+                }
+              }
+            ],
+            "links": {
+              "first": "http://localhost/v1/customers?page=1",
+              "last": "http://localhost/v1/customers?page=1",
+              "prev": null,
+              "next": null
+            },
+            "meta": {
+              "current_page": 1,
+              "from": 1,
+              "last_page": 1,
+              "links": [
+                {
+                  "url": null,
+                  "label": "&laquo; Previous",
+                  "active": false
+                },
+                {
+                  "url": "http://localhost/v1/customers?page=1",
+                  "label": "1",
+                  "active": true
+                },
+                {
+                  "url": null,
+                  "label": "Next &raquo;",
+                  "active": false
+                }
+              ],
+              "path": "http://localhost/v1/customers",
+              "per_page": 100,
+              "to": 1,
+              "total": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "tag": "Customers (Branch account)",
+      "summary": "Get customer by customer number (branch accounts only)",
+      "method": "GET",
+      "path": "/v1/customers/{customerNo}",
+      "description": "This endpoint returns the specified customer for the authenticated branch. This endpoint can only be used with branch accounts, not with customer accounts.",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [
+        {
+          "name": "customerNo",
+          "type": "integer",
+          "required": true,
+          "description": "The customer number.",
+          "example": "2001"
+        }
+      ],
+      "query_parameters": [
+        {
+          "name": "include_deleted",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, also returns the customer if it has been marked as deleted, with an additional isDeleted attribute.",
+          "example": "false"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [
+        {
+          "name": "createdAt",
+          "type": "string",
+          "required": false,
+          "description": "Customer creation timestamp in ISO 8601 date format.",
+          "example": null
+        },
+        {
+          "name": "updatedAt",
+          "type": "string",
+          "required": false,
+          "description": "Customer last updated timestamp in ISO 8601 date format.",
+          "example": null
+        },
+        {
+          "name": "salutation",
+          "type": "integer",
+          "required": false,
+          "description": "Salutation. One of the following options: 0: No salutation 1: Mr. 2: Mrs. 3: Attn (for instance reception or warehouse)",
+          "example": null
+        },
+        {
+          "name": "vatLiable",
+          "type": "boolean",
+          "required": false,
+          "description": "Customer VAT liable status. True if customer is VAT liable or false if customer is not VAT liable. Check vatLiableCode for the reason a customer is not VAT liable.",
+          "example": null
+        },
+        {
+          "name": "vatLiableCode",
+          "type": "integer",
+          "required": false,
+          "description": "Customer VAT liable code. One of the following options: 0: No, within EU 1: Yes 2: No, outside EU 3: No, fiscal unity",
+          "example": null
+        }
+      ],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": {
+              "type": "customer",
+              "id": 2001,
+              "createdAt": "2023-12-01T10:05:01+01:00",
+              "updatedAt": "2023-12-01T10:05:01+01:00",
+              "attributes": {
+                "customerNo": 2001,
+                "companyName": "EasyTrans Software B.V.",
+                "businessAddress": {
+                  "address": "Keulenstraat",
+                  "houseno": "1",
+                  "address2": "Kantoor A3.5",
+                  "postcode": "7418 ET",
+                  "city": "DEVENTER",
+                  "country": "NL"
+                },
+                "mailingAddress": {
+                  "attn": "Accounts Payable",
+                  "address": "Keulenstraat",
+                  "houseno": "1",
+                  "address2": "Kantoor A3.5",
+                  "postcode": "7418 ET",
+                  "city": "Deventer",
+                  "country": "NL"
+                },
+                "website": "www.easytrans.nl",
+                "debtorNo": "123475",
+                "paymentReference": "ABCD1234",
+                "paymentPeriod": 21,
+                "paymentPeriodEndOfMonth": false,
+                "ibanNo": "NL63INGB0004511811",
+                "bicCode": "INGBNL2A",
+                "bankNo": "",
+                "ukSortCode": "",
+                "vatNo": "NL864120576B01",
+                "vatLiable": true,
+                "vatLiableCode": 1,
+                "chamberOfCommerceNo": "86861239",
+                "eoriNo": "",
+                "language": "en",
+                "notes": "Register at reception before loading",
+                "crmNotes": "Agreed rates based on 50 orders per month",
+                "invoiceSurcharge": 5.5,
+                "active": true,
+                "contacts": [],
+                "externalId": "550e8400-e29b-41d4-a716-446655440000"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "tag": "Carriers (Branch account)",
+      "summary": "Get list of carriers (branch accounts only)",
+      "method": "GET",
+      "path": "/v1/carriers",
+      "description": "This endpoint returns all carriers for the authenticated branch. The result can be filtered by the filter options below. A combination of filters is also allowed. For some filters you can filter on multiple values by separating them with a comma. For example: ?filter[carrierNo]=1,2,3 You can also use the following operators on any integer or date type filter, by placing them behind the name of the filter: [gte] = Greater than or equal [gt] = Greater than [lte] = Less than or equal [lt] = Less than [neq] = Not equal For example: ?filter[createdAt][gte]=2023-12-01 returns all carriers created since this date. Operators can also be combined. For example: ?filter[carrierNo][gte]=1000&filter[carrierNo][lt]=2000 returns all carriers between 1000 and 1999. The result can be sorted by the sort names below. The result is paginated by 100 carriers. This endpoint can only be used with main branch accounts.",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [],
+      "query_parameters": [
+        {
+          "name": "filter",
+          "type": "object",
+          "required": false,
+          "description": "Fields to filter by",
+          "example": "[]"
+        },
+        {
+          "name": "filter.carrierNo",
+          "type": "integer",
+          "required": false,
+          "description": "Filter by carrier number. Multiple carriers can be retrieved by separating the carrier numbers with a comma or by using operators. Use the [gte] operator to retrieve all carriers starting from this carrier number ?filter[carrier][gte]=1234 .",
+          "example": "44"
+        },
+        {
+          "name": "filter.createdAt",
+          "type": "string",
+          "required": false,
+          "description": "Filter by created at timestamp. Use the [gte] operator to retrieve all carriers that where created since this timestamp ?filter[createdAt][gte]=2023-12-01T10:05:01 .",
+          "example": "2023-12-01T10:05:01"
+        },
+        {
+          "name": "filter.updatedAt",
+          "type": "string",
+          "required": false,
+          "description": "Filter by updated at timestamp. Use the [gte] operator to retrieve all carriers that where last updated since this timestamp ?filter[updatedAt][gte]=2023-12-01T10:05:01 .",
+          "example": "2023-12-01T10:05:01"
+        },
+        {
+          "name": "filter.name",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the name of the carrier (either a company name or a persons name).",
+          "example": "External carrier"
+        },
+        {
+          "name": "filter.businessAddress.address",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the address field from the business address.",
+          "example": null
+        },
+        {
+          "name": "filter.businessAddress.postcode",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the postcode field from the business address.",
+          "example": null
+        },
+        {
+          "name": "filter.businessAddress.city",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the city field from the business address.",
+          "example": null
+        },
+        {
+          "name": "filter.mailingAddress.address",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the address field from the mailing address.",
+          "example": null
+        },
+        {
+          "name": "filter.mailingAddress.postcode",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the postcode field from the mailing address.",
+          "example": null
+        },
+        {
+          "name": "filter.mailingAddress.city",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the city field from the mailing address.",
+          "example": null
+        },
+        {
+          "name": "filter.phone",
+          "type": "string",
+          "required": false,
+          "description": "Filter by phone number (characters must be an exact match, including spaces and punctuation marks).",
+          "example": null
+        },
+        {
+          "name": "filter.mobile",
+          "type": "string",
+          "required": false,
+          "description": "Filter by mobile phone number (characters must be an exact match, including spaces and punctuation marks)).",
+          "example": null
+        },
+        {
+          "name": "filter.email",
+          "type": "string",
+          "required": false,
+          "description": "Filter by email.",
+          "example": null
+        },
+        {
+          "name": "filter.notes",
+          "type": "string",
+          "required": false,
+          "description": "Filter by any part of text from the carrier notes.",
+          "example": null
+        },
+        {
+          "name": "filter.creditorNo",
+          "type": "string",
+          "required": false,
+          "description": "Filter by creditor number. Multiple carriers can be retrieved by separating the values with a comma or by using operators (only when numeric).",
+          "example": "123475"
+        },
+        {
+          "name": "filter.externalId",
+          "type": "string",
+          "required": false,
+          "description": "Filter by external Id. Multiple carriers can be retrieved by separating the values with a comma or by using operators (only when numeric).",
+          "example": "18aa59a6-7eef-4491-837a-8ac2f04c0b6e"
+        },
+        {
+          "name": "filter.contacts.name",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the name field from the contacts.",
+          "example": null
+        },
+        {
+          "name": "filter.contacts.phone",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the phone number field from the contacts (characters must be an exact match, including spaces and punctuation marks).",
+          "example": null
+        },
+        {
+          "name": "filter.contacts.mobile",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the mobile number field from the contacts (characters must be an exact match, including spaces and punctuation marks)).",
+          "example": null
+        },
+        {
+          "name": "filter.contacts.email",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the email field from the contacts.",
+          "example": null
+        },
+        {
+          "name": "filter.contacts.notes",
+          "type": "string",
+          "required": false,
+          "description": "Filter by any part of text from the notes field from the contacts.",
+          "example": null
+        },
+        {
+          "name": "filter.contacts.username",
+          "type": "string",
+          "required": false,
+          "description": "Filter by the username field from the contacts.",
+          "example": null
+        },
+        {
+          "name": "sort",
+          "type": "string",
+          "required": false,
+          "description": "Sort the response. The result can be sorted by the following property names: carrierNo, createdAt, name, creditorNo, externalId. Sorting is ascending by default and can be reversed by adding a hyphen (-) to the start of the property name. You can sort by multiple properties by separating them with a comma ?sort=name,-createdAt .",
+          "example": "name,-createdAt"
+        },
+        {
+          "name": "include_deleted",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, also returns carriers that have been marked as deleted, with an additional isDeleted attribute.",
+          "example": "false"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [
+        {
+          "name": "createdAt",
+          "type": "string",
+          "required": false,
+          "description": "Carrier creation timestamp in ISO 8601 date format.",
+          "example": null
+        },
+        {
+          "name": "updatedAt",
+          "type": "string",
+          "required": false,
+          "description": "Carrier last updated timestamp in ISO 8601 date format.",
+          "example": null
+        },
+        {
+          "name": "vatLiable",
+          "type": "boolean",
+          "required": false,
+          "description": "Carrier VAT liable status. True if carrier is VAT liable or false if carrier is not VAT liable. Check vatLiableCode for the reason a carrier is not VAT liable.",
+          "example": null
+        },
+        {
+          "name": "vatLiableCode",
+          "type": "integer",
+          "required": false,
+          "description": "Carrier VAT liable code. One of the following options: 0: No, within EU 1: Yes 2: No, outside EU 3: No, small business scheme (KOR) 4: No, fiscal unity",
+          "example": null
+        }
+      ],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": [
+              {
+                "type": "carrier",
+                "id": 44,
+                "createdAt": "2023-12-01T10:05:01+01:00",
+                "updatedAt": "2023-12-01T10:05:01+01:00",
+                "attributes": {
+                  "carrierNo": 44,
+                  "name": "External carrier",
+                  "businessAddress": {
+                    "address": "Keulenstraat",
+                    "houseno": "1",
+                    "address2": "",
+                    "postcode": "7418 ET",
+                    "city": "DEVENTER",
+                    "country": "NL"
+                  },
+                  "mailingAddress": {
+                    "attn": "",
+                    "address": "Keulenstraat",
+                    "houseno": "1",
+                    "address2": "",
+                    "postcode": "7418 ET",
+                    "city": "Deventer",
+                    "country": "NL"
+                  },
+                  "phone": "+3185 - 0479 475",
+                  "mobile": "",
+                  "email": "info@easytrans.nl",
+                  "emailPurchaseInvoice": "",
+                  "website": "www.easytrans.nl",
+                  "notes": "Available Mon-Thu",
+                  "creditorNo": "123475",
+                  "paymentPeriod": 30,
+                  "paymentPeriodEndOfMonth": false,
+                  "ibanNo": "NL63INGB0004511811",
+                  "bicCode": "INGBNL2A",
+                  "bankNo": "",
+                  "ukSortCode": "",
+                  "vatNo": "NL864120576B01",
+                  "vatLiable": true,
+                  "vatLiableCode": 1,
+                  "chamberOfCommerceNo": "86861239",
+                  "licenseNo": "123456789",
+                  "carrierAttributes": [
+                    "charter_regular",
+                    "refrigerated"
+                  ],
+                  "language": "nl",
+                  "active": true,
+                  "contacts": [
+                    {
+                      "userId": 5,
+                      "name": "Contact one",
+                      "phone": "+3185 - 0479 475",
+                      "mobile": "",
+                      "email": "info@easytrans.nl",
+                      "notes": "Available Mon-Thu",
+                      "username": "import"
+                    },
+                    {
+                      "userId": 13,
+                      "name": "Contact two",
+                      "phone": "+3185 - 0479 475",
+                      "mobile": "",
+                      "email": "info@easytrans.nl",
+                      "notes": "",
+                      "username": "import_alles"
+                    }
+                  ],
+                  "externalId": "18aa59a6-7eef-4491-837a-8ac2f04c0b6e"
+                }
+              }
+            ],
+            "links": {
+              "first": "http://localhost/v1/carriers?page=1",
+              "last": "http://localhost/v1/carriers?page=1",
+              "prev": null,
+              "next": null
+            },
+            "meta": {
+              "current_page": 1,
+              "from": 1,
+              "last_page": 1,
+              "links": [
+                {
+                  "url": null,
+                  "label": "&laquo; Previous",
+                  "active": false
+                },
+                {
+                  "url": "http://localhost/v1/carriers?page=1",
+                  "label": "1",
+                  "active": true
+                },
+                {
+                  "url": null,
+                  "label": "Next &raquo;",
+                  "active": false
+                }
+              ],
+              "path": "http://localhost/v1/carriers",
+              "per_page": 100,
+              "to": 1,
+              "total": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "tag": "Carriers (Branch account)",
+      "summary": "Get carrier by carrier number (branch accounts only)",
+      "method": "GET",
+      "path": "/v1/carriers/{carrierNo}",
+      "description": "This endpoint returns the specified carrier for the authenticated branch. This endpoint can only be used with main branch accounts.",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [
+        {
+          "name": "carrierNo",
+          "type": "integer",
+          "required": true,
+          "description": "The carrier number.",
+          "example": "44"
+        }
+      ],
+      "query_parameters": [
+        {
+          "name": "include_deleted",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, also returns the carrier if it has been marked as deleted, with an additional isDeleted attribute.",
+          "example": "false"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [
+        {
+          "name": "createdAt",
+          "type": "string",
+          "required": false,
+          "description": "Carrier creation timestamp in ISO 8601 date format.",
+          "example": null
+        },
+        {
+          "name": "updatedAt",
+          "type": "string",
+          "required": false,
+          "description": "Carrier last updated timestamp in ISO 8601 date format.",
+          "example": null
+        },
+        {
+          "name": "vatLiable",
+          "type": "boolean",
+          "required": false,
+          "description": "Carrier VAT liable status. True if carrier is VAT liable or false if carrier is not VAT liable. Check vatLiableCode for the reason a carrier is not VAT liable.",
+          "example": null
+        },
+        {
+          "name": "vatLiableCode",
+          "type": "integer",
+          "required": false,
+          "description": "Carrier VAT liable code. One of the following options: 0: No, within EU 1: Yes 2: No, outside EU 3: No, small business scheme (KOR) 4: No, fiscal unity",
+          "example": null
+        }
+      ],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": {
+              "type": "carrier",
+              "id": 44,
+              "createdAt": "2023-12-01T10:05:01+01:00",
+              "updatedAt": "2023-12-01T10:05:01+01:00",
+              "attributes": {
+                "carrierNo": 44,
+                "name": "External carrier",
+                "businessAddress": {
+                  "address": "Keulenstraat",
+                  "houseno": "1",
+                  "address2": "",
+                  "postcode": "7418 ET",
+                  "city": "DEVENTER",
+                  "country": "NL"
+                },
+                "mailingAddress": {
+                  "attn": "",
+                  "address": "Keulenstraat",
+                  "houseno": "1",
+                  "address2": "",
+                  "postcode": "7418 ET",
+                  "city": "Deventer",
+                  "country": "NL"
+                },
+                "phone": "+3185 - 0479 475",
+                "mobile": "",
+                "email": "info@easytrans.nl",
+                "emailPurchaseInvoice": "",
+                "website": "www.easytrans.nl",
+                "notes": "Available Mon-Thu",
+                "creditorNo": "123475",
+                "paymentPeriod": 30,
+                "paymentPeriodEndOfMonth": false,
+                "ibanNo": "NL63INGB0004511811",
+                "bicCode": "INGBNL2A",
+                "bankNo": "",
+                "ukSortCode": "",
+                "vatNo": "NL864120576B01",
+                "vatLiable": true,
+                "vatLiableCode": 1,
+                "chamberOfCommerceNo": "86861239",
+                "licenseNo": "123456789",
+                "carrierAttributes": [
+                  "charter_regular",
+                  "refrigerated"
+                ],
+                "language": "nl",
+                "active": true,
+                "contacts": [
+                  {
+                    "userId": 5,
+                    "name": "Contact one",
+                    "phone": "+3185 - 0479 475",
+                    "mobile": "",
+                    "email": "info@easytrans.nl",
+                    "notes": "Available Mon-Thu",
+                    "username": "import"
+                  },
+                  {
+                    "userId": 13,
+                    "name": "Contact two",
+                    "phone": "+3185 - 0479 475",
+                    "mobile": "",
+                    "email": "info@easytrans.nl",
+                    "notes": "",
+                    "username": "import_alles"
+                  }
+                ],
+                "externalId": "18aa59a6-7eef-4491-837a-8ac2f04c0b6e"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "tag": "Fleet (Branch account)",
+      "summary": "Get list of vehicles in fleet",
+      "method": "GET",
+      "path": "/v1/fleet",
+      "description": "This endpoint returns the fleet. It can only be used with branch accounts. The result can be filtered by registration (license plate). For example: ?filter[registration]=VH-357-V",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [],
+      "query_parameters": [
+        {
+          "name": "filter",
+          "type": "object",
+          "required": false,
+          "description": "Fields to filter by",
+          "example": "[]"
+        },
+        {
+          "name": "filter.registration",
+          "type": "string",
+          "required": false,
+          "description": "Filter by regitration (license plate).",
+          "example": "VH-357-V"
+        },
+        {
+          "name": "include_deleted",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, also returns vehicles that have been marked as deleted, with an additional isDeleted attribute.",
+          "example": "false"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": [
+              {
+                "type": "fleet",
+                "id": 5,
+                "attributes": {
+                  "fleetNo": 5,
+                  "vehicleTypeNo": 2,
+                  "registration": "VH-357-V",
+                  "make": "Peugeot",
+                  "model": "Partner",
+                  "type": "Conditioned",
+                  "colour": "White",
+                  "capacity": "1 pallet - 500kg",
+                  "notes": "APK tot 01-06-2024"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "tag": "Fleet (Branch account)",
+      "summary": "Get vehicles in fleet by fleet number",
+      "method": "GET",
+      "path": "/v1/fleet/{fleetNo}",
+      "description": "This endpoint returns the specified vehicle for the authenticated branch.",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [
+        {
+          "name": "fleetNo",
+          "type": "integer",
+          "required": true,
+          "description": "The fleet number.",
+          "example": "5"
+        }
+      ],
+      "query_parameters": [
+        {
+          "name": "include_deleted",
+          "type": "boolean",
+          "required": false,
+          "description": "If true, also returns the vehicle if it has been marked as deleted, with an additional isDeleted attribute.",
+          "example": "false"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": {
+              "type": "fleet",
+              "id": 5,
+              "attributes": {
+                "fleetNo": 5,
+                "vehicleTypeNo": 2,
+                "registration": "VH-357-V",
+                "make": "Peugeot",
+                "model": "Partner",
+                "type": "Conditioned",
+                "colour": "White",
+                "capacity": "1 pallet - 500kg",
+                "notes": "APK tot 01-06-2024"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "tag": "Orders for carrier (Carrier account)",
+      "summary": "Get list of orders",
+      "method": "GET",
+      "path": "/v1/carrier/orders",
+      "description": "This endpoint returns all orders for the authenticated carrier. The result can be filtered by the filter options below. A combination of filters is also allowed. For some filters you can filter on multiple values by separating them with a comma. For example: ?filter[orderNo]=1,2,3 You can also use the following operators on any integer or date type filter, by placing them behind the name of the filter: [gte] = Greater than or equal [gt] = Greater than [lte] = Less than or equal [lt] = Less than [neq] = Not equal For example: ?filter[date][gte]=2023-12-01 returns all orders with an order date starting from this date. Operators can also be combined. For example: ?filter[orderNo][gte]=1000&filter[orderNo][lt]=2000 returns all orders between 1000 and 1999. The result can be sorted by the sort names below. The result is paginated by 100 orders.",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [],
+      "query_parameters": [
+        {
+          "name": "filter",
+          "type": "object",
+          "required": false,
+          "description": "Fields to filter by",
+          "example": "[]"
+        },
+        {
+          "name": "filter.orderNo",
+          "type": "integer",
+          "required": false,
+          "description": "Filter by order number. Multiple orders can be retrieved by separating the order numbers with a comma or by using operators. Use the [gte] operator to retrieve all orders starting from this order number ?filter[orderNo][gte]=1234 .",
+          "example": "35558"
+        },
+        {
+          "name": "filter.date",
+          "type": "string",
+          "required": false,
+          "description": "Filter by order date. Use the [gte] operator to retrieve all orders starting from this date ?filter[date][gte]=2023-12-01 .",
+          "example": "2023-12-01"
+        },
+        {
+          "name": "filter.createdAt",
+          "type": "string",
+          "required": false,
+          "description": "Filter by created at timestamp. Use the [gte] operator to retrieve all orders that where created since this timestamp ?filter[createdAt][gte]=2023-12-01T10:05:01 .",
+          "example": "2023-12-01T10:05:01"
+        },
+        {
+          "name": "filter.updatedAt",
+          "type": "string",
+          "required": false,
+          "description": "Filter by updated at timestamp. Use the [gte] operator to retrieve all orders that where last updated since this timestamp ?filter[updatedAt][gte]=2023-12-01T10:05:01 .",
+          "example": "2023-12-01T10:05:01"
+        },
+        {
+          "name": "filter.status",
+          "type": "string",
+          "required": false,
+          "description": "Filter by order status. Possible values for carrier accounts are: in-progress, finished.",
+          "example": "in-progress"
+        },
+        {
+          "name": "sort",
+          "type": "string",
+          "required": false,
+          "description": "Sort the response. The result can be sorted by the following property names: orderNo, date (also includes time), createdAt, updatedAt, status. Sorting is ascending by default and can be reversed by adding a hyphen (-) to the start of the property name. You can sort by multiple properties by separating them with a comma ?sort=status,-date .",
+          "example": "status,-date"
+        }
+      ],
+      "body_parameters": [],
+      "response_fields": [
+        {
+          "name": "createdAt",
+          "type": "string",
+          "required": false,
+          "description": "Order creation timestamp in ISO 8601 date format.",
+          "example": null
+        },
+        {
+          "name": "updatedAt",
+          "type": "string",
+          "required": false,
+          "description": "Order last updated timestamp in ISO 8601 date format.",
+          "example": null
+        },
+        {
+          "name": "date",
+          "type": "string",
+          "required": false,
+          "description": "Order date. Date on which the order needs to be performed. Usually the date on which the carrier needs to be at the pickup address. Dates are in the form ‘yyyy-mm-dd’.",
+          "example": null
+        },
+        {
+          "name": "time",
+          "type": "string",
+          "required": false,
+          "description": "Order time. Time on which the order starts. This is usually the time on which the carrier needs to arrive at the pickup address. Times are in the form ‘hh:mm’ and are local time.",
+          "example": null
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": false,
+          "description": "Order status. The options are: in-progress finished",
+          "example": null
+        },
+        {
+          "name": "substatusName",
+          "type": "string",
+          "required": false,
+          "description": "Optional extra order status, such as ‘Delivered at the neighbours’.",
+          "example": null
+        }
+      ],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": [
+              {
+                "type": "order",
+                "id": 35558,
+                "createdAt": "2023-12-01T10:05:01+01:00",
+                "updatedAt": "2023-12-01T10:05:01+01:00",
+                "attributes": {
+                  "orderNo": 35558,
+                  "date": "2023-12-01",
+                  "time": "08:00",
+                  "status": "in-progress",
+                  "substatusNo": 12,
+                  "substatusName": "Out for delivery",
+                  "productNo": 1,
+                  "productName": "Direct transport",
+                  "vehicleTypeNo": 2,
+                  "vehicleTypeName": "Small Van",
+                  "waybillNotes": "3 pallets and 16 boxes",
+                  "destinations": [
+                    {
+                      "addressId": 28416,
+                      "stopNo": 1,
+                      "taskType": "pickup",
+                      "company": "Demo customer",
+                      "contact": "Mr. Johnson",
+                      "address": "Keulenstraat",
+                      "houseno": "1",
+                      "address2": "Office A3.5",
+                      "postcode": "7418 ET",
+                      "city": "DEVENTER",
+                      "country": "NL",
+                      "location": {
+                        "latitude": 6.1941298,
+                        "longitude": 52.2366999
+                      },
+                      "phone": "+3185 - 0479 475",
+                      "notes": "",
+                      "customerReference": "ABCDE12345",
+                      "waybillNo": "",
+                      "date": "2024-12-31",
+                      "fromTime": "10:00",
+                      "toTime": "10:00",
+                      "eta": null,
+                      "deliveryDate": null,
+                      "deliveryTime": null,
+                      "departureTime": null,
+                      "deliveryName": "",
+                      "signatureUrl": false,
+                      "photos": [],
+                      "documents": [],
+                      "carrierNotes": ""
+                    },
+                    {
+                      "addressId": 28417,
+                      "stopNo": 2,
+                      "taskType": "delivery",
+                      "company": "Gamma Duiven",
+                      "contact": "Piet Klaassen",
+                      "address": "Lithograaf",
+                      "houseno": "1",
+                      "address2": "",
+                      "postcode": "6921 VA",
+                      "city": "DUIVEN",
+                      "country": "NL",
+                      "location": {
+                        "latitude": 6.0136513,
+                        "longitude": 51.959888
+                      },
+                      "phone": "+3185 - 0479 475",
+                      "notes": "Delivery at warehouse",
+                      "customerReference": "",
+                      "waybillNo": "123456",
+                      "date": "2024-12-31",
+                      "fromTime": "16:40",
+                      "toTime": "17:30",
+                      "eta": "00:00",
+                      "deliveryDate": null,
+                      "deliveryTime": "16:48",
+                      "departureTime": "17:06",
+                      "deliveryName": "Mr. Johnson",
+                      "signatureUrl": false,
+                      "photos": [],
+                      "documents": [],
+                      "carrierNotes": "Delivered at the neighbours"
+                    }
+                  ],
+                  "goods": [
+                    {
+                      "packageId": 21370,
+                      "packageNo": 1,
+                      "pickupDestination": 1,
+                      "deliveryDestination": 2,
+                      "amount": 16,
+                      "packageTypeNo": 1,
+                      "packageTypeName": "Colli",
+                      "weight": 10,
+                      "length": 50,
+                      "width": 40,
+                      "height": 30,
+                      "description": "Describe the contents of the box."
+                    },
+                    {
+                      "packageId": 21371,
+                      "packageNo": 2,
+                      "pickupDestination": 1,
+                      "deliveryDestination": 2,
+                      "amount": 0,
+                      "packageTypeNo": 18,
+                      "packageTypeName": "Europallet",
+                      "weight": 500,
+                      "length": 120,
+                      "width": 80,
+                      "height": 100,
+                      "description": ""
+                    }
+                  ]
+                }
+              }
+            ],
+            "links": {
+              "first": "http://localhost/v1/carrier/orders?page=1",
+              "last": "http://localhost/v1/carrier/orders?page=1",
+              "prev": null,
+              "next": null
+            },
+            "meta": {
+              "current_page": 1,
+              "from": 1,
+              "last_page": 1,
+              "links": [
+                {
+                  "url": null,
+                  "label": "&laquo; Previous",
+                  "active": false
+                },
+                {
+                  "url": "http://localhost/v1/carrier/orders?page=1",
+                  "label": "1",
+                  "active": true
+                },
+                {
+                  "url": null,
+                  "label": "Next &raquo;",
+                  "active": false
+                }
+              ],
+              "path": "http://localhost/v1/carrier/orders",
+              "per_page": 100,
+              "to": 1,
+              "total": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "tag": "Orders for carrier (Carrier account)",
+      "summary": "Get order by order number",
+      "method": "GET",
+      "path": "/v1/carrier/orders/{orderNo}",
+      "description": "This endpoint returns the specified order for the authenticated carrier.",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [
+        {
+          "name": "orderNo",
+          "type": "integer",
+          "required": true,
+          "description": "The order number.",
+          "example": "35558"
+        }
+      ],
+      "query_parameters": [],
+      "body_parameters": [],
+      "response_fields": [
+        {
+          "name": "createdAt",
+          "type": "string",
+          "required": false,
+          "description": "Order creation timestamp in ISO 8601 date format.",
+          "example": null
+        },
+        {
+          "name": "updatedAt",
+          "type": "string",
+          "required": false,
+          "description": "Order last updated timestamp in ISO 8601 date format.",
+          "example": null
+        },
+        {
+          "name": "date",
+          "type": "string",
+          "required": false,
+          "description": "Order date. Date on which the order needs to be performed. Usually the date on which the carrier needs to be at the pickup address. Dates are in the form ‘yyyy-mm-dd’.",
+          "example": null
+        },
+        {
+          "name": "time",
+          "type": "string",
+          "required": false,
+          "description": "Order time. Time on which the order starts. This is usually the time on which the carrier needs to arrive at the pickup address. Times are in the form ‘hh:mm’ and are local time.",
+          "example": null
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": false,
+          "description": "Order status. The options are: in-progress finished",
+          "example": null
+        },
+        {
+          "name": "substatusName",
+          "type": "string",
+          "required": false,
+          "description": "Optional extra order status, such as ‘Delivered at the neighbours’.",
+          "example": null
+        }
+      ],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": {
+              "type": "order",
+              "id": 35558,
+              "createdAt": "2023-12-01T10:05:01+01:00",
+              "updatedAt": "2023-12-01T10:05:01+01:00",
+              "attributes": {
+                "orderNo": 35558,
+                "date": "2023-12-01",
+                "time": "08:00",
+                "status": "in-progress",
+                "substatusNo": 12,
+                "substatusName": "Out for delivery",
+                "productNo": 1,
+                "productName": "Direct transport",
+                "vehicleTypeNo": 2,
+                "vehicleTypeName": "Small Van",
+                "waybillNotes": "3 pallets and 16 boxes",
+                "destinations": [
+                  {
+                    "addressId": 28416,
+                    "stopNo": 1,
+                    "taskType": "pickup",
+                    "company": "Demo customer",
+                    "contact": "Mr. Johnson",
+                    "address": "Keulenstraat",
+                    "houseno": "1",
+                    "address2": "Office A3.5",
+                    "postcode": "7418 ET",
+                    "city": "DEVENTER",
+                    "country": "NL",
+                    "location": {
+                      "latitude": 6.1941298,
+                      "longitude": 52.2366999
+                    },
+                    "phone": "+3185 - 0479 475",
+                    "notes": "",
+                    "customerReference": "ABCDE12345",
+                    "waybillNo": "",
+                    "date": "2024-12-31",
+                    "fromTime": "10:00",
+                    "toTime": "10:00",
+                    "eta": null,
+                    "deliveryDate": null,
+                    "deliveryTime": null,
+                    "departureTime": null,
+                    "deliveryName": "",
+                    "signatureUrl": false,
+                    "photos": [],
+                    "documents": [],
+                    "carrierNotes": ""
+                  },
+                  {
+                    "addressId": 28417,
+                    "stopNo": 2,
+                    "taskType": "delivery",
+                    "company": "Gamma Duiven",
+                    "contact": "Piet Klaassen",
+                    "address": "Lithograaf",
+                    "houseno": "1",
+                    "address2": "",
+                    "postcode": "6921 VA",
+                    "city": "DUIVEN",
+                    "country": "NL",
+                    "location": {
+                      "latitude": 6.0136513,
+                      "longitude": 51.959888
+                    },
+                    "phone": "+3185 - 0479 475",
+                    "notes": "Delivery at warehouse",
+                    "customerReference": "",
+                    "waybillNo": "123456",
+                    "date": "2024-12-31",
+                    "fromTime": "16:40",
+                    "toTime": "17:30",
+                    "eta": "00:00",
+                    "deliveryDate": null,
+                    "deliveryTime": "16:48",
+                    "departureTime": "17:06",
+                    "deliveryName": "Mr. Johnson",
+                    "signatureUrl": false,
+                    "photos": [],
+                    "documents": [],
+                    "carrierNotes": "Delivered at the neighbours"
+                  }
+                ],
+                "goods": [
+                  {
+                    "packageId": 21370,
+                    "packageNo": 1,
+                    "pickupDestination": 1,
+                    "deliveryDestination": 2,
+                    "amount": 16,
+                    "packageTypeNo": 1,
+                    "packageTypeName": "Colli",
+                    "weight": 10,
+                    "length": 50,
+                    "width": 40,
+                    "height": 30,
+                    "description": "Describe the contents of the box."
+                  },
+                  {
+                    "packageId": 21371,
+                    "packageNo": 2,
+                    "pickupDestination": 1,
+                    "deliveryDestination": 2,
+                    "amount": 0,
+                    "packageTypeNo": 18,
+                    "packageTypeName": "Europallet",
+                    "weight": 500,
+                    "length": 120,
+                    "width": 80,
+                    "height": 100,
+                    "description": ""
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "tag": "Orders for carrier (Carrier account)",
+      "summary": "Update the specified order for a carrier",
+      "method": "PUT",
+      "path": "/v1/carrier/orders/{orderNo}",
+      "description": "This endpoint updates the specified order and its destinations for the authenticated carrier. It is generally used to let a carrier sign-off an order and provide POD information. Only the body parameters below can be updated. Only orders that are open for editing can be updated (finished orders cannot be changed). The response contains the updated order. Update destinations A destination can be updated by providing the addressId (or stopNo) together with the body parameters that need to be changed. For a simple order with only one pickup and one delivery address, stopNo 2 is updated to sign-off an order. StopNo 1 can be updated to inform the carrier the goods have been loaded. For a multi stop order, several destinations need to be updated in order to update the POD information for each location. The destinations property expects an array. This allows updating of multiple destinations in one request. See the example request on how to edit a destination.",
+      "auth_required": true,
+      "headers": [
+        {
+          "name": "Authorization",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "Basic {YOUR_AUTH_KEY}"
+        },
+        {
+          "name": "Content-Type",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        },
+        {
+          "name": "Accept",
+          "type": "",
+          "required": false,
+          "description": "",
+          "example": "application/json"
+        }
+      ],
+      "url_parameters": [
+        {
+          "name": "orderNo",
+          "type": "integer",
+          "required": true,
+          "description": "The order number.",
+          "example": "35558"
+        }
+      ],
+      "query_parameters": [],
+      "body_parameters": [
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "description": "Sets the new status for this order. If the transport is finished, but the goods could not be delivered, use the carrierNotes field to specify a undeliverable reason.",
+          "example": "in-progress"
+        },
+        {
+          "name": "destinations",
+          "type": "object[]",
+          "required": true,
+          "description": "",
+          "example": null
+        }
+      ],
+      "response_fields": [],
+      "response_examples": [
+        {
+          "status": 200,
+          "body": {
+            "data": {
+              "type": "order",
+              "id": 35558,
+              "createdAt": "2023-12-01T10:05:01+01:00",
+              "updatedAt": "2023-12-01T10:05:01+01:00",
+              "attributes": {
+                "orderNo": 35558,
+                "date": "2023-12-01",
+                "time": "08:00",
+                "status": "in-progress",
+                "substatusNo": 12,
+                "substatusName": "Out for delivery",
+                "productNo": 1,
+                "productName": "Direct transport",
+                "vehicleTypeNo": 2,
+                "vehicleTypeName": "Small Van",
+                "waybillNotes": "3 pallets and 16 boxes",
+                "destinations": [
+                  {
+                    "addressId": 28416,
+                    "stopNo": 1,
+                    "taskType": "pickup",
+                    "company": "Demo customer",
+                    "contact": "Mr. Johnson",
+                    "address": "Keulenstraat",
+                    "houseno": "1",
+                    "address2": "Office A3.5",
+                    "postcode": "7418 ET",
+                    "city": "DEVENTER",
+                    "country": "NL",
+                    "location": {
+                      "latitude": 6.1941298,
+                      "longitude": 52.2366999
+                    },
+                    "phone": "+3185 - 0479 475",
+                    "notes": "",
+                    "customerReference": "ABCDE12345",
+                    "waybillNo": "",
+                    "date": "2024-12-31",
+                    "fromTime": "10:00",
+                    "toTime": "10:00",
+                    "eta": null,
+                    "deliveryDate": null,
+                    "deliveryTime": null,
+                    "departureTime": null,
+                    "deliveryName": "",
+                    "signatureUrl": false,
+                    "photos": [],
+                    "documents": [],
+                    "carrierNotes": ""
+                  },
+                  {
+                    "addressId": 28417,
+                    "stopNo": 2,
+                    "taskType": "delivery",
+                    "company": "Gamma Duiven",
+                    "contact": "Piet Klaassen",
+                    "address": "Lithograaf",
+                    "houseno": "1",
+                    "address2": "",
+                    "postcode": "6921 VA",
+                    "city": "DUIVEN",
+                    "country": "NL",
+                    "location": {
+                      "latitude": 6.0136513,
+                      "longitude": 51.959888
+                    },
+                    "phone": "+3185 - 0479 475",
+                    "notes": "Delivery at warehouse",
+                    "customerReference": "",
+                    "waybillNo": "123456",
+                    "date": "2025-12-01",
+                    "fromTime": "16:40",
+                    "toTime": "17:30",
+                    "eta": "00:00",
+                    "deliveryDate": null,
+                    "deliveryTime": "16:48",
+                    "departureTime": "17:05",
+                    "deliveryName": "Mr. Johnson",
+                    "signatureUrl": false,
+                    "photos": [],
+                    "documents": [],
+                    "carrierNotes": "Delivered at the neighbours"
+                  }
+                ],
+                "goods": [
+                  {
+                    "packageId": 21370,
+                    "packageNo": 1,
+                    "pickupDestination": 1,
+                    "deliveryDestination": 2,
+                    "amount": 16,
+                    "packageTypeNo": 1,
+                    "packageTypeName": "Colli",
+                    "weight": 10,
+                    "length": 50,
+                    "width": 40,
+                    "height": 30,
+                    "description": "Describe the contents of the box."
+                  },
+                  {
+                    "packageId": 21371,
+                    "packageNo": 2,
+                    "pickupDestination": 1,
+                    "deliveryDestination": 2,
+                    "amount": 0,
+                    "packageTypeNo": 18,
+                    "packageTypeName": "Europallet",
+                    "weight": 500,
+                    "length": 120,
+                    "width": 80,
+                    "height": 100,
+                    "description": ""
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

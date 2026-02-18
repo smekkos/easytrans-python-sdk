@@ -8,6 +8,12 @@ don't have credentials configured are unaffected.
 
 All integration tests operate with default_mode="test" so the EasyTrans
 API validates every payload without creating real orders or customers.
+
+REST API tests additionally require known entity IDs (order numbers, customer
+numbers, etc.) because the REST API only reads existing data — it never
+creates test records.  Set the EASYTRANS_REST_KNOWN_* variables to enable
+those tests; individual tests are skipped with an informative message when
+their required ID is absent.
 """
 
 import os
@@ -323,3 +329,95 @@ def portal_contacts():
             password="eLn3y23D",
         ),
     ]
+
+
+# ---------------------------------------------------------------------------
+# REST API fixtures — shared client + known-entity ID fixtures
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(scope="session")
+def rest_client():
+    """
+    Return an EasyTransClient for REST API integration tests.
+
+    Reuses the same credentials as the JSON import tests. The client is
+    session-scoped so the same TCP connection pool is reused across all
+    REST tests.
+    """
+    client = EasyTransClient(
+        server_url=os.environ.get("EASYTRANS_SERVER", "mytrans.nl"),
+        environment_name=os.environ.get("EASYTRANS_ENV", "demo"),
+        username=os.environ["EASYTRANS_USERNAME"],
+        password=os.environ["EASYTRANS_PASSWORD"],
+        timeout=30,
+    )
+    yield client
+    client.close()
+
+
+def _rest_entity_fixture(env_var: str, label: str, cast=int):
+    """
+    Factory for REST known-entity fixtures.
+
+    If the env-var is unset, the fixture skips the test with a clear
+    message rather than failing with a confusing KeyError.
+    """
+    @pytest.fixture(scope="session")
+    def _fixture():
+        raw = os.getenv(env_var)
+        if not raw:
+            pytest.skip(
+                f"Set {env_var} to a valid {label} in your EasyTrans "
+                f"environment to run this REST integration test."
+            )
+        return cast(raw)
+
+    _fixture.__name__ = env_var.lower()
+    return _fixture
+
+
+# Known entity IDs — each is optional; its tests are skipped when absent.
+rest_known_order_no = _rest_entity_fixture(
+    "EASYTRANS_REST_KNOWN_ORDER_NO", "order number"
+)
+rest_known_product_no = _rest_entity_fixture(
+    "EASYTRANS_REST_KNOWN_PRODUCT_NO", "product number"
+)
+rest_known_substatus_no = _rest_entity_fixture(
+    "EASYTRANS_REST_KNOWN_SUBSTATUS_NO", "substatus number"
+)
+rest_known_package_type_no = _rest_entity_fixture(
+    "EASYTRANS_REST_KNOWN_PACKAGE_TYPE_NO", "package type number"
+)
+rest_known_vehicle_type_no = _rest_entity_fixture(
+    "EASYTRANS_REST_KNOWN_VEHICLE_TYPE_NO", "vehicle type number"
+)
+rest_known_customer_no = _rest_entity_fixture(
+    "EASYTRANS_REST_KNOWN_CUSTOMER_NO", "customer number"
+)
+rest_known_carrier_no = _rest_entity_fixture(
+    "EASYTRANS_REST_KNOWN_CARRIER_NO", "carrier number"
+)
+rest_known_fleet_no = _rest_entity_fixture(
+    "EASYTRANS_REST_KNOWN_FLEET_NO", "fleet number"
+)
+rest_known_invoice_id = _rest_entity_fixture(
+    "EASYTRANS_REST_KNOWN_INVOICE_ID", "invoice ID"
+)
+
+
+# ---------------------------------------------------------------------------
+# Rate-limit guard
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(autouse=True)
+def _rate_limit_guard():
+    """
+    Pause briefly before every integration test to avoid hitting the
+    EasyTrans rate limit of 60 requests per minute.
+
+    At 1.1 s per test the full REST suite (~65 tests) takes ~70 s — still
+    well within a CI timeout — while ensuring we never exceed 54 req/min.
+    """
+    import time
+    time.sleep(1.1)

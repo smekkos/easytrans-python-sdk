@@ -1,0 +1,4231 @@
+openapi: 3.1.0
+info:
+  title: EasyTrans Documentation
+  description: 'REST API to communicate with the EasyTrans Transport Management System.
+
+
+    ## Account types
+
+
+    This API supports three account types:
+
+    - **Branch accounts**: EasyTrans users (carriers/logistics operators)
+
+    - **Customer accounts**: Customers of EasyTrans users (web shops, ERP systems)
+
+    - **Carrier accounts**: Third-party carriers that execute transport orders
+
+
+    Some endpoints and fields are restricted to specific account types, as noted in the individual endpoint descriptions.
+
+
+    ## Rate limiting
+
+
+    A maximum of 60 requests per minute is allowed. A `429 Too Many Requests` response will be returned if this limit is exceeded.
+
+
+    ## Pagination
+
+
+    List endpoints return at most 100 records per page. Use the `links.next` URL to retrieve subsequent pages.
+
+
+    ## Filtering and sorting
+
+
+    Use `filter[field]=value` query parameters on list endpoints. Operators like `[gte]`, `[gt]`, `[lte]`, `[lt]`, `[neq]`
+    can be appended to field names. Multiple values can be separated by commas.
+
+
+    ## Base URL
+
+
+    Every EasyTrans account has its own server URL. The API base URL follows the pattern: `https://www.YOUR_SERVER/YOUR_ENVIRONMENT/api/v1/`'
+  version: 1.0.0
+  contact:
+    name: EasyTrans Software
+    url: https://www.easytrans.nl
+    email: info@easytrans.nl
+servers:
+- url: https://www.mytrans.nl/demo/api/v1
+  description: Demo / documentation server
+- url: https://www.YOUR_SERVER/YOUR_ENVIRONMENT/api/v1
+  description: Your EasyTrans instance
+security:
+- basicAuth: []
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+      description: 'HTTP Basic authentication. Encode `username:password` in Base64 and pass as `Authorization: Basic {encoded}`
+        header. Contact your carrier to receive login credentials.'
+  schemas:
+    Address:
+      type: object
+      properties:
+        address:
+          type: string
+          example: Keulenstraat
+        houseno:
+          type: string
+          example: '1'
+        address2:
+          type: string
+          example: Kantoor A3.5
+        postcode:
+          type: string
+          example: 7418 ET
+        city:
+          type: string
+          example: DEVENTER
+        country:
+          type: string
+          example: NL
+    MailingAddress:
+      type: object
+      properties:
+        address:
+          type: string
+          example: Keulenstraat
+        houseno:
+          type: string
+          example: '1'
+        address2:
+          type: string
+          example: Kantoor A3.5
+        postcode:
+          type: string
+          example: 7418 ET
+        city:
+          type: string
+          example: DEVENTER
+        country:
+          type: string
+          example: NL
+        attn:
+          type: string
+          example: Accounts Payable
+    Location:
+      type: object
+      nullable: true
+      properties:
+        latitude:
+          type: number
+          format: float
+          example: 6.1941298
+        longitude:
+          type: number
+          format: float
+          example: 52.2366999
+    Destination:
+      type: object
+      properties:
+        addressId:
+          type: integer
+          example: 28416
+        stopNo:
+          type: integer
+          example: 1
+        taskType:
+          type: string
+          enum:
+          - pickup
+          - delivery
+          example: pickup
+        company:
+          type: string
+          example: Demo customer
+        contact:
+          type: string
+          example: Mr. Johnson
+        address:
+          type: string
+          example: Keulenstraat
+        houseno:
+          type: string
+          example: '1'
+        address2:
+          type: string
+          example: ''
+        postcode:
+          type: string
+          example: 7418 ET
+        city:
+          type: string
+          example: DEVENTER
+        country:
+          type: string
+          example: NL
+        location:
+          $ref: '#/components/schemas/Location'
+        phone:
+          type: string
+          example: +3185 - 0479 475
+        notes:
+          type: string
+          example: ''
+        customerReference:
+          type: string
+          example: ABCDE12345
+        waybillNo:
+          type: string
+          example: '123456'
+        date:
+          type: string
+          format: date
+          example: '2024-12-31'
+        fromTime:
+          type: string
+          format: time
+          example: '10:00'
+        toTime:
+          type: string
+          format: time
+          example: '10:00'
+        eta:
+          type: string
+          nullable: true
+          example: 00:00
+        deliveryDate:
+          type: string
+          format: date
+          nullable: true
+        deliveryTime:
+          type: string
+          nullable: true
+          example: '16:48'
+        departureTime:
+          type: string
+          nullable: true
+          example: '17:06'
+        deliveryName:
+          type: string
+          example: Mr. Johnson
+        signatureUrl:
+          oneOf:
+          - type: string
+            format: uri
+          - type: boolean
+          description: URL to signature image, or false if no signature.
+          example: false
+        photos:
+          type: array
+          items:
+            type: string
+          description: List of photo URLs.
+        documents:
+          type: array
+          items:
+            type: string
+          description: List of document URLs.
+        carrierNotes:
+          type: string
+          example: Delivered at the neighbours
+    GoodsLine:
+      type: object
+      properties:
+        packageId:
+          type: integer
+          example: 21370
+        packageNo:
+          type: integer
+          example: 1
+        pickupDestination:
+          type: integer
+          example: 1
+        deliveryDestination:
+          type: integer
+          example: 2
+        amount:
+          type: integer
+          example: 16
+        packageTypeNo:
+          type: integer
+          example: 1
+        packageTypeName:
+          type: string
+          example: Colli
+        weight:
+          type: number
+          example: 10
+        length:
+          type: number
+          example: 50
+        width:
+          type: number
+          example: 40
+        height:
+          type: number
+          example: 30
+        description:
+          type: string
+          example: Describe the contents of the box.
+    Rate:
+      type: object
+      properties:
+        rateNo:
+          type: integer
+          example: 388
+        description:
+          type: string
+          example: Distance Small Van
+        ratePerUnit:
+          type: string
+          example: '0.51000'
+        subTotal:
+          type: string
+          example: '50.49'
+        isMinimumAmount:
+          type: boolean
+          example: false
+        isPercentage:
+          type: boolean
+          example: false
+    TrackHistoryEntry:
+      type: object
+      properties:
+        trackId:
+          type: integer
+          example: 6094
+        name:
+          type: string
+          example: Order created
+        location:
+          type: string
+          example: Deventer
+        date:
+          type: string
+          format: date
+          example: '2024-06-05'
+        time:
+          type: string
+          format: time
+          example: 08:15
+    CustomerContact:
+      type: object
+      properties:
+        userId:
+          type: integer
+          example: 271
+        contactNo:
+          type: integer
+          example: 1
+        salutation:
+          type: integer
+          example: 0
+        name:
+          type: string
+          example: Demo user
+        phone:
+          type: string
+          example: +3185 - 0479 475
+        mobile:
+          type: string
+          example: +316 - 123 456 78
+        email:
+          type: string
+          format: email
+          example: info@easytrans.nl
+        useEmailForInvoice:
+          type: boolean
+          example: false
+        useEmailForReminder:
+          type: boolean
+          example: false
+        notes:
+          type: string
+          example: Head of logistics
+        username:
+          type: string
+          example: klant
+    Customer:
+      type: object
+      properties:
+        type:
+          type: string
+          example: customer
+        id:
+          type: integer
+          example: 2001
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        attributes:
+          type: object
+          properties:
+            customerNo:
+              type: integer
+              example: 2001
+            companyName:
+              type: string
+              example: EasyTrans Software B.V.
+            businessAddress:
+              $ref: '#/components/schemas/Address'
+            mailingAddress:
+              $ref: '#/components/schemas/MailingAddress'
+            website:
+              type: string
+              example: www.easytrans.nl
+            debtorNo:
+              type: string
+              example: '123475'
+            paymentReference:
+              type: string
+              example: ABCD1234
+            paymentPeriod:
+              type: integer
+              example: 21
+            paymentPeriodEndOfMonth:
+              type: boolean
+              example: false
+            ibanNo:
+              type: string
+              example: NL63INGB0004511811
+            bicCode:
+              type: string
+              example: INGBNL2A
+            bankNo:
+              type: string
+              example: ''
+            ukSortCode:
+              type: string
+              example: ''
+            vatNo:
+              type: string
+              example: NL864120576B01
+            vatLiable:
+              type: boolean
+              example: true
+            vatLiableCode:
+              type: integer
+              nullable: true
+              description: Reason code indicating why a customer is not VAT liable.
+              example: 1
+            chamberOfCommerceNo:
+              type: string
+              example: '86861239'
+            eoriNo:
+              type: string
+              example: ''
+            language:
+              type: string
+              example: en
+            notes:
+              type: string
+            crmNotes:
+              type: string
+            invoiceSurcharge:
+              type: number
+              example: 5.5
+            active:
+              type: boolean
+              example: true
+            isDeleted:
+              type: boolean
+              description: Only present when include_deleted=true (branch account only).
+            contacts:
+              type: array
+              items:
+                $ref: '#/components/schemas/CustomerContact'
+            externalId:
+              type: string
+              nullable: true
+              example: 550e8400-e29b-41d4-a716-446655440000
+    CarrierContact:
+      type: object
+      properties:
+        userId:
+          type: integer
+          example: 5
+        name:
+          type: string
+          example: Contact one
+        phone:
+          type: string
+          example: +3185 - 0479 475
+        mobile:
+          type: string
+          example: ''
+        email:
+          type: string
+          format: email
+          example: info@easytrans.nl
+        notes:
+          type: string
+          example: Available Mon-Thu
+        username:
+          type: string
+          example: import
+    Carrier:
+      type: object
+      properties:
+        type:
+          type: string
+          example: carrier
+        id:
+          type: integer
+          example: 44
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        attributes:
+          type: object
+          properties:
+            carrierNo:
+              type: integer
+              example: 44
+            name:
+              type: string
+              example: External carrier
+            businessAddress:
+              $ref: '#/components/schemas/Address'
+            mailingAddress:
+              $ref: '#/components/schemas/MailingAddress'
+            phone:
+              type: string
+              example: +3185 - 0479 475
+            mobile:
+              type: string
+              example: ''
+            email:
+              type: string
+              format: email
+            emailPurchaseInvoice:
+              type: string
+              format: email
+            website:
+              type: string
+              example: www.easytrans.nl
+            notes:
+              type: string
+            creditorNo:
+              type: string
+              example: '123475'
+            paymentPeriod:
+              type: integer
+              example: 30
+            paymentPeriodEndOfMonth:
+              type: boolean
+              example: false
+            ibanNo:
+              type: string
+              example: NL63INGB0004511811
+            bicCode:
+              type: string
+              example: INGBNL2A
+            bankNo:
+              type: string
+            ukSortCode:
+              type: string
+            vatNo:
+              type: string
+              example: NL864120576B01
+            vatLiable:
+              type: boolean
+              example: true
+            vatLiableCode:
+              type: integer
+              nullable: true
+              description: Reason code indicating why a carrier is not VAT liable.
+            chamberOfCommerceNo:
+              type: string
+            licenseNo:
+              type: string
+              example: '123456789'
+            carrierAttributes:
+              type: array
+              items:
+                type: string
+              example:
+              - charter_regular
+              - refrigerated
+            language:
+              type: string
+              example: nl
+            active:
+              type: boolean
+              example: true
+            isDeleted:
+              type: boolean
+              description: Only present when include_deleted=true (branch account only).
+            contacts:
+              type: array
+              items:
+                $ref: '#/components/schemas/CarrierContact'
+            externalId:
+              type: string
+              nullable: true
+              example: 18aa59a6-7eef-4491-837a-8ac2f04c0b6e
+    OrderAttributes:
+      type: object
+      properties:
+        orderNo:
+          type: integer
+          example: 35558
+        date:
+          type: string
+          format: date
+          example: '2023-12-01'
+        time:
+          type: string
+          format: time
+          example: 08:00
+        status:
+          type: string
+          description: 'Order status. Customer account values: quote, saved-weborder, pending-acceptation, in-progress, finished.
+            Branch account values: quote, saved-weborder, pending-acceptation, open, planned, signed-off, checked, invoiced.'
+          enum:
+          - quote
+          - saved-weborder
+          - pending-acceptation
+          - in-progress
+          - finished
+          - open
+          - planned
+          - signed-off
+          - checked
+          - invoiced
+          example: planned
+        substatusNo:
+          type: integer
+          nullable: true
+          example: 12
+        substatusName:
+          type: string
+          nullable: true
+          example: Out for delivery
+        collected:
+          type: boolean
+          description: Indicates the driver has picked-up the goods (goods on board).
+          example: true
+        productNo:
+          type: integer
+          nullable: true
+          example: 1
+        productName:
+          type: string
+          nullable: true
+          example: Direct transport
+        customerNo:
+          type: integer
+          example: 2001
+        customerUserId:
+          type: integer
+          nullable: true
+          example: 271
+        carrierNo:
+          type: integer
+          nullable: true
+          description: Branch account only.
+          example: 44
+        carrierUserId:
+          type: integer
+          nullable: true
+          description: Branch account only.
+          example: 5
+        branchNo:
+          type: integer
+          example: 0
+        vehicleTypeNo:
+          type: integer
+          nullable: true
+          example: 2
+        vehicleTypeName:
+          type: string
+          nullable: true
+          example: Small Van
+        fleetNo:
+          type: integer
+          nullable: true
+          description: Branch account only.
+          example: 5
+        userId:
+          type: integer
+          nullable: true
+          description: Branch account only. The contact of the customer that belongs to the order.
+        waybillNotes:
+          type: string
+          example: 3 pallets and 16 boxes
+        invoiceNotes:
+          type: string
+          example: 'P/O number: A12345'
+        purchaseInvoiceNotes:
+          type: string
+          description: Branch account only.
+          example: Payment period 30 days
+        internalNotes:
+          type: string
+          description: Branch account only.
+          example: Upload POD before signing-off
+        carrierNotes:
+          type: string
+          description: Branch account only.
+        recipientEmail:
+          type: string
+          format: email
+          example: info@example.com
+        distance:
+          type: integer
+          description: Distance in kilometres (EU) or miles (UK).
+          example: 99
+        orderPrice:
+          type: string
+          example: '132.48'
+        orderPurchasePrice:
+          type: string
+          description: Branch account only.
+          example: '294.82'
+        prepaidAmount:
+          type: string
+          example: '0.00'
+        readyForPurchaseInvoice:
+          type: boolean
+          description: Branch account only.
+          example: true
+        usernameCreated:
+          type: string
+          nullable: true
+          description: Branch account only.
+          example: Demo planner
+        usernameAssigned:
+          type: string
+          nullable: true
+          description: Branch account only.
+          example: Demo planner
+        invoiceId:
+          type: integer
+          example: 0
+        trackingId:
+          type: string
+          description: 'Track & Trace identifier. Use in URL: https://www.YOUR_SERVER/YOUR_ENVIRONMENT/tracktrace.php?trackingnr={trackingId}'
+          example: GIYDAMJNGM2TKNJY
+        externalId:
+          type: string
+          nullable: true
+          description: Reference to the corresponding record in an external system.
+          example: 550e8400-e29b-41d4-a716-446655440000
+        isDeleted:
+          type: boolean
+          description: Only present when include_deleted=true (branch account only).
+        destinations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Destination'
+        goods:
+          type: array
+          items:
+            $ref: '#/components/schemas/GoodsLine'
+        customer:
+          allOf:
+          - $ref: '#/components/schemas/Customer'
+          nullable: true
+          description: Only present when include_customer=true.
+        carrier:
+          allOf:
+          - $ref: '#/components/schemas/Carrier'
+          nullable: true
+          description: Only present when include_carrier=true (branch account only).
+        salesRates:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rate'
+          description: Only present when include_sales_rates=true.
+        purchaseRates:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rate'
+          description: Only present when include_purchase_rates=true (branch account only).
+        trackHistory:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrackHistoryEntry'
+          description: Only present when include_track_history=true.
+    Order:
+      type: object
+      properties:
+        type:
+          type: string
+          example: order
+        id:
+          type: integer
+          example: 35558
+        createdAt:
+          type: string
+          format: date-time
+          example: '2023-12-01T10:05:01+01:00'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2023-12-01T10:05:01+01:00'
+        attributes:
+          $ref: '#/components/schemas/OrderAttributes'
+    PaginationMetaLink:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          nullable: true
+        label:
+          type: string
+        active:
+          type: boolean
+    PaginationLinks:
+      type: object
+      properties:
+        first:
+          type: string
+          format: uri
+          nullable: true
+        last:
+          type: string
+          format: uri
+          nullable: true
+        prev:
+          type: string
+          format: uri
+          nullable: true
+        next:
+          type: string
+          format: uri
+          nullable: true
+    PaginationMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        from:
+          type: integer
+          nullable: true
+        last_page:
+          type: integer
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaginationMetaLink'
+        path:
+          type: string
+          format: uri
+        per_page:
+          type: integer
+          example: 100
+        to:
+          type: integer
+          nullable: true
+        total:
+          type: integer
+    OrderListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    OrderSingleResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Order'
+    Product:
+      type: object
+      properties:
+        type:
+          type: string
+          example: product
+        id:
+          type: integer
+          example: 1
+        attributes:
+          type: object
+          properties:
+            productNo:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Direct transport
+            isDeleted:
+              type: boolean
+              description: Only present when include_deleted=true (branch account only).
+    ProductListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    ProductSingleResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Product'
+    Substatus:
+      type: object
+      properties:
+        type:
+          type: string
+          example: substatus
+        id:
+          type: integer
+          example: 12
+        attributes:
+          type: object
+          properties:
+            substatusNo:
+              type: integer
+              example: 12
+            name:
+              type: string
+              example: Out for delivery
+            isDeleted:
+              type: boolean
+              description: Only present when include_deleted=true (branch account only).
+    SubstatusListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Substatus'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    SubstatusSingleResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Substatus'
+    PackageType:
+      type: object
+      properties:
+        type:
+          type: string
+          example: packagetype
+        id:
+          type: integer
+          example: 1
+        attributes:
+          type: object
+          properties:
+            packageTypeNo:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Colli
+            isDeleted:
+              type: boolean
+              description: Only present when include_deleted=true (branch account only).
+    PackageTypeListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PackageType'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    PackageTypeSingleResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/PackageType'
+    VehicleType:
+      type: object
+      properties:
+        type:
+          type: string
+          example: vehicletype
+        id:
+          type: integer
+          example: 2
+        attributes:
+          type: object
+          properties:
+            vehicleTypeNo:
+              type: integer
+              example: 2
+            name:
+              type: string
+              example: Small Van
+            isDeleted:
+              type: boolean
+              description: Only present when include_deleted=true (branch account only).
+    VehicleTypeListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/VehicleType'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    VehicleTypeSingleResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/VehicleType'
+    Invoice:
+      type: object
+      properties:
+        type:
+          type: string
+          example: invoice
+        id:
+          type: integer
+          example: 101
+        attributes:
+          type: object
+          properties:
+            invoiceId:
+              type: integer
+              example: 101
+            invoiceNo:
+              type: string
+              example: 2024-0001
+            invoiceDate:
+              type: string
+              format: date
+            customerNo:
+              type: integer
+              example: 2001
+            totalAmount:
+              type: string
+              example: '132.48'
+            vatAmount:
+              type: string
+              example: '27.82'
+            paymentMethod:
+              type: string
+              nullable: true
+              description: Branch account only.
+            onlinePaymentStatus:
+              type: string
+              nullable: true
+              description: Branch account only.
+            discountPercentage:
+              type: number
+              nullable: true
+              description: Branch account only.
+            sentDate:
+              type: string
+              format: date
+              nullable: true
+              description: Branch account only.
+            paid:
+              type: boolean
+              description: Branch account only.
+            paidDate:
+              type: string
+              format: date
+              nullable: true
+              description: Branch account only.
+            exported:
+              type: boolean
+              description: Branch account only.
+            externalId:
+              type: string
+              nullable: true
+              description: Branch account only.
+            invoicePdf:
+              type: string
+              format: byte
+              description: Base64 encoded PDF. Only present when include_invoice=true.
+    InvoiceListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Invoice'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    InvoiceSingleResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Invoice'
+    CustomerListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Customer'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    CustomerSingleResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Customer'
+    CarrierListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Carrier'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    CarrierSingleResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Carrier'
+    FleetVehicle:
+      type: object
+      properties:
+        type:
+          type: string
+          example: fleet
+        id:
+          type: integer
+          example: 5
+        attributes:
+          type: object
+          properties:
+            fleetNo:
+              type: integer
+              example: 5
+            name:
+              type: string
+              example: Van 1
+            licensePlate:
+              type: string
+              example: AB-123-C
+            vehicleTypeNo:
+              type: integer
+              nullable: true
+              example: 2
+            active:
+              type: boolean
+              example: true
+            isDeleted:
+              type: boolean
+              description: Only present when include_deleted=true.
+    FleetListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FleetVehicle'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    FleetSingleResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/FleetVehicle'
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Unauthenticated.
+    ValidationErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: The given data was invalid.
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            orderNo:
+            - The order no field is required.
+paths:
+  /v1/orders:
+    get:
+      operationId: getOrders
+      summary: Get list of orders
+      description: 'This endpoint returns all orders for the authenticated customer or branch account. The result can be filtered
+        by the filter options below. A combination of filters is also allowed. For some filters you can filter on multiple
+        values by separating them with a comma. For example: ?filter[orderNo]=1,2,3 You can also use the following operators
+        on any integer or date type filter, by placing them behind the name of the filter: [gte] = Greater than or equal [gt]
+        = Greater than [lte] = Less than or equal [lt] = Less than [neq] = Not equal For example: ?filter[date][gte]=2023-12-01
+        returns all orders with an order date starting from this date. Operators can also be combined. For example: ?filter[orderNo][gte]=1000&filter[orderNo][lt]=2000
+        returns all orders between 1000 and 1999. The result can be sorted by the sort names below. The result is paginated
+        by 100 orders.'
+      tags:
+      - Orders
+      security:
+      - basicAuth: []
+      parameters:
+      - name: filter[orderNo]
+        in: query
+        required: false
+        description: Filter by order number. Multiple orders can be retrieved by separating the order numbers with a comma
+          or by using operators. Use the [gte] operator to retrieve all orders starting from this order number ?filter[orderNo][gte]=1234
+          .
+        schema:
+          type: integer
+          example: 35558
+      - name: filter[date]
+        in: query
+        required: false
+        description: Filter by order date. Use the [gte] operator to retrieve all orders starting from this date ?filter[date][gte]=2023-12-01
+          .
+        schema:
+          type: string
+          example: '2023-12-01'
+      - name: filter[createdAt]
+        in: query
+        required: false
+        description: Filter by created at timestamp. Use the [gte] operator to retrieve all orders that where created since
+          this timestamp ?filter[createdAt][gte]=2023-12-01T10:05:01 .
+        schema:
+          type: string
+          example: '2023-12-01T10:05:01'
+      - name: filter[updatedAt]
+        in: query
+        required: false
+        description: Filter by updated at timestamp. Use the [gte] operator to retrieve all orders that where last updated
+          since this timestamp ?filter[updatedAt][gte]=2023-12-01T10:05:01 .
+        schema:
+          type: string
+          example: '2023-12-01T10:05:01'
+      - name: filter[status]
+        in: query
+        required: false
+        description: 'Filter by order status. Possible values for customer accounts are: quote, saved-weborder, pending-acceptation,
+          in-progress, finished. Possible values for branch accounts are: quote, saved-weborder, pending-acceptation, open,
+          planned, signed-off, checked, invoiced. Multiple statuses can be retrieved by separating the statuses with a comma
+          ?filter[status]=quote,saved-weborder .'
+        schema:
+          type: string
+          example: planned
+      - name: filter[substatusNo]
+        in: query
+        required: false
+        description: Filter by order substatus number. Multiple substatus numbers can be retrieved by separating the numbers
+          with a comma or by using operators.
+        schema:
+          type: integer
+          example: 12
+      - name: filter[customerReference]
+        in: query
+        required: false
+        description: Filter by the customer reference field from the order destinations.
+        schema:
+          type: string
+          example: ABCDE12345
+      - name: filter[productNo]
+        in: query
+        required: false
+        description: Filter by product number. Multiple product numbers can be retrieved by separating the numbers with a
+          comma or by using operators.
+        schema:
+          type: integer
+          example: 1
+      - name: filter[vehicleTypeNo]
+        in: query
+        required: false
+        description: Filter by vehicle type number. Multiple vehicle type numbers can be retrieved by separating the numbers
+          with a comma or by using operators.
+        schema:
+          type: integer
+          example: 2
+      - name: filter[waybillNotes]
+        in: query
+        required: false
+        description: Filter by any part of text from the notes on the waybill.
+        schema:
+          type: string
+          example: 16 boxes
+      - name: filter[invoiceNotes]
+        in: query
+        required: false
+        description: Filter by any part of text from the notes on the invoice.
+        schema:
+          type: string
+          example: '12345'
+      - name: filter[customerNo]
+        in: query
+        required: false
+        description: Filter by customer number (only with branch account). Multiple customer numbers can be retrieved by separating
+          the numbers with a comma or by using operators.
+        schema:
+          type: integer
+          example: 2001
+      - name: filter[carrierNo]
+        in: query
+        required: false
+        description: Filter by carrier number (only with branch account). Multiple carrier numbers can be retrieved by separating
+          the numbers with a comma or by using operators.
+        schema:
+          type: integer
+          example: 44
+      - name: filter[fleetNo]
+        in: query
+        required: false
+        description: Filter by fleet number (only with branch account). Multiple fleet numbers can be retrieved by separating
+          the numbers with a comma or by using operators.
+        schema:
+          type: integer
+          example: 5
+      - name: filter[invoiceId]
+        in: query
+        required: false
+        description: Filter by invoice Id. The invoice Id is an internal number that can be used to retrieve the orders that
+          correspond to an invoice. Multiple invoice Id's can be retrieved by separating the invoice Id with a comma or by
+          using operators.
+        schema:
+          type: integer
+      - name: filter[externalId]
+        in: query
+        required: false
+        description: Filter by external Id. Multiple orders can be retrieved by separating the values with a comma or by using
+          operators (only when numeric).
+        schema:
+          type: string
+          example: 550e8400-e29b-41d4-a716-446655440000
+      - name: sort
+        in: query
+        required: false
+        description: 'Sort the response. The result can be sorted by the following property names: orderNo, date (also includes
+          time), createdAt, updatedAt, status, substatusNo, productNo, vehicleTypeNo, waybillNotes, invoiceNotes, invoiceId,
+          externalId. Additionally, a branch account can also sort by: customerNo, carrierNo, fleetNo. Sorting is ascending
+          by default and can be reversed by adding a hyphen (-) to the start of the property name. You can sort by multiple
+          properties by separating them with a comma ?sort=status,-date .'
+        schema:
+          type: string
+          example: status,-date
+      - name: include_customer
+        in: query
+        required: false
+        description: If true, returns the customer details.
+        schema:
+          type: boolean
+          example: true
+      - name: include_carrier
+        in: query
+        required: false
+        description: If true, returns the carrier details (only with branch account).
+        schema:
+          type: boolean
+          example: true
+      - name: include_track_history
+        in: query
+        required: false
+        description: If true, returns an array with the available order Track & Trace history.
+        schema:
+          type: boolean
+          example: true
+      - name: include_sales_rates
+        in: query
+        required: false
+        description: If true, returns an array with the sales rates.
+        schema:
+          type: boolean
+          example: true
+      - name: include_purchase_rates
+        in: query
+        required: false
+        description: If true, returns an array with the purchase rates (only with branch account).
+        schema:
+          type: boolean
+          example: false
+      - name: include_deleted
+        in: query
+        required: false
+        description: If true, also returns orders that have been marked as deleted, with an additional isDeleted attribute
+          (only with branch account).
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderListResponse'
+              example:
+                data:
+                - type: order
+                  id: 35558
+                  createdAt: '2023-12-01T10:05:01+01:00'
+                  updatedAt: '2023-12-01T10:05:01+01:00'
+                  attributes:
+                    orderNo: 35558
+                    date: '2023-12-01'
+                    time: 08:00
+                    status: planned
+                    substatusNo: 12
+                    substatusName: Out for delivery
+                    collected: true
+                    productNo: 1
+                    productName: Direct transport
+                    customerNo: 2001
+                    customerUserId: 271
+                    carrierNo: 44
+                    carrierUserId: 5
+                    branchNo: 0
+                    vehicleTypeNo: 2
+                    vehicleTypeName: Small Van
+                    fleetNo: 5
+                    waybillNotes: 3 pallets and 16 boxes
+                    invoiceNotes: 'P/O number: A12345'
+                    purchaseInvoiceNotes: Payment period 30 days
+                    internalNotes: Upload POD before signing-off
+                    recipientEmail: info@example.com
+                    distance: 99
+                    orderPrice: '132.48'
+                    orderPurchasePrice: '294.82'
+                    prepaidAmount: '0.00'
+                    readyForPurchaseInvoice: true
+                    usernameCreated: Demo planner
+                    usernameAssigned: Demo planner
+                    invoiceId: 0
+                    trackingId: GIYDAMJNGM2TKNJY
+                    externalId: 550e8400-e29b-41d4-a716-446655440000
+                    destinations:
+                    - addressId: 28416
+                      stopNo: 1
+                      taskType: pickup
+                      company: Demo customer
+                      contact: Mr. Johnson
+                      address: Keulenstraat
+                      houseno: '1'
+                      address2: Office A3.5
+                      postcode: 7418 ET
+                      city: DEVENTER
+                      country: NL
+                      location:
+                        latitude: 6.1941298
+                        longitude: 52.2366999
+                      phone: +3185 - 0479 475
+                      notes: ''
+                      customerReference: ABCDE12345
+                      waybillNo: ''
+                      date: '2024-12-31'
+                      fromTime: '10:00'
+                      toTime: '10:00'
+                      eta: null
+                      deliveryDate: null
+                      deliveryTime: null
+                      departureTime: null
+                      deliveryName: ''
+                      signatureUrl: false
+                      photos: []
+                      documents: []
+                      carrierNotes: ''
+                    - addressId: 28417
+                      stopNo: 2
+                      taskType: delivery
+                      company: Gamma Duiven
+                      contact: Piet Klaassen
+                      address: Lithograaf
+                      houseno: '1'
+                      address2: ''
+                      postcode: 6921 VA
+                      city: DUIVEN
+                      country: NL
+                      location:
+                        latitude: 6.0136513
+                        longitude: 51.959888
+                      phone: +3185 - 0479 475
+                      notes: Delivery at warehouse
+                      customerReference: ''
+                      waybillNo: '123456'
+                      date: '2024-12-31'
+                      fromTime: '16:40'
+                      toTime: '17:30'
+                      eta: 00:00
+                      deliveryDate: null
+                      deliveryTime: '16:48'
+                      departureTime: '17:06'
+                      deliveryName: Mr. Johnson
+                      signatureUrl: false
+                      photos: []
+                      documents: []
+                      carrierNotes: Delivered at the neighbours
+                    goods:
+                    - packageId: 21370
+                      packageNo: 1
+                      pickupDestination: 1
+                      deliveryDestination: 2
+                      amount: 16
+                      packageTypeNo: 1
+                      packageTypeName: Colli
+                      weight: 10
+                      length: 50
+                      width: 40
+                      height: 30
+                      description: Describe the contents of the box.
+                    - packageId: 21371
+                      packageNo: 2
+                      pickupDestination: 1
+                      deliveryDestination: 2
+                      amount: 0
+                      packageTypeNo: 18
+                      packageTypeName: Europallet
+                      weight: 500
+                      length: 120
+                      width: 80
+                      height: 100
+                      description: ''
+                    customer:
+                      type: customer
+                      id: 2001
+                      createdAt: '2023-12-01T10:05:01+01:00'
+                      updatedAt: '2023-12-01T10:05:01+01:00'
+                      attributes:
+                        customerNo: 2001
+                        companyName: EasyTrans Software B.V.
+                        businessAddress:
+                          address: Keulenstraat
+                          houseno: '1'
+                          address2: Kantoor A3.5
+                          postcode: 7418 ET
+                          city: DEVENTER
+                          country: NL
+                        mailingAddress:
+                          attn: Accounts Payable
+                          address: Keulenstraat
+                          houseno: '1'
+                          address2: Kantoor A3.5
+                          postcode: 7418 ET
+                          city: Deventer
+                          country: NL
+                        website: www.easytrans.nl
+                        debtorNo: '123475'
+                        paymentReference: ABCD1234
+                        paymentPeriod: 21
+                        paymentPeriodEndOfMonth: false
+                        ibanNo: NL63INGB0004511811
+                        bicCode: INGBNL2A
+                        bankNo: ''
+                        ukSortCode: ''
+                        vatNo: NL864120576B01
+                        vatLiable: true
+                        vatLiableCode: 1
+                        chamberOfCommerceNo: '86861239'
+                        eoriNo: ''
+                        language: en
+                        notes: Register at reception before loading
+                        crmNotes: Agreed rates based on 50 orders per month
+                        invoiceSurcharge: 5.5
+                        active: true
+                        contacts:
+                        - userId: 271
+                          contactNo: 1
+                          salutation: 0
+                          name: Demo user
+                          phone: +3185 - 0479 475
+                          mobile: +316 - 123 456 78
+                          email: info@easytrans.nl
+                          useEmailForInvoice: false
+                          useEmailForReminder: false
+                          notes: Head of logistics
+                          username: klant
+                        externalId: 550e8400-e29b-41d4-a716-446655440000
+                    carrier:
+                      type: carrier
+                      id: 44
+                      createdAt: '2023-12-01T10:05:01+01:00'
+                      updatedAt: '2023-12-01T10:05:01+01:00'
+                      attributes:
+                        carrierNo: 44
+                        name: External carrier
+                        businessAddress:
+                          address: Keulenstraat
+                          houseno: '1'
+                          address2: ''
+                          postcode: 7418 ET
+                          city: DEVENTER
+                          country: NL
+                        mailingAddress:
+                          attn: ''
+                          address: Keulenstraat
+                          houseno: '1'
+                          address2: ''
+                          postcode: 7418 ET
+                          city: Deventer
+                          country: NL
+                        phone: +3185 - 0479 475
+                        mobile: ''
+                        email: info@easytrans.nl
+                        emailPurchaseInvoice: ''
+                        website: www.easytrans.nl
+                        notes: Available Mon-Thu
+                        creditorNo: '123475'
+                        paymentPeriod: 30
+                        paymentPeriodEndOfMonth: false
+                        ibanNo: NL63INGB0004511811
+                        bicCode: INGBNL2A
+                        bankNo: ''
+                        ukSortCode: ''
+                        vatNo: NL864120576B01
+                        vatLiable: true
+                        vatLiableCode: 1
+                        chamberOfCommerceNo: '86861239'
+                        licenseNo: '123456789'
+                        carrierAttributes:
+                        - charter_regular
+                        - refrigerated
+                        language: nl
+                        active: true
+                        contacts:
+                        - userId: 5
+                          name: Contact one
+                          phone: +3185 - 0479 475
+                          mobile: ''
+                          email: info@easytrans.nl
+                          notes: Available Mon-Thu
+                          username: import
+                        externalId: 18aa59a6-7eef-4491-837a-8ac2f04c0b6e
+                    salesRates:
+                    - rateNo: 0
+                      description: Parking costs
+                      ratePerUnit: '0.00000'
+                      subTotal: '10.00'
+                      isMinimumAmount: false
+                      isPercentage: false
+                    - rateNo: 388
+                      description: Distance Small Van
+                      ratePerUnit: '0.51000'
+                      subTotal: '50.49'
+                      isMinimumAmount: false
+                      isPercentage: false
+                    - rateNo: 391
+                      description: Additional insurance
+                      ratePerUnit: '3.00000'
+                      subTotal: '1.51'
+                      isMinimumAmount: false
+                      isPercentage: true
+                    - rateNo: 642
+                      description: Toll costs
+                      ratePerUnit: '25.00000'
+                      subTotal: '25.00'
+                      isMinimumAmount: false
+                      isPercentage: false
+                    - rateNo: 4
+                      description: Waiting time
+                      ratePerUnit: '0.80000'
+                      subTotal: '48.00'
+                      isMinimumAmount: false
+                      isPercentage: false
+                    - rateNo: 345
+                      description: Discount
+                      ratePerUnit: '-5.00000'
+                      subTotal: '-2.52'
+                      isMinimumAmount: false
+                      isPercentage: true
+                    trackHistory:
+                    - trackId: 6094
+                      name: Order created
+                      location: Deventer
+                      date: '2024-06-05'
+                      time: 08:15
+                    - trackId: 6095
+                      name: Collected
+                      location: Amsterdam
+                      date: '2024-06-05'
+                      time: '15:00'
+                    - trackId: 10165
+                      name: Delivered at the neighbours
+                      location: Duiven
+                      date: '2024-06-06'
+                      time: 08:30
+                links:
+                  first: http://localhost/v1/orders?page=1
+                  last: http://localhost/v1/orders?page=1
+                  prev: null
+                  next: null
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 1
+                  links:
+                  - url: null
+                    label: '&laquo; Previous'
+                    active: false
+                  - url: http://localhost/v1/orders?page=1
+                    label: '1'
+                    active: true
+                  - url: null
+                    label: Next &raquo;
+                    active: false
+                  path: http://localhost/v1/orders
+                  per_page: 100
+                  to: 1
+                  total: 1
+        '401': &id001
+          description: Unauthenticated. Missing or invalid Authorization header.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Unauthenticated.
+        '404': &id002
+          description: Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Not found.
+        '429': &id003
+          description: Too Many Requests — maximum of 60 requests per minute exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Too Many Attempts.
+  /v1/orders/{orderNo}:
+    get:
+      operationId: getOrdersOrderno
+      summary: Get order by order number
+      description: This endpoint returns the specified order for the authenticated customer or branch.
+      tags:
+      - Orders
+      security:
+      - basicAuth: []
+      parameters:
+      - name: orderNo
+        in: path
+        required: true
+        description: The order number.
+        schema:
+          type: integer
+          example: 35558
+      - name: include_customer
+        in: query
+        required: false
+        description: If true, returns the customer details.
+        schema:
+          type: boolean
+          example: true
+      - name: include_carrier
+        in: query
+        required: false
+        description: If true, returns the carrier details (only with branch account).
+        schema:
+          type: boolean
+          example: true
+      - name: include_track_history
+        in: query
+        required: false
+        description: If true, returns an array with the available order Track & Trace history.
+        schema:
+          type: boolean
+          example: true
+      - name: include_sales_rates
+        in: query
+        required: false
+        description: If true, returns an array with the sales rates.
+        schema:
+          type: boolean
+          example: true
+      - name: include_purchase_rates
+        in: query
+        required: false
+        description: If true, returns an array with the purchase rates (only with branch account).
+        schema:
+          type: boolean
+          example: false
+      - name: include_deleted
+        in: query
+        required: false
+        description: If true, also returns the order if it has been marked as deleted, with an additional isDeleted attribute
+          (only with branch account).
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderSingleResponse'
+              example:
+                data:
+                  type: order
+                  id: 35558
+                  createdAt: '2023-12-01T10:05:01+01:00'
+                  updatedAt: '2023-12-01T10:05:01+01:00'
+                  attributes:
+                    orderNo: 35558
+                    date: '2023-12-01'
+                    time: 08:00
+                    status: planned
+                    substatusNo: 12
+                    substatusName: Out for delivery
+                    collected: true
+                    productNo: 1
+                    productName: Direct transport
+                    customerNo: 2001
+                    customerUserId: 271
+                    carrierNo: 44
+                    carrierUserId: 5
+                    branchNo: 0
+                    vehicleTypeNo: 2
+                    vehicleTypeName: Small Van
+                    fleetNo: 5
+                    waybillNotes: 3 pallets and 16 boxes
+                    invoiceNotes: 'P/O number: A12345'
+                    purchaseInvoiceNotes: Payment period 30 days
+                    internalNotes: Upload POD before signing-off
+                    recipientEmail: info@example.com
+                    distance: 99
+                    orderPrice: '132.48'
+                    orderPurchasePrice: '294.82'
+                    prepaidAmount: '0.00'
+                    readyForPurchaseInvoice: true
+                    usernameCreated: Demo planner
+                    usernameAssigned: Demo planner
+                    invoiceId: 0
+                    trackingId: GIYDAMJNGM2TKNJY
+                    externalId: 550e8400-e29b-41d4-a716-446655440000
+                    destinations:
+                    - addressId: 28416
+                      stopNo: 1
+                      taskType: pickup
+                      company: Demo customer
+                      contact: Mr. Johnson
+                      address: Keulenstraat
+                      houseno: '1'
+                      address2: Office A3.5
+                      postcode: 7418 ET
+                      city: DEVENTER
+                      country: NL
+                      location:
+                        latitude: 6.1941298
+                        longitude: 52.2366999
+                      phone: +3185 - 0479 475
+                      notes: ''
+                      customerReference: ABCDE12345
+                      waybillNo: ''
+                      date: '2024-12-31'
+                      fromTime: '10:00'
+                      toTime: '10:00'
+                      eta: null
+                      deliveryDate: null
+                      deliveryTime: null
+                      departureTime: null
+                      deliveryName: ''
+                      signatureUrl: false
+                      photos: []
+                      documents: []
+                      carrierNotes: ''
+                    - addressId: 28417
+                      stopNo: 2
+                      taskType: delivery
+                      company: Gamma Duiven
+                      contact: Piet Klaassen
+                      address: Lithograaf
+                      houseno: '1'
+                      address2: ''
+                      postcode: 6921 VA
+                      city: DUIVEN
+                      country: NL
+                      location:
+                        latitude: 6.0136513
+                        longitude: 51.959888
+                      phone: +3185 - 0479 475
+                      notes: Delivery at warehouse
+                      customerReference: ''
+                      waybillNo: '123456'
+                      date: '2024-12-31'
+                      fromTime: '16:40'
+                      toTime: '17:30'
+                      eta: 00:00
+                      deliveryDate: null
+                      deliveryTime: '16:48'
+                      departureTime: '17:06'
+                      deliveryName: Mr. Johnson
+                      signatureUrl: false
+                      photos: []
+                      documents: []
+                      carrierNotes: Delivered at the neighbours
+                    goods:
+                    - packageId: 21370
+                      packageNo: 1
+                      pickupDestination: 1
+                      deliveryDestination: 2
+                      amount: 16
+                      packageTypeNo: 1
+                      packageTypeName: Colli
+                      weight: 10
+                      length: 50
+                      width: 40
+                      height: 30
+                      description: Describe the contents of the box.
+                    - packageId: 21371
+                      packageNo: 2
+                      pickupDestination: 1
+                      deliveryDestination: 2
+                      amount: 0
+                      packageTypeNo: 18
+                      packageTypeName: Europallet
+                      weight: 500
+                      length: 120
+                      width: 80
+                      height: 100
+                      description: ''
+                    customer:
+                      type: customer
+                      id: 2001
+                      createdAt: '2023-12-01T10:05:01+01:00'
+                      updatedAt: '2023-12-01T10:05:01+01:00'
+                      attributes:
+                        customerNo: 2001
+                        companyName: EasyTrans Software B.V.
+                        businessAddress:
+                          address: Keulenstraat
+                          houseno: '1'
+                          address2: Kantoor A3.5
+                          postcode: 7418 ET
+                          city: DEVENTER
+                          country: NL
+                        mailingAddress:
+                          attn: Accounts Payable
+                          address: Keulenstraat
+                          houseno: '1'
+                          address2: Kantoor A3.5
+                          postcode: 7418 ET
+                          city: Deventer
+                          country: NL
+                        website: www.easytrans.nl
+                        debtorNo: '123475'
+                        paymentReference: ABCD1234
+                        paymentPeriod: 21
+                        paymentPeriodEndOfMonth: false
+                        ibanNo: NL63INGB0004511811
+                        bicCode: INGBNL2A
+                        bankNo: ''
+                        ukSortCode: ''
+                        vatNo: NL864120576B01
+                        vatLiable: true
+                        vatLiableCode: 1
+                        chamberOfCommerceNo: '86861239'
+                        eoriNo: ''
+                        language: en
+                        notes: Register at reception before loading
+                        crmNotes: Agreed rates based on 50 orders per month
+                        invoiceSurcharge: 5.5
+                        active: true
+                        contacts:
+                        - userId: 271
+                          contactNo: 1
+                          salutation: 0
+                          name: Demo user
+                          phone: +3185 - 0479 475
+                          mobile: +316 - 123 456 78
+                          email: info@easytrans.nl
+                          useEmailForInvoice: false
+                          useEmailForReminder: false
+                          notes: Head of logistics
+                          username: klant
+                        externalId: 550e8400-e29b-41d4-a716-446655440000
+                    carrier:
+                      type: carrier
+                      id: 44
+                      createdAt: '2023-12-01T10:05:01+01:00'
+                      updatedAt: '2023-12-01T10:05:01+01:00'
+                      attributes:
+                        carrierNo: 44
+                        name: External carrier
+                        businessAddress:
+                          address: Keulenstraat
+                          houseno: '1'
+                          address2: ''
+                          postcode: 7418 ET
+                          city: DEVENTER
+                          country: NL
+                        mailingAddress:
+                          attn: ''
+                          address: Keulenstraat
+                          houseno: '1'
+                          address2: ''
+                          postcode: 7418 ET
+                          city: Deventer
+                          country: NL
+                        phone: +3185 - 0479 475
+                        mobile: ''
+                        email: info@easytrans.nl
+                        emailPurchaseInvoice: ''
+                        website: www.easytrans.nl
+                        notes: Available Mon-Thu
+                        creditorNo: '123475'
+                        paymentPeriod: 30
+                        paymentPeriodEndOfMonth: false
+                        ibanNo: NL63INGB0004511811
+                        bicCode: INGBNL2A
+                        bankNo: ''
+                        ukSortCode: ''
+                        vatNo: NL864120576B01
+                        vatLiable: true
+                        vatLiableCode: 1
+                        chamberOfCommerceNo: '86861239'
+                        licenseNo: '123456789'
+                        carrierAttributes:
+                        - charter_regular
+                        - refrigerated
+                        language: nl
+                        active: true
+                        contacts:
+                        - userId: 5
+                          name: Contact one
+                          phone: +3185 - 0479 475
+                          mobile: ''
+                          email: info@easytrans.nl
+                          notes: Available Mon-Thu
+                          username: import
+                        externalId: 18aa59a6-7eef-4491-837a-8ac2f04c0b6e
+                    salesRates:
+                    - rateNo: 0
+                      description: Parking costs
+                      ratePerUnit: '0.00000'
+                      subTotal: '10.00'
+                      isMinimumAmount: false
+                      isPercentage: false
+                    - rateNo: 388
+                      description: Distance Small Van
+                      ratePerUnit: '0.51000'
+                      subTotal: '50.49'
+                      isMinimumAmount: false
+                      isPercentage: false
+                    - rateNo: 391
+                      description: Additional insurance
+                      ratePerUnit: '3.00000'
+                      subTotal: '1.51'
+                      isMinimumAmount: false
+                      isPercentage: true
+                    - rateNo: 642
+                      description: Toll costs
+                      ratePerUnit: '25.00000'
+                      subTotal: '25.00'
+                      isMinimumAmount: false
+                      isPercentage: false
+                    - rateNo: 4
+                      description: Waiting time
+                      ratePerUnit: '0.80000'
+                      subTotal: '48.00'
+                      isMinimumAmount: false
+                      isPercentage: false
+                    - rateNo: 345
+                      description: Discount
+                      ratePerUnit: '-5.00000'
+                      subTotal: '-2.52'
+                      isMinimumAmount: false
+                      isPercentage: true
+                    trackHistory:
+                    - trackId: 6094
+                      name: Order created
+                      location: Deventer
+                      date: '2024-06-05'
+                      time: 08:15
+                    - trackId: 6095
+                      name: Collected
+                      location: Amsterdam
+                      date: '2024-06-05'
+                      time: '15:00'
+                    - trackId: 10165
+                      name: Delivered at the neighbours
+                      location: Duiven
+                      date: '2024-06-06'
+                      time: 08:30
+        '401': *id001
+        '404': *id002
+        '429': *id003
+    put:
+      operationId: updateOrdersOrderno
+      summary: Update the specified order
+      description: This endpoint updates the specified order and its destinations, goods and rates for the authenticated branch.
+        This endpoint can only be used with branch accounts, not with customer accounts. Only the body parameters below can
+        be updated. Some elements can only be updated if the order is open for editing (not checked or invoiced). The response
+        contains the updated order. Update destinations, goods and rates A destination can be updated by providing the addressId
+        (or stopNo) together with the body parameters that need to be changed. A goods line can be updated by providing the
+        packageId (or packageNo) together with the body parameters that need to be changed. Sales and purchase rates can be
+        updated by providing the rateNo and the ratePerUnit. The destinations, goods and rates properties expect an array.
+        This allows updating of multiple destinations/goods/rates in one request. See the example request, how to edit a destination,
+        goods line or rate.
+      tags:
+      - Orders
+      security:
+      - basicAuth: []
+      parameters:
+      - name: orderNo
+        in: path
+        required: true
+        description: The order number.
+        schema:
+          type: integer
+          example: 35558
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderSingleResponse'
+              example:
+                data:
+                  type: order
+                  id: 35558
+                  createdAt: '2023-12-01T10:05:01+01:00'
+                  updatedAt: '2026-02-16T18:41:30+01:00'
+                  attributes:
+                    orderNo: 35558
+                    date: '2023-12-01'
+                    time: 08:00
+                    status: planned
+                    substatusNo: 12
+                    substatusName: Out for delivery
+                    collected: true
+                    productNo: 1
+                    productName: Direct transport
+                    customerNo: 2001
+                    customerUserId: 271
+                    carrierNo: 44
+                    carrierUserId: 5
+                    branchNo: 0
+                    vehicleTypeNo: 2
+                    vehicleTypeName: Small Van
+                    fleetNo: 5
+                    waybillNotes: 3 pallets and 16 boxes
+                    invoiceNotes: 'P/O number: A12345'
+                    purchaseInvoiceNotes: Payment period 30 days
+                    internalNotes: Upload POD before signing-off
+                    recipientEmail: info@example.com
+                    distance: 99
+                    prepaidAmount: '0.00'
+                    readyForPurchaseInvoice: false
+                    usernameCreated: Demo planner
+                    usernameAssigned: Demo planner
+                    invoiceId: 0
+                    trackingId: GIYDAMJNGM2TKNJY
+                    externalId: 550e8400-e29b-41d4-a716-446655440000
+                    destinations:
+                    - addressId: 28416
+                      stopNo: 1
+                      taskType: pickup
+                      company: Demo customer
+                      contact: Mr. Johnson
+                      address: Keulenstraat
+                      houseno: '1'
+                      address2: Office A3.5
+                      postcode: 7418 ET
+                      city: DEVENTER
+                      country: NL
+                      location:
+                        latitude: 6.1941298
+                        longitude: 52.2366999
+                      phone: +3185 - 0479 475
+                      notes: ''
+                      customerReference: ABCDE12345
+                      waybillNo: ''
+                      date: '2024-12-31'
+                      fromTime: '10:00'
+                      toTime: '10:00'
+                      eta: null
+                      deliveryDate: null
+                      deliveryTime: null
+                      departureTime: null
+                      deliveryName: ''
+                      signatureUrl: false
+                      photos: []
+                      documents: []
+                      carrierNotes: ''
+                    - addressId: 28417
+                      stopNo: 2
+                      taskType: delivery
+                      company: Gamma Duiven
+                      contact: Piet Klaassen
+                      address: Lithograaf
+                      houseno: '1'
+                      address2: ''
+                      postcode: 6921 VA
+                      city: DUIVEN
+                      country: NL
+                      location:
+                        latitude: 6.0136513
+                        longitude: 51.959888
+                      phone: +3185 - 0479 475
+                      notes: Delivery at warehouse
+                      customerReference: ''
+                      waybillNo: '123456'
+                      date: '2026-02-14'
+                      fromTime: '16:30'
+                      toTime: '17:30'
+                      eta: 00:00
+                      deliveryDate: null
+                      deliveryTime: '16:48'
+                      departureTime: '17:05'
+                      deliveryName: Mr. Johnson
+                      signatureUrl: false
+                      photos: []
+                      documents: []
+                      carrierNotes: Delivered at the neighbours
+                    goods:
+                    - packageId: 21370
+                      packageNo: 1
+                      pickupDestination: 1
+                      deliveryDestination: 2
+                      amount: 16
+                      packageTypeNo: 1
+                      packageTypeName: Colli
+                      weight: 10
+                      length: 50
+                      width: 40
+                      height: 30
+                      description: Describe the contents of the box.
+                    - packageId: 21371
+                      packageNo: 2
+                      pickupDestination: 1
+                      deliveryDestination: 2
+                      amount: 3
+                      packageTypeNo: 18
+                      packageTypeName: Europallet
+                      weight: 300
+                      length: 120
+                      width: 80
+                      height: 60
+                      description: Folders
+        '401': *id001
+        '404': *id002
+        '422': &id004
+          description: Validation error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '429': *id003
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                carrierNo:
+                  type: integer
+                  example: 44
+                  description: Sets the new carrier for this order. Supplying 0 removes the carrier. The order status and
+                    substatus will be updated accordingly (e.g. open -> planned).
+                fleetNo:
+                  type: integer
+                  example: 5
+                  description: 'Sets the new vehicle in the fleet for this order. Please note: Any vehicle type specific rates
+                    will not be updated.'
+                waybillNotes:
+                  type: string
+                  example: 3 pallets and 16 boxes
+                  description: Notes that are displayed on the transport documents. Updating this field will delete any existing
+                    waybill notes.
+                invoiceNotes:
+                  type: string
+                  example: 'P/O number: A12345'
+                  description: Notes that are displayed on the sales invoice. Updating this field will delete any existing
+                    invoice notes.
+                purchaseInvoiceNotes:
+                  type: string
+                  example: Payment period 30 days
+                  description: Notes that are displayed on the purchase invoice. Updating this field will delete any existing
+                    purchase invoice notes.
+                internalNotes:
+                  type: string
+                  example: Upload POD before signing-off
+                  description: Notes that are only internally visible (not visible for customers and carriers). Updating this
+                    field will delete any existing internal notes.
+                readyForPurchaseInvoice:
+                  type: boolean
+                  example: false
+                  description: Marks the order as ready to create a purchase invoice.
+                externalId:
+                  type: string
+                  example: 550e8400-e29b-41d4-a716-446655440000
+                  description: Value (string or numeric, max 50 characters) that can be used to reference an order to the
+                    corresponding data in an external system. Must not be greater than 50 characters.
+                destinations:
+                  type: string
+                goods:
+                  type: string
+                salesRates:
+                  type: string
+                purchaseRates:
+                  type: string
+  /v1/products:
+    get:
+      operationId: getProducts
+      summary: Get list of products
+      description: 'This endpoint returns all products for the authenticated customer or branch account. The result can be
+        filtered by product name. For example: ?filter[productName]=Transport'
+      tags:
+      - Products
+      security:
+      - basicAuth: []
+      parameters:
+      - name: filter[productName]
+        in: query
+        required: false
+        description: Filter by (part of) the product name.
+        schema:
+          type: string
+          example: Direct
+      - name: include_deleted
+        in: query
+        required: false
+        description: If true, also returns products that have been marked as deleted, with an additional isDeleted attribute
+          (only with branch account).
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductListResponse'
+              example:
+                data:
+                - type: product
+                  id: 1
+                  attributes:
+                    productNo: 1
+                    productName: Direct transport
+                    vat: high
+        '401': *id001
+        '404': *id002
+        '429': *id003
+  /v1/products/{productNo}:
+    get:
+      operationId: getProductsProductno
+      summary: Get product by product number
+      description: This endpoint returns the specified product for the authenticated customer or branch.
+      tags:
+      - Products
+      security:
+      - basicAuth: []
+      parameters:
+      - name: productNo
+        in: path
+        required: true
+        description: The product number.
+        schema:
+          type: integer
+          example: 1
+      - name: include_deleted
+        in: query
+        required: false
+        description: If true, also returns the product if it has been marked as deleted, with an additional isDeleted attribute
+          (only with branch account).
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductSingleResponse'
+              example:
+                data:
+                  type: product
+                  id: 1
+                  attributes:
+                    productNo: 1
+                    productName: Direct transport
+                    vat: high
+        '401': *id001
+        '404': *id002
+        '429': *id003
+  /v1/substatuses:
+    get:
+      operationId: getSubstatuses
+      summary: Get list of substatuses
+      description: 'This endpoint returns all substatuses for the authenticated customer or branch account. The result can
+        be filtered by substatus name. For example: ?filter[substatusName]=Depot'
+      tags:
+      - Substatuses
+      security:
+      - basicAuth: []
+      parameters:
+      - name: filter[substatusName]
+        in: query
+        required: false
+        description: Filter by (part of) the substatus name.
+        schema:
+          type: string
+          example: Depot
+      - name: include_deleted
+        in: query
+        required: false
+        description: If true, also returns substatuses that have been marked as deleted, with an additional isDeleted attribute
+          (only with branch account).
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubstatusListResponse'
+              example:
+                data:
+                - type: substatus
+                  id: 52
+                  attributes:
+                    substatusNo: 52
+                    substatusName: Arrived at Depot
+        '401': *id001
+        '404': *id002
+        '429': *id003
+  /v1/substatuses/{substatusNo}:
+    get:
+      operationId: getSubstatusesSubstatusno
+      summary: Get substatus by substatus number
+      description: This endpoint returns the specified substatus for the authenticated customer or branch.
+      tags:
+      - Substatuses
+      security:
+      - basicAuth: []
+      parameters:
+      - name: substatusNo
+        in: path
+        required: true
+        description: The substatus number.
+        schema:
+          type: integer
+          example: 12
+      - name: include_deleted
+        in: query
+        required: false
+        description: If true, also returns the substatus if it has been marked as deleted, with an additional isDeleted attribute
+          (only with branch account).
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubstatusSingleResponse'
+              example:
+                data:
+                  type: substatus
+                  id: 12
+                  attributes:
+                    substatusNo: 12
+                    substatusName: Out for delivery
+        '401': *id001
+        '404': *id002
+        '429': *id003
+  /v1/packagetypes:
+    get:
+      operationId: getPackagetypes
+      summary: Get list of package types
+      description: 'This endpoint returns all package types for the authenticated customer or branch account. Package types
+        (also called Rate types) are used to specify the type of goods to be transported. They are also used as Rate types
+        to calculate the price. The result can be filtered by package type name. For example: ?filter[packageTypeName]=Europallet'
+      tags:
+      - PackageTypes
+      security:
+      - basicAuth: []
+      parameters:
+      - name: filter[packageTypeName]
+        in: query
+        required: false
+        description: Filter by (part of) the package type name.
+        schema:
+          type: string
+          example: Europallet
+      - name: include_deleted
+        in: query
+        required: false
+        description: If true, also returns package types that have been marked as deleted, with an additional isDeleted attribute
+          (only with branch account).
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PackageTypeListResponse'
+              example:
+                data:
+                - type: packageType
+                  id: 18
+                  attributes:
+                    packageTypeNo: 18
+                    packageTypeName: Europallet
+                    rateTypeOnly: false
+                    standardDimensions:
+                      weight: 500
+                      length: 120
+                      width: 80
+                      height: 50
+                      description: Car parts
+        '401': *id001
+        '404': *id002
+        '429': *id003
+  /v1/packagetypes/{packageTypeNo}:
+    get:
+      operationId: getPackagetypesPackagetypeno
+      summary: Get package type by package type number
+      description: This endpoint returns the specified package type for the authenticated customer or branch. Package types
+        (also called Rate types) are used to specify the type of goods to be transported. They are also used as Rate types
+        to calculate the price.
+      tags:
+      - PackageTypes
+      security:
+      - basicAuth: []
+      parameters:
+      - name: packageTypeNo
+        in: path
+        required: true
+        description: The product number.
+        schema:
+          type: integer
+          example: 18
+      - name: include_deleted
+        in: query
+        required: false
+        description: If true, also returns the package type if it has been marked as deleted, with an additional isDeleted
+          attribute (only with branch account).
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PackageTypeSingleResponse'
+              example:
+                data:
+                  type: packageType
+                  id: 18
+                  attributes:
+                    packageTypeNo: 18
+                    packageTypeName: Europallet
+                    rateTypeOnly: false
+                    standardDimensions:
+                      weight: 500
+                      length: 120
+                      width: 80
+                      height: 50
+                      description: Car parts
+        '401': *id001
+        '404': *id002
+        '429': *id003
+  /v1/vehicletypes:
+    get:
+      operationId: getVehicletypes
+      summary: Get list of vehicle types
+      description: 'This endpoint returns all vehicle types for the authenticated customer or branch account. The result can
+        be filtered by vehicle type name. For example: ?filter[vehicleTypeName]=Car'
+      tags:
+      - VehicleTypes
+      security:
+      - basicAuth: []
+      parameters:
+      - name: filter[vehicleTypeName]
+        in: query
+        required: false
+        description: Filter by (part of) the vehicle type name.
+        schema:
+          type: string
+          example: Small Van
+      - name: include_deleted
+        in: query
+        required: false
+        description: If true, also returns vehicle types that have been marked as deleted, with an additional isDeleted attribute
+          (only with branch account).
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleTypeListResponse'
+              example:
+                data:
+                - type: vehicleType
+                  id: 2
+                  attributes:
+                    vehicleTypeNo: 2
+                    vehicleTypeName: Small Van
+        '401': *id001
+        '404': *id002
+        '429': *id003
+  /v1/vehicletypes/{vehicleTypeNo}:
+    get:
+      operationId: getVehicletypesVehicletypeno
+      summary: Get vehicle type by vehicle type number
+      description: This endpoint returns the specified vehicle type for the authenticated customer or branch.
+      tags:
+      - VehicleTypes
+      security:
+      - basicAuth: []
+      parameters:
+      - name: vehicleTypeNo
+        in: path
+        required: true
+        description: The vehicle type number.
+        schema:
+          type: integer
+          example: 2
+      - name: include_deleted
+        in: query
+        required: false
+        description: If true, also returns the vehicle type if it has been marked as deleted, with an additional isDeleted
+          attribute (only with branch account).
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleTypeSingleResponse'
+              example:
+                data:
+                  type: vehicleType
+                  id: 2
+                  attributes:
+                    vehicleTypeNo: 2
+                    vehicleTypeName: Small Van
+        '401': *id001
+        '404': *id002
+        '429': *id003
+  /v1/invoices:
+    get:
+      operationId: getInvoices
+      summary: Get list of invoices
+      description: 'This endpoint returns all invoices for the authenticated customer or branch account. The result can be
+        filtered by the filter options below. A combination of filters is also allowed. For some filters you can filter on
+        multiple values by separating them with a comma. For example: ?filter[invoiceNo]=1,2,3 You can also use the following
+        operators on any integer or date type filter, by placing them behind the name of the filter: [gte] = Greater than
+        or equal [gt] = Greater than [lte] = Less than or equal [lt] = Less than [neq] = Not equal For example: ?filter[invoiceDate][gte]=2024-05-30
+        returns all invoices with an invoice date starting from this date. Operators can also be combined. For example: ?filter[invoiceNo][gte]=1000&filter[invoiceNo][lt]=2000
+        returns all invoices with and invoice number between 1000 and 1999. The result is paginated by 100 invoices.'
+      tags:
+      - Invoices
+      security:
+      - basicAuth: []
+      parameters:
+      - name: filter[invoiceId]
+        in: query
+        required: false
+        description: Filter by invoice Id. The invoice Id is an internal number that can be used to retrieve the orders that
+          correspond to an invoice. Multiple invoices can be retrieved by separating the invoice Id with a comma or by using
+          operators. Use the [gte] operator to retrieve all invoices starting from this invoice Id ?filter[invoiceId][gte]=284
+          .
+        schema:
+          type: integer
+          example: 284
+      - name: filter[invoiceNo]
+        in: query
+        required: false
+        description: 'Filter by invoice number. Note: This is the part of the invoice number without the prefix Multiple invoices
+          can be retrieved by separating the invoice numbers with a comma or by using operators. Use the [gte] operator to
+          retrieve all invoices starting from this invoice number ?filter[invoiceNo][gte]=20240123 .'
+        schema:
+          type: integer
+          example: 20240123
+      - name: filter[invoiceNoPrefix]
+        in: query
+        required: false
+        description: 'Filter by invoice number prefix. Note: This is the part before the invoice number. Multiple prefixes
+          can be retrieved by separating the values with a comma or by using operators (only when numeric).'
+        schema:
+          type: string
+      - name: filter[customerNo]
+        in: query
+        required: false
+        description: Filter by customer number (only with branch account). Multiple customer numbers can be retrieved by separating
+          the numbers with a comma or by using operators.
+        schema:
+          type: integer
+          example: 2001
+      - name: filter[invoiceDate]
+        in: query
+        required: false
+        description: Filter by invoice date. Use the [gte] operator to retrieve all invoices starting from this date ?filter[invoiceDate][gte]=2024-05-30
+          .
+        schema:
+          type: string
+          example: '2024-05-30'
+      - name: include_customer
+        in: query
+        required: false
+        description: If true, returns the customer details.
+        schema:
+          type: boolean
+          example: true
+      - name: include_invoice
+        in: query
+        required: false
+        description: If true, returns the base64 encoded PDF invoice.
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceListResponse'
+              example:
+                data:
+                - type: invoice
+                  id: 284
+                  attributes:
+                    invoiceId: 284
+                    invoiceNo: 20240123
+                    invoiceNoPrefix: ''
+                    customerNo: 2001
+                    invoiceDate: '2024-05-30'
+                    amountExclVat: '246.30'
+                    amountInclVat: '298.02'
+                    currency: ''
+                    paymentMethod: ''
+                    onlinePaymentStatus: ''
+                    discountPercentage: 0
+                    sentDate: '2024-05-30'
+                    paid: true
+                    paidDate: '2025-08-09'
+                    exported: false
+                    externalId: ''
+                    customer:
+                      type: customer
+                      id: 2001
+                      createdAt: '2023-12-01T10:05:01+01:00'
+                      updatedAt: '2023-12-01T10:05:01+01:00'
+                      attributes:
+                        customerNo: 2001
+                        companyName: EasyTrans Software B.V.
+                        businessAddress:
+                          address: Keulenstraat
+                          houseno: '1'
+                          address2: Kantoor A3.5
+                          postcode: 7418 ET
+                          city: DEVENTER
+                          country: NL
+                        mailingAddress:
+                          attn: Accounts Payable
+                          address: Keulenstraat
+                          houseno: '1'
+                          address2: Kantoor A3.5
+                          postcode: 7418 ET
+                          city: Deventer
+                          country: NL
+                        website: www.easytrans.nl
+                        debtorNo: '123475'
+                        paymentReference: ABCD1234
+                        paymentPeriod: 21
+                        paymentPeriodEndOfMonth: false
+                        ibanNo: NL63INGB0004511811
+                        bicCode: INGBNL2A
+                        bankNo: ''
+                        ukSortCode: ''
+                        vatNo: NL864120576B01
+                        vatLiable: true
+                        vatLiableCode: 1
+                        chamberOfCommerceNo: '86861239'
+                        eoriNo: ''
+                        language: en
+                        notes: Register at reception before loading
+                        crmNotes: Agreed rates based on 50 orders per month
+                        invoiceSurcharge: 5.5
+                        active: true
+                        contacts: []
+                        externalId: 550e8400-e29b-41d4-a716-446655440000
+                links:
+                  first: http://localhost/v1/invoices?page=1
+                  last: http://localhost/v1/invoices?page=1
+                  prev: null
+                  next: null
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 1
+                  links:
+                  - url: null
+                    label: '&laquo; Previous'
+                    active: false
+                  - url: http://localhost/v1/invoices?page=1
+                    label: '1'
+                    active: true
+                  - url: null
+                    label: Next &raquo;
+                    active: false
+                  path: http://localhost/v1/invoices
+                  per_page: 100
+                  to: 1
+                  total: 1
+        '401': *id001
+        '404': *id002
+        '429': *id003
+  /v1/invoices/{invoiceId}:
+    get:
+      operationId: getInvoicesInvoiceid
+      summary: Get invoice by invoice Id
+      description: This endpoint returns the specified invoice for the authenticated customer or branch.
+      tags:
+      - Invoices
+      security:
+      - basicAuth: []
+      parameters:
+      - name: invoiceId
+        in: path
+        required: true
+        description: The invoice Id is an internal number that is used to match orders to invoices.
+        schema:
+          type: integer
+          example: 284
+      - name: include_customer
+        in: query
+        required: false
+        description: If true, returns the customer details.
+        schema:
+          type: boolean
+          example: true
+      - name: include_invoice
+        in: query
+        required: false
+        description: If true, returns the base64 encoded PDF invoice.
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceSingleResponse'
+              example:
+                data:
+                  type: invoice
+                  id: 284
+                  attributes:
+                    invoiceId: 284
+                    invoiceNo: 20240123
+                    invoiceNoPrefix: ''
+                    customerNo: 2001
+                    invoiceDate: '2024-05-30'
+                    amountExclVat: '246.30'
+                    amountInclVat: '298.02'
+                    currency: ''
+                    paymentMethod: ''
+                    onlinePaymentStatus: ''
+                    discountPercentage: 0
+                    sentDate: '2024-05-30'
+                    paid: true
+                    paidDate: '2025-08-09'
+                    exported: false
+                    externalId: ''
+                    customer:
+                      type: customer
+                      id: 2001
+                      createdAt: '2023-12-01T10:05:01+01:00'
+                      updatedAt: '2023-12-01T10:05:01+01:00'
+                      attributes:
+                        customerNo: 2001
+                        companyName: EasyTrans Software B.V.
+                        businessAddress:
+                          address: Keulenstraat
+                          houseno: '1'
+                          address2: Kantoor A3.5
+                          postcode: 7418 ET
+                          city: DEVENTER
+                          country: NL
+                        mailingAddress:
+                          attn: Accounts Payable
+                          address: Keulenstraat
+                          houseno: '1'
+                          address2: Kantoor A3.5
+                          postcode: 7418 ET
+                          city: Deventer
+                          country: NL
+                        website: www.easytrans.nl
+                        debtorNo: '123475'
+                        paymentReference: ABCD1234
+                        paymentPeriod: 21
+                        paymentPeriodEndOfMonth: false
+                        ibanNo: NL63INGB0004511811
+                        bicCode: INGBNL2A
+                        bankNo: ''
+                        ukSortCode: ''
+                        vatNo: NL864120576B01
+                        vatLiable: true
+                        vatLiableCode: 1
+                        chamberOfCommerceNo: '86861239'
+                        eoriNo: ''
+                        language: en
+                        notes: Register at reception before loading
+                        crmNotes: Agreed rates based on 50 orders per month
+                        invoiceSurcharge: 5.5
+                        active: true
+                        contacts: []
+                        externalId: 550e8400-e29b-41d4-a716-446655440000
+        '401': *id001
+        '404': *id002
+        '429': *id003
+  /v1/customers:
+    get:
+      operationId: getCustomers
+      summary: Get list of customers (branch accounts only)
+      description: 'This endpoint returns all customers for the authenticated branch. The result can be filtered by the filter
+        options below. A combination of filters is also allowed. For some filters you can filter on multiple values by separating
+        them with a comma. For example: ?filter[customerNo]=1,2,3 You can also use the following operators on any integer
+        or date type filter, by placing them behind the name of the filter: [gte] = Greater than or equal [gt] = Greater than
+        [lte] = Less than or equal [lt] = Less than [neq] = Not equal For example: ?filter[createdAt][gte]=2023-12-01 returns
+        all customers created since this date. Operators can also be combined. For example: ?filter[customerNo][gte]=1000&filter[customerNo][lt]=2000
+        returns all customers between 1000 and 1999. The result can be sorted by the sort names below. The result is paginated
+        by 100 customers. This endpoint can only be used with branch accounts, not with customer accounts.'
+      tags:
+      - Customers
+      security:
+      - basicAuth: []
+      parameters:
+      - name: filter[customerNo]
+        in: query
+        required: false
+        description: Filter by customer number. Multiple customers can be retrieved by separating the customer numbers with
+          a comma or by using operators. Use the [gte] operator to retrieve all customers starting from this customer number
+          ?filter[customer][gte]=1234 .
+        schema:
+          type: integer
+          example: 2001
+      - name: filter[createdAt]
+        in: query
+        required: false
+        description: Filter by created at timestamp. Use the [gte] operator to retrieve all customers that where created since
+          this timestamp ?filter[createdAt][gte]=2023-12-01T10:05:01 .
+        schema:
+          type: string
+          example: '2023-12-01T10:05:01'
+      - name: filter[updatedAt]
+        in: query
+        required: false
+        description: Filter by updated at timestamp. Use the [gte] operator to retrieve all customers that where last updated
+          since this timestamp ?filter[updatedAt][gte]=2023-12-01T10:05:01 .
+        schema:
+          type: string
+          example: '2023-12-01T10:05:01'
+      - name: filter[companyName]
+        in: query
+        required: false
+        description: Filter by company name.
+        schema:
+          type: string
+          example: EasyTrans Software B.V.
+      - name: filter[businessAddress[address]
+        in: query
+        required: false
+        description: Filter by the address field from the business address.
+        schema:
+          type: string
+      - name: filter[businessAddress[postcode]
+        in: query
+        required: false
+        description: Filter by the postcode field from the business address.
+        schema:
+          type: string
+      - name: filter[businessAddress[city]
+        in: query
+        required: false
+        description: Filter by the city field from the business address.
+        schema:
+          type: string
+      - name: filter[mailingAddress[address]
+        in: query
+        required: false
+        description: Filter by the address field from the mailing address.
+        schema:
+          type: string
+      - name: filter[mailingAddress[postcode]
+        in: query
+        required: false
+        description: Filter by the postcode field from the mailing address.
+        schema:
+          type: string
+      - name: filter[mailingAddress[city]
+        in: query
+        required: false
+        description: Filter by the city field from the mailing address.
+        schema:
+          type: string
+      - name: filter[notes]
+        in: query
+        required: false
+        description: Filter by any part of text from the customer notes.
+        schema:
+          type: string
+      - name: filter[crmNotes]
+        in: query
+        required: false
+        description: Filter by any part of text from the customer CRM notes.
+        schema:
+          type: string
+      - name: filter[debtorNo]
+        in: query
+        required: false
+        description: Filter by debtor number. Multiple customers can be retrieved by separating the values with a comma or
+          by using operators (only when numeric).
+        schema:
+          type: string
+          example: '123475'
+      - name: filter[paymentReference]
+        in: query
+        required: false
+        description: Filter by payment reference.
+        schema:
+          type: string
+      - name: filter[vatNo]
+        in: query
+        required: false
+        description: Filter by VAT number.
+        schema:
+          type: string
+          example: NL864120576B01
+      - name: filter[externalId]
+        in: query
+        required: false
+        description: Filter by external Id. Multiple customers can be retrieved by separating the values with a comma or by
+          using operators (only when numeric).
+        schema:
+          type: string
+          example: 550e8400-e29b-41d4-a716-446655440000
+      - name: filter[contacts[name]
+        in: query
+        required: false
+        description: Filter by the name field from the contacts.
+        schema:
+          type: string
+      - name: filter[contacts[phone]
+        in: query
+        required: false
+        description: Filter by the phone number field from the contacts (characters must be an exact match, including spaces
+          and punctuation marks).
+        schema:
+          type: string
+      - name: filter[contacts[mobile]
+        in: query
+        required: false
+        description: Filter by the mobile number field from the contacts (characters must be an exact match, including spaces
+          and punctuation marks)).
+        schema:
+          type: string
+      - name: filter[contacts[email]
+        in: query
+        required: false
+        description: Filter by the email field from the contacts.
+        schema:
+          type: string
+      - name: filter[contacts[notes]
+        in: query
+        required: false
+        description: Filter by any part of text from the notes field from the contacts.
+        schema:
+          type: string
+      - name: filter[contacts[username]
+        in: query
+        required: false
+        description: Filter by the username field from the contacts.
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        description: 'Sort the response. The result can be sorted by the following property names: customerNo, createdAt,
+          companyName, debtorNo, externalId. Sorting is ascending by default and can be reversed by adding a hyphen (-) to
+          the start of the property name. You can sort by multiple properties by separating them with a comma ?sort=companyName,-createdAt
+          .'
+        schema:
+          type: string
+          example: companyName,-createdAt
+      - name: include_deleted
+        in: query
+        required: false
+        description: If true, also returns customers that have been marked as deleted, with an additional isDeleted attribute.
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerListResponse'
+              example:
+                data:
+                - type: customer
+                  id: 2001
+                  createdAt: '2023-12-01T10:05:01+01:00'
+                  updatedAt: '2023-12-01T10:05:01+01:00'
+                  attributes:
+                    customerNo: 2001
+                    companyName: EasyTrans Software B.V.
+                    businessAddress:
+                      address: Keulenstraat
+                      houseno: '1'
+                      address2: Kantoor A3.5
+                      postcode: 7418 ET
+                      city: DEVENTER
+                      country: NL
+                    mailingAddress:
+                      attn: Accounts Payable
+                      address: Keulenstraat
+                      houseno: '1'
+                      address2: Kantoor A3.5
+                      postcode: 7418 ET
+                      city: Deventer
+                      country: NL
+                    website: www.easytrans.nl
+                    debtorNo: '123475'
+                    paymentReference: ABCD1234
+                    paymentPeriod: 21
+                    paymentPeriodEndOfMonth: false
+                    ibanNo: NL63INGB0004511811
+                    bicCode: INGBNL2A
+                    bankNo: ''
+                    ukSortCode: ''
+                    vatNo: NL864120576B01
+                    vatLiable: true
+                    vatLiableCode: 1
+                    chamberOfCommerceNo: '86861239'
+                    eoriNo: ''
+                    language: en
+                    notes: Register at reception before loading
+                    crmNotes: Agreed rates based on 50 orders per month
+                    invoiceSurcharge: 5.5
+                    active: true
+                    contacts: []
+                    externalId: 550e8400-e29b-41d4-a716-446655440000
+                links:
+                  first: http://localhost/v1/customers?page=1
+                  last: http://localhost/v1/customers?page=1
+                  prev: null
+                  next: null
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 1
+                  links:
+                  - url: null
+                    label: '&laquo; Previous'
+                    active: false
+                  - url: http://localhost/v1/customers?page=1
+                    label: '1'
+                    active: true
+                  - url: null
+                    label: Next &raquo;
+                    active: false
+                  path: http://localhost/v1/customers
+                  per_page: 100
+                  to: 1
+                  total: 1
+        '401': *id001
+        '404': *id002
+        '429': *id003
+  /v1/customers/{customerNo}:
+    get:
+      operationId: getCustomersCustomerno
+      summary: Get customer by customer number (branch accounts only)
+      description: This endpoint returns the specified customer for the authenticated branch. This endpoint can only be used
+        with branch accounts, not with customer accounts.
+      tags:
+      - Customers
+      security:
+      - basicAuth: []
+      parameters:
+      - name: customerNo
+        in: path
+        required: true
+        description: The customer number.
+        schema:
+          type: integer
+          example: 2001
+      - name: include_deleted
+        in: query
+        required: false
+        description: If true, also returns the customer if it has been marked as deleted, with an additional isDeleted attribute.
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSingleResponse'
+              example:
+                data:
+                  type: customer
+                  id: 2001
+                  createdAt: '2023-12-01T10:05:01+01:00'
+                  updatedAt: '2023-12-01T10:05:01+01:00'
+                  attributes:
+                    customerNo: 2001
+                    companyName: EasyTrans Software B.V.
+                    businessAddress:
+                      address: Keulenstraat
+                      houseno: '1'
+                      address2: Kantoor A3.5
+                      postcode: 7418 ET
+                      city: DEVENTER
+                      country: NL
+                    mailingAddress:
+                      attn: Accounts Payable
+                      address: Keulenstraat
+                      houseno: '1'
+                      address2: Kantoor A3.5
+                      postcode: 7418 ET
+                      city: Deventer
+                      country: NL
+                    website: www.easytrans.nl
+                    debtorNo: '123475'
+                    paymentReference: ABCD1234
+                    paymentPeriod: 21
+                    paymentPeriodEndOfMonth: false
+                    ibanNo: NL63INGB0004511811
+                    bicCode: INGBNL2A
+                    bankNo: ''
+                    ukSortCode: ''
+                    vatNo: NL864120576B01
+                    vatLiable: true
+                    vatLiableCode: 1
+                    chamberOfCommerceNo: '86861239'
+                    eoriNo: ''
+                    language: en
+                    notes: Register at reception before loading
+                    crmNotes: Agreed rates based on 50 orders per month
+                    invoiceSurcharge: 5.5
+                    active: true
+                    contacts: []
+                    externalId: 550e8400-e29b-41d4-a716-446655440000
+        '401': *id001
+        '404': *id002
+        '429': *id003
+  /v1/carriers:
+    get:
+      operationId: getCarriers
+      summary: Get list of carriers (branch accounts only)
+      description: 'This endpoint returns all carriers for the authenticated branch. The result can be filtered by the filter
+        options below. A combination of filters is also allowed. For some filters you can filter on multiple values by separating
+        them with a comma. For example: ?filter[carrierNo]=1,2,3 You can also use the following operators on any integer or
+        date type filter, by placing them behind the name of the filter: [gte] = Greater than or equal [gt] = Greater than
+        [lte] = Less than or equal [lt] = Less than [neq] = Not equal For example: ?filter[createdAt][gte]=2023-12-01 returns
+        all carriers created since this date. Operators can also be combined. For example: ?filter[carrierNo][gte]=1000&filter[carrierNo][lt]=2000
+        returns all carriers between 1000 and 1999. The result can be sorted by the sort names below. The result is paginated
+        by 100 carriers. This endpoint can only be used with main branch accounts.'
+      tags:
+      - Carriers
+      security:
+      - basicAuth: []
+      parameters:
+      - name: filter[carrierNo]
+        in: query
+        required: false
+        description: Filter by carrier number. Multiple carriers can be retrieved by separating the carrier numbers with a
+          comma or by using operators. Use the [gte] operator to retrieve all carriers starting from this carrier number ?filter[carrier][gte]=1234
+          .
+        schema:
+          type: integer
+          example: 44
+      - name: filter[createdAt]
+        in: query
+        required: false
+        description: Filter by created at timestamp. Use the [gte] operator to retrieve all carriers that where created since
+          this timestamp ?filter[createdAt][gte]=2023-12-01T10:05:01 .
+        schema:
+          type: string
+          example: '2023-12-01T10:05:01'
+      - name: filter[updatedAt]
+        in: query
+        required: false
+        description: Filter by updated at timestamp. Use the [gte] operator to retrieve all carriers that where last updated
+          since this timestamp ?filter[updatedAt][gte]=2023-12-01T10:05:01 .
+        schema:
+          type: string
+          example: '2023-12-01T10:05:01'
+      - name: filter[name]
+        in: query
+        required: false
+        description: Filter by the name of the carrier (either a company name or a persons name).
+        schema:
+          type: string
+          example: External carrier
+      - name: filter[businessAddress[address]
+        in: query
+        required: false
+        description: Filter by the address field from the business address.
+        schema:
+          type: string
+      - name: filter[businessAddress[postcode]
+        in: query
+        required: false
+        description: Filter by the postcode field from the business address.
+        schema:
+          type: string
+      - name: filter[businessAddress[city]
+        in: query
+        required: false
+        description: Filter by the city field from the business address.
+        schema:
+          type: string
+      - name: filter[mailingAddress[address]
+        in: query
+        required: false
+        description: Filter by the address field from the mailing address.
+        schema:
+          type: string
+      - name: filter[mailingAddress[postcode]
+        in: query
+        required: false
+        description: Filter by the postcode field from the mailing address.
+        schema:
+          type: string
+      - name: filter[mailingAddress[city]
+        in: query
+        required: false
+        description: Filter by the city field from the mailing address.
+        schema:
+          type: string
+      - name: filter[phone]
+        in: query
+        required: false
+        description: Filter by phone number (characters must be an exact match, including spaces and punctuation marks).
+        schema:
+          type: string
+      - name: filter[mobile]
+        in: query
+        required: false
+        description: Filter by mobile phone number (characters must be an exact match, including spaces and punctuation marks)).
+        schema:
+          type: string
+      - name: filter[email]
+        in: query
+        required: false
+        description: Filter by email.
+        schema:
+          type: string
+      - name: filter[notes]
+        in: query
+        required: false
+        description: Filter by any part of text from the carrier notes.
+        schema:
+          type: string
+      - name: filter[creditorNo]
+        in: query
+        required: false
+        description: Filter by creditor number. Multiple carriers can be retrieved by separating the values with a comma or
+          by using operators (only when numeric).
+        schema:
+          type: string
+          example: '123475'
+      - name: filter[externalId]
+        in: query
+        required: false
+        description: Filter by external Id. Multiple carriers can be retrieved by separating the values with a comma or by
+          using operators (only when numeric).
+        schema:
+          type: string
+          example: 18aa59a6-7eef-4491-837a-8ac2f04c0b6e
+      - name: filter[contacts[name]
+        in: query
+        required: false
+        description: Filter by the name field from the contacts.
+        schema:
+          type: string
+      - name: filter[contacts[phone]
+        in: query
+        required: false
+        description: Filter by the phone number field from the contacts (characters must be an exact match, including spaces
+          and punctuation marks).
+        schema:
+          type: string
+      - name: filter[contacts[mobile]
+        in: query
+        required: false
+        description: Filter by the mobile number field from the contacts (characters must be an exact match, including spaces
+          and punctuation marks)).
+        schema:
+          type: string
+      - name: filter[contacts[email]
+        in: query
+        required: false
+        description: Filter by the email field from the contacts.
+        schema:
+          type: string
+      - name: filter[contacts[notes]
+        in: query
+        required: false
+        description: Filter by any part of text from the notes field from the contacts.
+        schema:
+          type: string
+      - name: filter[contacts[username]
+        in: query
+        required: false
+        description: Filter by the username field from the contacts.
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        description: 'Sort the response. The result can be sorted by the following property names: carrierNo, createdAt, name,
+          creditorNo, externalId. Sorting is ascending by default and can be reversed by adding a hyphen (-) to the start
+          of the property name. You can sort by multiple properties by separating them with a comma ?sort=name,-createdAt
+          .'
+        schema:
+          type: string
+          example: name,-createdAt
+      - name: include_deleted
+        in: query
+        required: false
+        description: If true, also returns carriers that have been marked as deleted, with an additional isDeleted attribute.
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarrierListResponse'
+              example:
+                data:
+                - type: carrier
+                  id: 44
+                  createdAt: '2023-12-01T10:05:01+01:00'
+                  updatedAt: '2023-12-01T10:05:01+01:00'
+                  attributes:
+                    carrierNo: 44
+                    name: External carrier
+                    businessAddress:
+                      address: Keulenstraat
+                      houseno: '1'
+                      address2: ''
+                      postcode: 7418 ET
+                      city: DEVENTER
+                      country: NL
+                    mailingAddress:
+                      attn: ''
+                      address: Keulenstraat
+                      houseno: '1'
+                      address2: ''
+                      postcode: 7418 ET
+                      city: Deventer
+                      country: NL
+                    phone: +3185 - 0479 475
+                    mobile: ''
+                    email: info@easytrans.nl
+                    emailPurchaseInvoice: ''
+                    website: www.easytrans.nl
+                    notes: Available Mon-Thu
+                    creditorNo: '123475'
+                    paymentPeriod: 30
+                    paymentPeriodEndOfMonth: false
+                    ibanNo: NL63INGB0004511811
+                    bicCode: INGBNL2A
+                    bankNo: ''
+                    ukSortCode: ''
+                    vatNo: NL864120576B01
+                    vatLiable: true
+                    vatLiableCode: 1
+                    chamberOfCommerceNo: '86861239'
+                    licenseNo: '123456789'
+                    carrierAttributes:
+                    - charter_regular
+                    - refrigerated
+                    language: nl
+                    active: true
+                    contacts:
+                    - userId: 5
+                      name: Contact one
+                      phone: +3185 - 0479 475
+                      mobile: ''
+                      email: info@easytrans.nl
+                      notes: Available Mon-Thu
+                      username: import
+                    - userId: 13
+                      name: Contact two
+                      phone: +3185 - 0479 475
+                      mobile: ''
+                      email: info@easytrans.nl
+                      notes: ''
+                      username: import_alles
+                    externalId: 18aa59a6-7eef-4491-837a-8ac2f04c0b6e
+                links:
+                  first: http://localhost/v1/carriers?page=1
+                  last: http://localhost/v1/carriers?page=1
+                  prev: null
+                  next: null
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 1
+                  links:
+                  - url: null
+                    label: '&laquo; Previous'
+                    active: false
+                  - url: http://localhost/v1/carriers?page=1
+                    label: '1'
+                    active: true
+                  - url: null
+                    label: Next &raquo;
+                    active: false
+                  path: http://localhost/v1/carriers
+                  per_page: 100
+                  to: 1
+                  total: 1
+        '401': *id001
+        '404': *id002
+        '429': *id003
+  /v1/carriers/{carrierNo}:
+    get:
+      operationId: getCarriersCarrierno
+      summary: Get carrier by carrier number (branch accounts only)
+      description: This endpoint returns the specified carrier for the authenticated branch. This endpoint can only be used
+        with main branch accounts.
+      tags:
+      - Carriers
+      security:
+      - basicAuth: []
+      parameters:
+      - name: carrierNo
+        in: path
+        required: true
+        description: The carrier number.
+        schema:
+          type: integer
+          example: 44
+      - name: include_deleted
+        in: query
+        required: false
+        description: If true, also returns the carrier if it has been marked as deleted, with an additional isDeleted attribute.
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarrierSingleResponse'
+              example:
+                data:
+                  type: carrier
+                  id: 44
+                  createdAt: '2023-12-01T10:05:01+01:00'
+                  updatedAt: '2023-12-01T10:05:01+01:00'
+                  attributes:
+                    carrierNo: 44
+                    name: External carrier
+                    businessAddress:
+                      address: Keulenstraat
+                      houseno: '1'
+                      address2: ''
+                      postcode: 7418 ET
+                      city: DEVENTER
+                      country: NL
+                    mailingAddress:
+                      attn: ''
+                      address: Keulenstraat
+                      houseno: '1'
+                      address2: ''
+                      postcode: 7418 ET
+                      city: Deventer
+                      country: NL
+                    phone: +3185 - 0479 475
+                    mobile: ''
+                    email: info@easytrans.nl
+                    emailPurchaseInvoice: ''
+                    website: www.easytrans.nl
+                    notes: Available Mon-Thu
+                    creditorNo: '123475'
+                    paymentPeriod: 30
+                    paymentPeriodEndOfMonth: false
+                    ibanNo: NL63INGB0004511811
+                    bicCode: INGBNL2A
+                    bankNo: ''
+                    ukSortCode: ''
+                    vatNo: NL864120576B01
+                    vatLiable: true
+                    vatLiableCode: 1
+                    chamberOfCommerceNo: '86861239'
+                    licenseNo: '123456789'
+                    carrierAttributes:
+                    - charter_regular
+                    - refrigerated
+                    language: nl
+                    active: true
+                    contacts:
+                    - userId: 5
+                      name: Contact one
+                      phone: +3185 - 0479 475
+                      mobile: ''
+                      email: info@easytrans.nl
+                      notes: Available Mon-Thu
+                      username: import
+                    - userId: 13
+                      name: Contact two
+                      phone: +3185 - 0479 475
+                      mobile: ''
+                      email: info@easytrans.nl
+                      notes: ''
+                      username: import_alles
+                    externalId: 18aa59a6-7eef-4491-837a-8ac2f04c0b6e
+        '401': *id001
+        '404': *id002
+        '429': *id003
+  /v1/fleet:
+    get:
+      operationId: getFleet
+      summary: Get list of vehicles in fleet
+      description: 'This endpoint returns the fleet. It can only be used with branch accounts. The result can be filtered
+        by registration (license plate). For example: ?filter[registration]=VH-357-V'
+      tags:
+      - Fleet
+      security:
+      - basicAuth: []
+      parameters:
+      - name: filter[registration]
+        in: query
+        required: false
+        description: Filter by regitration (license plate).
+        schema:
+          type: string
+          example: VH-357-V
+      - name: include_deleted
+        in: query
+        required: false
+        description: If true, also returns vehicles that have been marked as deleted, with an additional isDeleted attribute.
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FleetListResponse'
+              example:
+                data:
+                - type: fleet
+                  id: 5
+                  attributes:
+                    fleetNo: 5
+                    vehicleTypeNo: 2
+                    registration: VH-357-V
+                    make: Peugeot
+                    model: Partner
+                    type: Conditioned
+                    colour: White
+                    capacity: 1 pallet - 500kg
+                    notes: APK tot 01-06-2024
+        '401': *id001
+        '404': *id002
+        '429': *id003
+  /v1/fleet/{fleetNo}:
+    get:
+      operationId: getFleetFleetno
+      summary: Get vehicles in fleet by fleet number
+      description: This endpoint returns the specified vehicle for the authenticated branch.
+      tags:
+      - Fleet
+      security:
+      - basicAuth: []
+      parameters:
+      - name: fleetNo
+        in: path
+        required: true
+        description: The fleet number.
+        schema:
+          type: integer
+          example: 5
+      - name: include_deleted
+        in: query
+        required: false
+        description: If true, also returns the vehicle if it has been marked as deleted, with an additional isDeleted attribute.
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FleetSingleResponse'
+              example:
+                data:
+                  type: fleet
+                  id: 5
+                  attributes:
+                    fleetNo: 5
+                    vehicleTypeNo: 2
+                    registration: VH-357-V
+                    make: Peugeot
+                    model: Partner
+                    type: Conditioned
+                    colour: White
+                    capacity: 1 pallet - 500kg
+                    notes: APK tot 01-06-2024
+        '401': *id001
+        '404': *id002
+        '429': *id003
+  /v1/carrier/orders:
+    get:
+      operationId: getCarrierOrders
+      summary: Get list of orders
+      description: 'This endpoint returns all orders for the authenticated carrier. The result can be filtered by the filter
+        options below. A combination of filters is also allowed. For some filters you can filter on multiple values by separating
+        them with a comma. For example: ?filter[orderNo]=1,2,3 You can also use the following operators on any integer or
+        date type filter, by placing them behind the name of the filter: [gte] = Greater than or equal [gt] = Greater than
+        [lte] = Less than or equal [lt] = Less than [neq] = Not equal For example: ?filter[date][gte]=2023-12-01 returns all
+        orders with an order date starting from this date. Operators can also be combined. For example: ?filter[orderNo][gte]=1000&filter[orderNo][lt]=2000
+        returns all orders between 1000 and 1999. The result can be sorted by the sort names below. The result is paginated
+        by 100 orders.'
+      tags:
+      - Orders for carrier
+      security:
+      - basicAuth: []
+      parameters:
+      - name: filter[orderNo]
+        in: query
+        required: false
+        description: Filter by order number. Multiple orders can be retrieved by separating the order numbers with a comma
+          or by using operators. Use the [gte] operator to retrieve all orders starting from this order number ?filter[orderNo][gte]=1234
+          .
+        schema:
+          type: integer
+          example: 35558
+      - name: filter[date]
+        in: query
+        required: false
+        description: Filter by order date. Use the [gte] operator to retrieve all orders starting from this date ?filter[date][gte]=2023-12-01
+          .
+        schema:
+          type: string
+          example: '2023-12-01'
+      - name: filter[createdAt]
+        in: query
+        required: false
+        description: Filter by created at timestamp. Use the [gte] operator to retrieve all orders that where created since
+          this timestamp ?filter[createdAt][gte]=2023-12-01T10:05:01 .
+        schema:
+          type: string
+          example: '2023-12-01T10:05:01'
+      - name: filter[updatedAt]
+        in: query
+        required: false
+        description: Filter by updated at timestamp. Use the [gte] operator to retrieve all orders that where last updated
+          since this timestamp ?filter[updatedAt][gte]=2023-12-01T10:05:01 .
+        schema:
+          type: string
+          example: '2023-12-01T10:05:01'
+      - name: filter[status]
+        in: query
+        required: false
+        description: 'Filter by order status. Possible values for carrier accounts are: in-progress, finished.'
+        schema:
+          type: string
+          example: in-progress
+      - name: sort
+        in: query
+        required: false
+        description: 'Sort the response. The result can be sorted by the following property names: orderNo, date (also includes
+          time), createdAt, updatedAt, status. Sorting is ascending by default and can be reversed by adding a hyphen (-)
+          to the start of the property name. You can sort by multiple properties by separating them with a comma ?sort=status,-date
+          .'
+        schema:
+          type: string
+          example: status,-date
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderListResponse'
+              example:
+                data:
+                - type: order
+                  id: 35558
+                  createdAt: '2023-12-01T10:05:01+01:00'
+                  updatedAt: '2023-12-01T10:05:01+01:00'
+                  attributes:
+                    orderNo: 35558
+                    date: '2023-12-01'
+                    time: 08:00
+                    status: in-progress
+                    substatusNo: 12
+                    substatusName: Out for delivery
+                    productNo: 1
+                    productName: Direct transport
+                    vehicleTypeNo: 2
+                    vehicleTypeName: Small Van
+                    waybillNotes: 3 pallets and 16 boxes
+                    destinations:
+                    - addressId: 28416
+                      stopNo: 1
+                      taskType: pickup
+                      company: Demo customer
+                      contact: Mr. Johnson
+                      address: Keulenstraat
+                      houseno: '1'
+                      address2: Office A3.5
+                      postcode: 7418 ET
+                      city: DEVENTER
+                      country: NL
+                      location:
+                        latitude: 6.1941298
+                        longitude: 52.2366999
+                      phone: +3185 - 0479 475
+                      notes: ''
+                      customerReference: ABCDE12345
+                      waybillNo: ''
+                      date: '2024-12-31'
+                      fromTime: '10:00'
+                      toTime: '10:00'
+                      eta: null
+                      deliveryDate: null
+                      deliveryTime: null
+                      departureTime: null
+                      deliveryName: ''
+                      signatureUrl: false
+                      photos: []
+                      documents: []
+                      carrierNotes: ''
+                    - addressId: 28417
+                      stopNo: 2
+                      taskType: delivery
+                      company: Gamma Duiven
+                      contact: Piet Klaassen
+                      address: Lithograaf
+                      houseno: '1'
+                      address2: ''
+                      postcode: 6921 VA
+                      city: DUIVEN
+                      country: NL
+                      location:
+                        latitude: 6.0136513
+                        longitude: 51.959888
+                      phone: +3185 - 0479 475
+                      notes: Delivery at warehouse
+                      customerReference: ''
+                      waybillNo: '123456'
+                      date: '2024-12-31'
+                      fromTime: '16:40'
+                      toTime: '17:30'
+                      eta: 00:00
+                      deliveryDate: null
+                      deliveryTime: '16:48'
+                      departureTime: '17:06'
+                      deliveryName: Mr. Johnson
+                      signatureUrl: false
+                      photos: []
+                      documents: []
+                      carrierNotes: Delivered at the neighbours
+                    goods:
+                    - packageId: 21370
+                      packageNo: 1
+                      pickupDestination: 1
+                      deliveryDestination: 2
+                      amount: 16
+                      packageTypeNo: 1
+                      packageTypeName: Colli
+                      weight: 10
+                      length: 50
+                      width: 40
+                      height: 30
+                      description: Describe the contents of the box.
+                    - packageId: 21371
+                      packageNo: 2
+                      pickupDestination: 1
+                      deliveryDestination: 2
+                      amount: 0
+                      packageTypeNo: 18
+                      packageTypeName: Europallet
+                      weight: 500
+                      length: 120
+                      width: 80
+                      height: 100
+                      description: ''
+                links:
+                  first: http://localhost/v1/carrier/orders?page=1
+                  last: http://localhost/v1/carrier/orders?page=1
+                  prev: null
+                  next: null
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 1
+                  links:
+                  - url: null
+                    label: '&laquo; Previous'
+                    active: false
+                  - url: http://localhost/v1/carrier/orders?page=1
+                    label: '1'
+                    active: true
+                  - url: null
+                    label: Next &raquo;
+                    active: false
+                  path: http://localhost/v1/carrier/orders
+                  per_page: 100
+                  to: 1
+                  total: 1
+        '401': *id001
+        '404': *id002
+        '429': *id003
+  /v1/carrier/orders/{orderNo}:
+    get:
+      operationId: getCarrierOrdersOrderno
+      summary: Get order by order number
+      description: This endpoint returns the specified order for the authenticated carrier.
+      tags:
+      - Orders for carrier
+      security:
+      - basicAuth: []
+      parameters:
+      - name: orderNo
+        in: path
+        required: true
+        description: The order number.
+        schema:
+          type: integer
+          example: 35558
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderSingleResponse'
+              example:
+                data:
+                  type: order
+                  id: 35558
+                  createdAt: '2023-12-01T10:05:01+01:00'
+                  updatedAt: '2023-12-01T10:05:01+01:00'
+                  attributes:
+                    orderNo: 35558
+                    date: '2023-12-01'
+                    time: 08:00
+                    status: in-progress
+                    substatusNo: 12
+                    substatusName: Out for delivery
+                    productNo: 1
+                    productName: Direct transport
+                    vehicleTypeNo: 2
+                    vehicleTypeName: Small Van
+                    waybillNotes: 3 pallets and 16 boxes
+                    destinations:
+                    - addressId: 28416
+                      stopNo: 1
+                      taskType: pickup
+                      company: Demo customer
+                      contact: Mr. Johnson
+                      address: Keulenstraat
+                      houseno: '1'
+                      address2: Office A3.5
+                      postcode: 7418 ET
+                      city: DEVENTER
+                      country: NL
+                      location:
+                        latitude: 6.1941298
+                        longitude: 52.2366999
+                      phone: +3185 - 0479 475
+                      notes: ''
+                      customerReference: ABCDE12345
+                      waybillNo: ''
+                      date: '2024-12-31'
+                      fromTime: '10:00'
+                      toTime: '10:00'
+                      eta: null
+                      deliveryDate: null
+                      deliveryTime: null
+                      departureTime: null
+                      deliveryName: ''
+                      signatureUrl: false
+                      photos: []
+                      documents: []
+                      carrierNotes: ''
+                    - addressId: 28417
+                      stopNo: 2
+                      taskType: delivery
+                      company: Gamma Duiven
+                      contact: Piet Klaassen
+                      address: Lithograaf
+                      houseno: '1'
+                      address2: ''
+                      postcode: 6921 VA
+                      city: DUIVEN
+                      country: NL
+                      location:
+                        latitude: 6.0136513
+                        longitude: 51.959888
+                      phone: +3185 - 0479 475
+                      notes: Delivery at warehouse
+                      customerReference: ''
+                      waybillNo: '123456'
+                      date: '2024-12-31'
+                      fromTime: '16:40'
+                      toTime: '17:30'
+                      eta: 00:00
+                      deliveryDate: null
+                      deliveryTime: '16:48'
+                      departureTime: '17:06'
+                      deliveryName: Mr. Johnson
+                      signatureUrl: false
+                      photos: []
+                      documents: []
+                      carrierNotes: Delivered at the neighbours
+                    goods:
+                    - packageId: 21370
+                      packageNo: 1
+                      pickupDestination: 1
+                      deliveryDestination: 2
+                      amount: 16
+                      packageTypeNo: 1
+                      packageTypeName: Colli
+                      weight: 10
+                      length: 50
+                      width: 40
+                      height: 30
+                      description: Describe the contents of the box.
+                    - packageId: 21371
+                      packageNo: 2
+                      pickupDestination: 1
+                      deliveryDestination: 2
+                      amount: 0
+                      packageTypeNo: 18
+                      packageTypeName: Europallet
+                      weight: 500
+                      length: 120
+                      width: 80
+                      height: 100
+                      description: ''
+        '401': *id001
+        '404': *id002
+        '429': *id003
+    put:
+      operationId: updateCarrierOrdersOrderno
+      summary: Update the specified order for a carrier
+      description: This endpoint updates the specified order and its destinations for the authenticated carrier. It is generally
+        used to let a carrier sign-off an order and provide POD information. Only the body parameters below can be updated.
+        Only orders that are open for editing can be updated (finished orders cannot be changed). The response contains the
+        updated order. Update destinations A destination can be updated by providing the addressId (or stopNo) together with
+        the body parameters that need to be changed. For a simple order with only one pickup and one delivery address, stopNo
+        2 is updated to sign-off an order. StopNo 1 can be updated to inform the carrier the goods have been loaded. For a
+        multi stop order, several destinations need to be updated in order to update the POD information for each location.
+        The destinations property expects an array. This allows updating of multiple destinations in one request. See the
+        example request on how to edit a destination.
+      tags:
+      - Orders for carrier
+      security:
+      - basicAuth: []
+      parameters:
+      - name: orderNo
+        in: path
+        required: true
+        description: The order number.
+        schema:
+          type: integer
+          example: 35558
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderSingleResponse'
+              example:
+                data:
+                  type: order
+                  id: 35558
+                  createdAt: '2023-12-01T10:05:01+01:00'
+                  updatedAt: '2023-12-01T10:05:01+01:00'
+                  attributes:
+                    orderNo: 35558
+                    date: '2023-12-01'
+                    time: 08:00
+                    status: in-progress
+                    substatusNo: 12
+                    substatusName: Out for delivery
+                    productNo: 1
+                    productName: Direct transport
+                    vehicleTypeNo: 2
+                    vehicleTypeName: Small Van
+                    waybillNotes: 3 pallets and 16 boxes
+                    destinations:
+                    - addressId: 28416
+                      stopNo: 1
+                      taskType: pickup
+                      company: Demo customer
+                      contact: Mr. Johnson
+                      address: Keulenstraat
+                      houseno: '1'
+                      address2: Office A3.5
+                      postcode: 7418 ET
+                      city: DEVENTER
+                      country: NL
+                      location:
+                        latitude: 6.1941298
+                        longitude: 52.2366999
+                      phone: +3185 - 0479 475
+                      notes: ''
+                      customerReference: ABCDE12345
+                      waybillNo: ''
+                      date: '2024-12-31'
+                      fromTime: '10:00'
+                      toTime: '10:00'
+                      eta: null
+                      deliveryDate: null
+                      deliveryTime: null
+                      departureTime: null
+                      deliveryName: ''
+                      signatureUrl: false
+                      photos: []
+                      documents: []
+                      carrierNotes: ''
+                    - addressId: 28417
+                      stopNo: 2
+                      taskType: delivery
+                      company: Gamma Duiven
+                      contact: Piet Klaassen
+                      address: Lithograaf
+                      houseno: '1'
+                      address2: ''
+                      postcode: 6921 VA
+                      city: DUIVEN
+                      country: NL
+                      location:
+                        latitude: 6.0136513
+                        longitude: 51.959888
+                      phone: +3185 - 0479 475
+                      notes: Delivery at warehouse
+                      customerReference: ''
+                      waybillNo: '123456'
+                      date: '2025-12-01'
+                      fromTime: '16:40'
+                      toTime: '17:30'
+                      eta: 00:00
+                      deliveryDate: null
+                      deliveryTime: '16:48'
+                      departureTime: '17:05'
+                      deliveryName: Mr. Johnson
+                      signatureUrl: false
+                      photos: []
+                      documents: []
+                      carrierNotes: Delivered at the neighbours
+                    goods:
+                    - packageId: 21370
+                      packageNo: 1
+                      pickupDestination: 1
+                      deliveryDestination: 2
+                      amount: 16
+                      packageTypeNo: 1
+                      packageTypeName: Colli
+                      weight: 10
+                      length: 50
+                      width: 40
+                      height: 30
+                      description: Describe the contents of the box.
+                    - packageId: 21371
+                      packageNo: 2
+                      pickupDestination: 1
+                      deliveryDestination: 2
+                      amount: 0
+                      packageTypeNo: 18
+                      packageTypeName: Europallet
+                      weight: 500
+                      length: 120
+                      width: 80
+                      height: 100
+                      description: ''
+        '401': *id001
+        '404': *id002
+        '422': *id004
+        '429': *id003
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: in-progress
+                  description: Sets the new status for this order. If the transport is finished, but the goods could not be
+                    delivered, use the carrierNotes field to specify a undeliverable reason.
+                destinations:
+                  type: string
+tags:
+- name: Orders
+- name: Products
+- name: Substatuses
+- name: PackageTypes
+- name: VehicleTypes
+- name: Invoices
+- name: Customers
+- name: Carriers
+- name: Fleet
+- name: Orders for carrier

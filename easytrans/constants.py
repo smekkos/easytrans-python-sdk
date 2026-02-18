@@ -112,8 +112,30 @@ class WebhookStatus(str, Enum):
 
 
 class TaskType(str, Enum):
-    """Destination task types in webhooks."""
+    """Destination task types in webhooks and REST API responses."""
 
     PICKUP = "pickup"
     DELIVERY = "delivery"
     PICKUP_DELIVERY = "pickup/delivery"
+
+
+class RestOrderStatus(str, Enum):
+    """
+    Order status values returned by the REST API.
+
+    Customer account values: quote, saved-weborder, pending-acceptation,
+        in-progress, finished.
+    Branch account values: quote, saved-weborder, pending-acceptation,
+        open, planned, signed-off, checked, invoiced.
+    """
+
+    QUOTE = "quote"
+    SAVED_WEBORDER = "saved-weborder"
+    PENDING_ACCEPTATION = "pending-acceptation"
+    IN_PROGRESS = "in-progress"
+    FINISHED = "finished"
+    OPEN = "open"
+    PLANNED = "planned"
+    SIGNED_OFF = "signed-off"
+    CHECKED = "checked"
+    INVOICED = "invoiced"
