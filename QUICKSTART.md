@@ -5,7 +5,8 @@ Get up and running with the EasyTrans Python SDK in 5 minutes.
 ## Installation
 
 ```bash
-pip install easytrans-sdk
+pip install git+https://github.com/smekkos/easytrans-python-sdk
+
 ```
 
 ## 1. Configure Credentials
