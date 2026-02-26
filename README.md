@@ -73,6 +73,7 @@ print(f"Order created: {result.new_ordernos[0]}")
 - [Django Integration](#django-integration)
 - [Error Handling](#error-handling)
 - [API Reference](#api-reference)
+- [Documentation](#documentation--serving-and-building-the-docs)
 - [Testing](#testing)
 - [Contributing](#contributing)
 
@@ -910,6 +911,28 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Webhook support
 - Comprehensive test suite
 - Django integration examples
+
+## Documentation — serving and building the docs
+
+### Install doc dependencies
+
+```bash
+pip install -e ".[dev]"
+```
+
+### Serve locally (live-reload)
+
+```bash
+mkdocs serve
+# → http://127.0.0.1:8000
+```
+
+### Build static site
+
+```bash
+mkdocs build
+# Output written to site/
+```
 
 ## Credits
 

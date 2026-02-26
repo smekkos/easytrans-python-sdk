@@ -36,6 +36,9 @@ dev = [
     "black>=23.0",
     "mypy>=1.0",
     "ruff>=0.1.0",
+    "mkdocs>=1.5,<2",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.25",
 ]
 
 [project.urls]

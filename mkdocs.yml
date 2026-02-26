@@ -1,0 +1,83 @@
+site_name: EasyTrans Python SDK
+site_description: "Python SDK for EasyTrans TMS API - A Dutch Transport Management System"
+repo_url: https://github.com/yourusername/easytrans-sdk
+repo_name: yourusername/easytrans-sdk
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - toc.integrate
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+            show_source: true
+            show_bases: true
+            show_root_heading: true
+            show_root_full_path: false
+            members_order: source
+            separate_signature: true
+            show_signature_annotations: true
+            unwrap_annotated: true
+            filters:
+              - "!^_"
+              - "^__init__"
+              - "^from_api"
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Guides:
+    - guides/index.md
+    - Authentication: guides/authentication.md
+    - Creating Orders: guides/orders.md
+    - Managing Customers: guides/customers.md
+    - REST API: guides/rest-api.md
+    - Webhook Handling: guides/webhooks.md
+    - Error Handling: guides/error-handling.md
+  - API Reference:
+    - api-reference/index.md
+    - Client: api-reference/client.md
+    - Models: api-reference/models.md
+    - REST Models: api-reference/rest-models.md
+    - Exceptions: api-reference/exceptions.md
+    - Constants: api-reference/constants.md
