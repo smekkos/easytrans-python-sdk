@@ -89,6 +89,43 @@ for inv in invoices.data:
     print(inv.id, inv.attributes.total_amount)
 ```
 
+## Working with Dates
+
+Several REST model fields carry a raw `date` string in `YYYY-MM-DD` format.
+Each of those fields is paired with a `date_parsed` computed property that
+returns a [`datetime.date`](https://docs.python.org/3/library/datetime.html#datetime.date)
+object — or `None` when the field is absent.
+
+```python
+from datetime import timedelta
+
+order = client.get_order("ET-100001")
+
+# Raw string — always available, safe to serialise
+print(order.attributes.date)           # "2026-02-18"
+
+# Parsed date — enables arithmetic and formatting without extra imports
+if order.attributes.date_parsed:
+    deadline = order.attributes.date_parsed + timedelta(days=30)
+    print(f"Invoice deadline: {deadline.isoformat()}")  # "2026-03-20"
+    print(deadline.strftime("%d %B %Y"))                # "20 March 2026"
+
+# Destination time windows
+for dest in order.attributes.destinations:
+    if dest.date_parsed:
+        print(f"Stop {dest.stop_no}: scheduled {dest.date_parsed:%A, %d %b %Y}")
+
+# Track & trace history
+for event in order.attributes.track_history:
+    if event.date_parsed:
+        print(f"{event.date_parsed:%d-%m-%Y}  {event.name}")
+```
+
+!!! note
+    The raw `date` string field is unchanged — existing code that reads or
+    compares `order.attributes.date` as a string continues to work without
+    modification.
+
 ## Response Models
 
 All REST responses are typed dataclasses. See [REST Models](../api-reference/rest-models.md) for the full reference.

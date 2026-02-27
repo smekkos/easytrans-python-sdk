@@ -2,6 +2,12 @@
 
 Typed dataclass models returned by the REST API (`/api/v1/`) methods.
 
+!!! tip "Date fields"
+    Several models expose a raw `date: Optional[str]` field (format `YYYY-MM-DD`)
+    alongside a computed `date_parsed: Optional[datetime.date]` property.
+    Use `date_parsed` for arithmetic and comparisons; the raw string is preserved
+    for serialisation and backward compatibility.
+
 ## PagedResponse
 
 ::: easytrans.rest_models.PagedResponse
@@ -9,6 +15,18 @@ Typed dataclass models returned by the REST API (`/api/v1/`) methods.
 ## RestOrder
 
 ::: easytrans.rest_models.RestOrder
+
+## RestOrderAttributes
+
+::: easytrans.rest_models.RestOrderAttributes
+
+## RestDestination
+
+::: easytrans.rest_models.RestDestination
+
+## RestTrackHistoryEntry
+
+::: easytrans.rest_models.RestTrackHistoryEntry
 
 ## RestCustomer
 

@@ -6,6 +6,8 @@ response model using example payloads drawn directly from the OpenAPI spec.
 No network calls are made.
 """
 
+import datetime
+
 import pytest
 
 from easytrans.rest_models import (
@@ -429,6 +431,25 @@ class TestRestDestination:
         assert dest.photos == []
         assert dest.documents == []
 
+    def test_date_parsed_valid(self):
+        dest = RestDestination.from_dict(DESTINATION_DATA)
+        assert dest.date_parsed == datetime.date(2024, 12, 31)
+
+    def test_date_parsed_none_when_date_absent(self):
+        data = {**DESTINATION_DATA, "date": None}
+        dest = RestDestination.from_dict(data)
+        assert dest.date_parsed is None
+
+    def test_date_parsed_none_on_invalid_string(self):
+        data = {**DESTINATION_DATA, "date": "not-a-date"}
+        dest = RestDestination.from_dict(data)
+        assert dest.date_parsed is None
+
+    def test_date_raw_string_preserved(self):
+        """The original string field must remain unchanged after adding date_parsed."""
+        dest = RestDestination.from_dict(DESTINATION_DATA)
+        assert dest.date == "2024-12-31"
+
 
 class TestRestGoodsLine:
     def test_from_dict(self):
@@ -463,6 +484,24 @@ class TestRestTrackHistoryEntry:
         assert entry.location == "Deventer"
         assert entry.date == "2024-06-05"
         assert entry.time == "08:15"
+
+    def test_date_parsed_valid(self):
+        entry = RestTrackHistoryEntry.from_dict(TRACK_HISTORY_DATA)
+        assert entry.date_parsed == datetime.date(2024, 6, 5)
+
+    def test_date_parsed_none_when_date_absent(self):
+        data = {**TRACK_HISTORY_DATA, "date": None}
+        entry = RestTrackHistoryEntry.from_dict(data)
+        assert entry.date_parsed is None
+
+    def test_date_parsed_none_on_invalid_string(self):
+        data = {**TRACK_HISTORY_DATA, "date": "31-12-2024"}  # wrong format
+        entry = RestTrackHistoryEntry.from_dict(data)
+        assert entry.date_parsed is None
+
+    def test_date_raw_string_preserved(self):
+        entry = RestTrackHistoryEntry.from_dict(TRACK_HISTORY_DATA)
+        assert entry.date == "2024-06-05"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -600,6 +639,31 @@ class TestRestOrderAttributes:
         attrs = RestOrderAttributes.from_dict(ORDER_DATA["attributes"])
         assert len(attrs.track_history) == 1
         assert attrs.track_history[0].name == "Order created"
+
+    def test_date_parsed_valid(self):
+        attrs = RestOrderAttributes.from_dict(ORDER_DATA["attributes"])
+        assert attrs.date_parsed == datetime.date(2023, 12, 1)
+
+    def test_date_parsed_none_when_date_absent(self):
+        data = {**ORDER_DATA["attributes"], "date": None}
+        attrs = RestOrderAttributes.from_dict(data)
+        assert attrs.date_parsed is None
+
+    def test_date_parsed_none_on_invalid_string(self):
+        data = {**ORDER_DATA["attributes"], "date": "01/12/2023"}  # wrong format
+        attrs = RestOrderAttributes.from_dict(data)
+        assert attrs.date_parsed is None
+
+    def test_date_raw_string_preserved(self):
+        """The original string field must remain unchanged after adding date_parsed."""
+        attrs = RestOrderAttributes.from_dict(ORDER_DATA["attributes"])
+        assert attrs.date == "2023-12-01"
+
+    def test_date_parsed_supports_arithmetic(self):
+        """date_parsed should allow date arithmetic without additional imports in calling code."""
+        attrs = RestOrderAttributes.from_dict(ORDER_DATA["attributes"])
+        from datetime import timedelta
+        assert attrs.date_parsed + timedelta(days=30) == datetime.date(2023, 12, 31)
 
 
 class TestRestOrder:

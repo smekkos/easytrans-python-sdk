@@ -15,6 +15,7 @@ Naming convention:
 
 from __future__ import annotations
 
+import datetime
 from dataclasses import dataclass, field
 from typing import Any, Dict, Generic, List, Optional, TypeVar, Union
 
@@ -239,6 +240,28 @@ class RestDestination:
             carrier_notes=data.get("carrierNotes", ""),
         )
 
+    @property
+    def date_parsed(self) -> Optional[datetime.date]:
+        """The stop ``date`` parsed to a :class:`datetime.date` object.
+
+        Returns ``None`` when :attr:`date` is absent or cannot be parsed
+        (e.g. the stop has no scheduled date, or the API returns an
+        unexpected format).
+
+        Example::
+
+            from datetime import timedelta
+            for dest in order.attributes.destinations:
+                if dest.date_parsed:
+                    window_end = dest.date_parsed + timedelta(days=1)
+        """
+        if self.date is None:
+            return None
+        try:
+            return datetime.date.fromisoformat(self.date)
+        except ValueError:
+            return None
+
 
 @dataclass
 class RestGoodsLine:
@@ -317,6 +340,25 @@ class RestTrackHistoryEntry:
             date=data.get("date"),
             time=data.get("time"),
         )
+
+    @property
+    def date_parsed(self) -> Optional[datetime.date]:
+        """The track-history ``date`` parsed to a :class:`datetime.date` object.
+
+        Returns ``None`` when :attr:`date` is absent or cannot be parsed.
+
+        Example::
+
+            for event in order.attributes.track_history:
+                if event.date_parsed:
+                    print(event.date_parsed.strftime("%d %b %Y"), event.name)
+        """
+        if self.date is None:
+            return None
+        try:
+            return datetime.date.fromisoformat(self.date)
+        except ValueError:
+            return None
 
 
 # ---------------------------------------------------------------------------
@@ -669,6 +711,27 @@ class RestOrderAttributes:
                 for t in (data.get("trackHistory") or [])
             ],
         )
+
+    @property
+    def date_parsed(self) -> Optional[datetime.date]:
+        """The order ``date`` parsed to a :class:`datetime.date` object.
+
+        Returns ``None`` when :attr:`date` is absent or cannot be parsed.
+        Keeps the raw :attr:`date` string intact for backward compatibility.
+
+        Example::
+
+            from datetime import timedelta
+            if order.attributes.date_parsed:
+                deadline = order.attributes.date_parsed + timedelta(days=30)
+                print(f"Invoice deadline: {deadline.isoformat()}")
+        """
+        if self.date is None:
+            return None
+        try:
+            return datetime.date.fromisoformat(self.date)
+        except ValueError:
+            return None
 
 
 @dataclass
