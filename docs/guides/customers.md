@@ -67,30 +67,44 @@ for customer in response.data:
 
 ### Filtering by contact or address fields
 
-The EasyTrans API **does** support server-side filtering on nested contact
-and address sub-fields, but uses a **bracket notation** key syntax.
-The filter key must be the literal sub-key without a closing bracket — the
-SDK's `_build_rest_params` adds the outer wrapping automatically.
+The EasyTrans OpenAPI spec documents server-side filtering on nested contact
+and address sub-fields (e.g. `filter[contacts[name]`, `filter[contacts[email]`,
+`filter[businessAddress[city]`). Whether these are available depends on the
+API version deployed on your tenant — some environments return HTTP 400
+"Invalid filter" for these parameters even with a syntactically correct
+request.
+
+When contact sub-field filtering is available, use **bracket notation** for
+the SDK filter key. The key must be the literal sub-key without a closing
+bracket — the SDK wraps it in `filter[{key}]` automatically:
 
 ```python
-# Search by contact e-mail (server-side)
+# filter[contacts[email]=kevin@example.nl  (bracket notation — spec-correct)
 response = client.get_customers(filter={"contacts[email": "kevin@example.nl"})
 
-# Search by contact name
+# filter[contacts[name]=Kevin van Beek
 response = client.get_customers(filter={"contacts[name": "Kevin van Beek"})
 
-# Filter by city in the business address
+# filter[businessAddress[city]=DEVENTER
 response = client.get_customers(filter={"businessAddress[city": "DEVENTER"})
 ```
 
-!!! warning "Common mistake — dot notation returns HTTP 400"
-    The following **does not work** and will raise an `EasyTransAPIError`
-    (HTTP 400 "Invalid filter"):
+!!! warning "Common mistake — dot notation always returns HTTP 400"
+    `"contacts.email"` generates `filter[contacts.email]=…` (dot notation),
+    which the API rejects. Always use the opening-bracket form:
+    `"contacts[email"`.
 
-    ```python
-    # WRONG — generates filter[contacts.email]=… which the API rejects
-    client.get_customers(filter={"contacts.email": "kevin@example.nl"})
-    ```
+### Client-side contact search (works on all tenants)
 
-    The correct key uses an opening bracket: `"contacts[email"`, not
-    `"contacts.email"`.
+If your deployed API version does not support contact sub-field filtering,
+scan all pages in Python instead:
+
+```python
+def find_customers_by_contact_email(client, email: str):
+    """Return every customer that has a contact with the given e-mail."""
+    return [
+        customer
+        for customer in client.iter_customers()
+        if any(c.email == email for c in customer.contacts)
+    ]
+```

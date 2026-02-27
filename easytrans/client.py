@@ -1095,6 +1095,15 @@ class EasyTransClient:
 
                             # wrong — generates filter[contacts.email]=…
                             filter={"contacts.email": "user@example.nl"}
+
+                    .. note::
+                        Nested contact and address filters are documented in
+                        the OpenAPI spec but **may return HTTP 400 on some
+                        tenant deployments** whose API version does not yet
+                        implement these parameters.  If you receive
+                        ``EasyTransAPIError (HTTP 400): Invalid filter``,
+                        fall back to client-side scanning with
+                        ``iter_customers()``.
             sort: Sort expression, e.g. ``"companyName,-createdAt"``.
             include_deleted: Include soft-deleted customers.
             page: Page number (1-based).
@@ -1171,7 +1180,9 @@ class EasyTransClient:
                       ``contacts[notes``, ``contacts[username``
 
                     Use **bracket notation** for nested fields (same rule as
-                    ``get_customers()``).
+                    ``get_customers()``).  Nested filters may return HTTP 400
+                    on older tenant deployments; fall back to
+                    ``iter_carriers()`` for client-side scanning if needed.
             sort: Sort expression, e.g. ``"name,-createdAt"``.
             include_deleted: Include soft-deleted carriers.
             page: Page number (1-based).
