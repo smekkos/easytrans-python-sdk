@@ -17,13 +17,13 @@ A pure Python SDK for integrating with **EasyTrans Software** (Dutch TMS - Trans
 ## Installation
 
 ```bash
-pip install easytrans-sdk
+pip install git+https://github.com/smekkos/easytrans-python-sdk
 ```
 
 For development:
 
 ```bash
-pip install easytrans-sdk[dev]
+pip install git:https://github.com/smekkos/easytrans-python-sdk[dev]
 ```
 
 ## Quick Start
