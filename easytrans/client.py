@@ -536,10 +536,18 @@ class EasyTransClient:
             return
 
         status = response.status_code
+        # Always initialise body so the 422 branch can safely reference it even
+        # when response.json() raises (Bug B — UnboundLocalError on non-JSON 422).
+        body: Any = None
         try:
             body = response.json()
-            message = body.get("message", response.text[:200])
         except ValueError:
+            pass
+        # Guard .get() against non-dict JSON bodies such as [] or null
+        # (Bug A — AttributeError when API returns a JSON array on 4xx).
+        if isinstance(body, dict):
+            message = body.get("message", response.text[:200])
+        else:
             message = response.text[:200]
 
         if status == 401:

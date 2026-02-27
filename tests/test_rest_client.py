@@ -255,6 +255,58 @@ class TestRestErrorHandling:
         with pytest.raises(EasyTransAPIError, match="500"):
             client.get_orders()
 
+    # ── Regression tests for Bug A & Bug B ───────────────────────────────────
+
+    @rsps_lib.activate
+    def test_json_array_body_on_401_raises_auth_error(self, client):
+        """Bug A regression: body.get() must not be called on a JSON array body.
+
+        Some EasyTrans environments return ``[]`` instead of a JSON object on
+        certain 4xx responses.  Before the fix this raised AttributeError
+        because list has no ``.get()``; the except ValueError did not catch it.
+        """
+        rsps_lib.add(
+            rsps_lib.GET,
+            f"{REST_BASE}/orders",
+            body="[]",
+            content_type="application/json",
+            status=401,
+        )
+        with pytest.raises(EasyTransAuthError):
+            client.get_orders()
+
+    @rsps_lib.activate
+    def test_json_null_body_on_404_raises_not_found(self, client):
+        """Bug A regression: body.get() must not be called on a JSON null body."""
+        rsps_lib.add(
+            rsps_lib.GET,
+            f"{REST_BASE}/orders/999",
+            body="null",
+            content_type="application/json",
+            status=404,
+        )
+        with pytest.raises(EasyTransNotFoundError):
+            client.get_order(999)
+
+    @rsps_lib.activate
+    def test_non_json_body_on_422_raises_validation_error(self, client):
+        """Bug B regression: non-JSON 422 body must not cause UnboundLocalError.
+
+        When response.json() raises ValueError, ``body`` was previously left
+        unbound; the 422 branch then referenced it by name, which raised
+        ``UnboundLocalError``.  After the fix ``body`` is initialised to
+        ``None`` before the try block.
+        """
+        rsps_lib.add(
+            rsps_lib.PUT,
+            f"{REST_BASE}/orders/35558",
+            body="Validation failed",
+            content_type="text/plain",
+            status=422,
+        )
+        with pytest.raises(EasyTransValidationError):
+            client.update_order(35558, external_id="bad")
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # get_orders
