@@ -1068,10 +1068,33 @@ class EasyTransClient:
         Return a paginated list of customers (branch accounts only).
 
         Args:
-            filter: Filter dict. Supported fields include ``customerNo``,
-                    ``companyName``, ``createdAt``, ``updatedAt``,
-                    ``debtorNo``, ``vatNo``, ``externalId``, and nested
-                    address / contact fields.
+            filter: Filter dict. Supported fields (confirmed from OpenAPI
+                    spec):
+
+                    * Top-level: ``customerNo``, ``companyName``,
+                      ``createdAt``, ``updatedAt``, ``debtorNo``,
+                      ``paymentReference``, ``vatNo``, ``externalId``,
+                      ``notes``, ``crmNotes``
+                    * Business address: ``businessAddress[address``,
+                      ``businessAddress[postcode``, ``businessAddress[city``
+                    * Mailing address: ``mailingAddress[address``,
+                      ``mailingAddress[postcode``, ``mailingAddress[city``
+                    * Contacts: ``contacts[name``, ``contacts[phone``,
+                      ``contacts[mobile``, ``contacts[email``,
+                      ``contacts[notes``, ``contacts[username``
+
+                    .. important::
+                        Nested fields use **bracket notation** in the dict
+                        key — note the *opening* bracket but no closing
+                        bracket on the nested part.  ``_build_rest_params``
+                        wraps the key in ``filter[{key}]``, producing the
+                        exact query-string name the API expects, e.g.::
+
+                            # correct — generates filter[contacts[email]=…
+                            filter={"contacts[email": "user@example.nl"}
+
+                            # wrong — generates filter[contacts.email]=…
+                            filter={"contacts.email": "user@example.nl"}
             sort: Sort expression, e.g. ``"companyName,-createdAt"``.
             include_deleted: Include soft-deleted customers.
             page: Page number (1-based).
@@ -1133,10 +1156,22 @@ class EasyTransClient:
         Return a paginated list of carriers (branch accounts only).
 
         Args:
-            filter: Filter dict. Supported fields include ``carrierNo``,
-                    ``name``, ``createdAt``, ``updatedAt``,
-                    ``creditorNo``, ``externalId``, and nested address /
-                    contact fields.
+            filter: Filter dict. Supported fields (confirmed from OpenAPI
+                    spec):
+
+                    * Top-level: ``carrierNo``, ``name``, ``createdAt``,
+                      ``updatedAt``, ``phone``, ``mobile``, ``email``,
+                      ``notes``, ``creditorNo``, ``externalId``
+                    * Business address: ``businessAddress[address``,
+                      ``businessAddress[postcode``, ``businessAddress[city``
+                    * Mailing address: ``mailingAddress[address``,
+                      ``mailingAddress[postcode``, ``mailingAddress[city``
+                    * Contacts: ``contacts[name``, ``contacts[phone``,
+                      ``contacts[mobile``, ``contacts[email``,
+                      ``contacts[notes``, ``contacts[username``
+
+                    Use **bracket notation** for nested fields (same rule as
+                    ``get_customers()``).
             sort: Sort expression, e.g. ``"name,-createdAt"``.
             include_deleted: Include soft-deleted carriers.
             page: Page number (1-based).
