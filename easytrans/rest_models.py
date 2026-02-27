@@ -441,9 +441,15 @@ class RestCustomer:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "RestCustomer":
         attrs = data.get("attributes") or data
+        # The REST API may return contacts as a list *or* as a dict keyed by
+        # string contact ID (e.g. {"2": {...}}).  Normalise to an iterable of
+        # values before passing each item to RestCustomerContact.from_dict().
+        contacts_raw = attrs.get("contacts") or {}
+        contact_items = contacts_raw.values() if isinstance(contacts_raw, dict) else contacts_raw
         contacts = [
             RestCustomerContact.from_dict(c)
-            for c in (attrs.get("contacts") or [])
+            for c in contact_items
+            if isinstance(c, dict)
         ]
         return cls(
             id=data.get("id", 0),
@@ -551,9 +557,13 @@ class RestCarrier:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "RestCarrier":
         attrs = data.get("attributes") or data
+        # Same dict-keyed-by-string-ID normalisation as RestCustomer.from_dict().
+        contacts_raw = attrs.get("contacts") or {}
+        contact_items = contacts_raw.values() if isinstance(contacts_raw, dict) else contacts_raw
         contacts = [
             RestCarrierContact.from_dict(c)
-            for c in (attrs.get("contacts") or [])
+            for c in contact_items
+            if isinstance(c, dict)
         ]
         return cls(
             id=data.get("id", 0),

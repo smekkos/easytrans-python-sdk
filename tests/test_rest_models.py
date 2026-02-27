@@ -551,6 +551,52 @@ class TestRestCustomer:
         customer = RestCustomer.from_dict(CUSTOMER_DATA)
         assert customer.invoice_surcharge == pytest.approx(5.5)
 
+    def test_contacts_as_dict_keyed_by_string_id(self):
+        """Bug regression: GET /orders?include_customer=true returns contacts as a
+        dict keyed by string ID, not a list.  Iterating a dict yields its keys
+        (strings), causing RestCustomerContact.from_dict() to receive a string
+        and crash on attr.get().
+        """
+        data_with_dict_contacts = {
+            **CUSTOMER_DATA,
+            "attributes": {
+                **CUSTOMER_DATA["attributes"],
+                "contacts": {
+                    "2": {
+                        "userId": 1799,
+                        "contactNo": 3,
+                        "salutation": 1,
+                        "name": "Kevin van Beek",
+                        "phone": "",
+                        "mobile": "",
+                        "email": "kevin@example.nl",
+                        "useEmailForInvoice": False,
+                        "useEmailForReminder": False,
+                        "notes": "",
+                        "username": "kvanbeek",
+                    }
+                },
+            },
+        }
+        customer = RestCustomer.from_dict(data_with_dict_contacts)
+        assert len(customer.contacts) == 1
+        assert customer.contacts[0].name == "Kevin van Beek"
+        assert customer.contacts[0].username == "kvanbeek"
+
+    def test_contacts_empty_dict_yields_empty_list(self):
+        data = {
+            **CUSTOMER_DATA,
+            "attributes": {**CUSTOMER_DATA["attributes"], "contacts": {}},
+        }
+        customer = RestCustomer.from_dict(data)
+        assert customer.contacts == []
+
+    def test_contacts_already_list_still_works(self):
+        """Existing list-form must continue to deserialise correctly."""
+        customer = RestCustomer.from_dict(CUSTOMER_DATA)
+        assert len(customer.contacts) == 1
+        assert customer.contacts[0].name == "Demo user"
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Carrier
@@ -585,6 +631,44 @@ class TestRestCarrier:
         carrier = RestCarrier.from_dict(CARRIER_DATA)
         assert len(carrier.contacts) == 1
         assert carrier.contacts[0].username == "import"
+
+    def test_contacts_as_dict_keyed_by_string_id(self):
+        """Same dict-keyed-by-string-ID regression as RestCustomer."""
+        data_with_dict_contacts = {
+            **CARRIER_DATA,
+            "attributes": {
+                **CARRIER_DATA["attributes"],
+                "contacts": {
+                    "5": {
+                        "userId": 5,
+                        "name": "Contact one",
+                        "phone": "+3185 - 0479 475",
+                        "mobile": "",
+                        "email": "info@easytrans.nl",
+                        "notes": "Available Mon-Thu",
+                        "username": "import",
+                    }
+                },
+            },
+        }
+        carrier = RestCarrier.from_dict(data_with_dict_contacts)
+        assert len(carrier.contacts) == 1
+        assert carrier.contacts[0].name == "Contact one"
+        assert carrier.contacts[0].username == "import"
+
+    def test_contacts_empty_dict_yields_empty_list(self):
+        data = {
+            **CARRIER_DATA,
+            "attributes": {**CARRIER_DATA["attributes"], "contacts": {}},
+        }
+        carrier = RestCarrier.from_dict(data)
+        assert carrier.contacts == []
+
+    def test_contacts_already_list_still_works(self):
+        """Existing list-form must continue to deserialise correctly."""
+        carrier = RestCarrier.from_dict(CARRIER_DATA)
+        assert len(carrier.contacts) == 1
+        assert carrier.contacts[0].name == "Contact one"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
