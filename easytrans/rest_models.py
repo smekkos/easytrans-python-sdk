@@ -366,6 +366,28 @@ class RestTrackHistoryEntry:
 # ---------------------------------------------------------------------------
 
 @dataclass
+class RestOpeningHours:
+    """Opening hours block on a customer record.
+
+    Both fields default to an empty string when absent so callers can always
+    access ``from_time`` and ``to_time`` without an ``Optional`` guard.
+    The ``from_dict`` factory returns ``None`` when passed ``None`` or an
+    empty dict, guarding against tenants whose API response omits the field.
+    """
+
+    from_time: str = ""
+    to_time: str = ""
+
+    @classmethod
+    def from_dict(cls, data: Optional[Dict[str, Any]]) -> Optional["RestOpeningHours"]:
+        if not data or (data.get("from") is None and data.get("to") is None):
+            return None
+        return cls(
+            from_time=data.get("from", ""),
+            to_time=data.get("to", ""),
+        )
+
+@dataclass
 class RestCustomerContact:
     """A contact person belonging to a customer record."""
 
@@ -405,6 +427,7 @@ class RestCustomer:
 
     Available for branch accounts via ``GET /v1/customers`` or embedded
     inside order and invoice responses when ``include_customer=True``.
+    Use the client's ``update_customer()`` method to modify a customer.
     """
 
     id: int = 0
@@ -433,6 +456,7 @@ class RestCustomer:
     notes: str = ""
     crm_notes: str = ""
     invoice_surcharge: Optional[float] = None
+    opening_hours: Optional[RestOpeningHours] = None
     active: bool = True
     is_deleted: Optional[bool] = None
     contacts: List[RestCustomerContact] = field(default_factory=list)
@@ -477,6 +501,7 @@ class RestCustomer:
             notes=attrs.get("notes", ""),
             crm_notes=attrs.get("crmNotes", ""),
             invoice_surcharge=attrs.get("invoiceSurcharge"),
+            opening_hours=RestOpeningHours.from_dict(attrs.get("openingHours")),
             active=attrs.get("active", True),
             is_deleted=attrs.get("isDeleted"),
             contacts=contacts,
@@ -963,6 +988,7 @@ __all__ = [
     "RestGoodsLine",
     "RestRate",
     "RestTrackHistoryEntry",
+    "RestOpeningHours",
     "RestCustomerContact",
     "RestCustomer",
     "RestCarrierContact",

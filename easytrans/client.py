@@ -1149,6 +1149,164 @@ class EasyTransClient:
         )
         return RestCustomer.from_dict(raw["data"])
 
+    def update_customer(
+        self,
+        customer_no: int,
+        company_name: str,
+        *,
+        business_address: Optional[Dict[str, Any]] = None,
+        mailing_address: Optional[Dict[str, Any]] = None,
+        website: Optional[str] = None,
+        debtor_no: Optional[str] = None,
+        payment_reference: Optional[str] = None,
+        payment_period: Optional[int] = None,
+        payment_period_end_of_month: Optional[bool] = None,
+        iban_no: Optional[str] = None,
+        bic_code: Optional[str] = None,
+        bank_no: Optional[str] = None,
+        uk_sort_code: Optional[str] = None,
+        vat_no: Optional[str] = None,
+        vat_liable: Optional[bool] = None,
+        vat_liable_code: Optional[int] = None,
+        chamber_of_commerce_no: Optional[str] = None,
+        eori_no: Optional[str] = None,
+        language: Optional[str] = None,
+        opening_hours: Optional[Dict[str, Any]] = None,
+        notes: Optional[str] = None,
+        crm_notes: Optional[str] = None,
+        invoice_surcharge: Optional[float] = None,
+        active: Optional[bool] = None,
+        external_id: Optional[str] = None,
+        contacts: Optional[List[Dict[str, Any]]] = None,
+    ) -> RestCustomer:
+        """
+        Update an existing customer (branch accounts only).
+
+        ``company_name`` is required by the API on every PUT request.
+        All other keyword arguments are optional — only the supplied ones
+        are included in the request body; unspecified fields are left
+        unchanged on the server.
+
+        To update one or more contacts, pass a list of dicts.  Each dict
+        must contain either ``userId`` or ``contactNo`` to identify the
+        contact, plus the fields to change::
+
+            contacts=[{"userId": 271, "email": "new@acme.nl"}]
+
+        ``vat_liable_code`` takes precedence over ``vat_liable`` when both
+        are supplied (0 = No within EU, 1 = Yes, 2 = No outside EU,
+        3 = No fiscal unity).
+
+        Args:
+            customer_no: The EasyTrans customer number to update.
+            company_name: Customer company name (required, max 100 chars).
+            business_address: Business address dict (keys: ``address``,
+                ``houseno``, ``address2``, ``postcode``, ``city``,
+                ``country``).
+            mailing_address: Mailing address dict (same keys plus ``attn``).
+            website: Website URL (max 255 chars).
+            debtor_no: Debtor number — must be unique (max 50 chars).
+            payment_reference: PO number or payment reference (max 100 chars).
+            payment_period: Payment period in days.
+            payment_period_end_of_month: Count payment period from end of
+                month (``True``) or invoice date (``False``).
+            iban_no: IBAN bank account number (max 50 chars).
+            bic_code: BIC/SWIFT code (max 20 chars).
+            bank_no: Bank account number for non-EU banks (max 50 chars).
+            uk_sort_code: UK bank sort code (max 50 chars).
+            vat_no: VAT number (max 50 chars).
+            vat_liable: Convenience flag for VAT liability.  Overridden by
+                ``vat_liable_code`` when both are supplied.
+            vat_liable_code: Explicit VAT liability code (0–3).
+            chamber_of_commerce_no: Chamber of Commerce number (max 50 chars).
+            eori_no: EORI number (max 50 chars).
+            language: Customer language code (``"nl"``, ``"en"``, ``"de"``,
+                ``"fr"``).
+            opening_hours: Opening hours dict with keys ``"from"`` and
+                ``"to"`` (e.g. ``{"from": "08:30", "to": "17:30"}``).
+            notes: Notes that can appear on transport documents.
+            crm_notes: CRM notes visible to branch users only.
+            invoice_surcharge: Invoice surcharge/discount percentage
+                (e.g. ``5.5`` = 5.5% surcharge, ``-1`` = 1% discount).
+            active: Whether the customer is active.
+            external_id: External system identifier (max 50 chars).
+            contacts: List of contact update dicts.  Each dict must include
+                ``userId`` or ``contactNo`` to identify the contact.
+
+        Returns:
+            Updated ``RestCustomer``.
+
+        Raises:
+            ``EasyTransNotFoundError``: Customer number does not exist.
+            ``EasyTransValidationError``: Body failed server-side validation
+                (HTTP 422).
+
+        Example::
+
+            customer = client.update_customer(
+                2001,
+                "ACME Logistics BV",
+                debtor_no="D-0042",
+                payment_period=30,
+                contacts=[{"userId": 271, "email": "new@acme.nl"}],
+            )
+            print(customer.updated_at)
+        """
+        body: Dict[str, Any] = {"companyName": company_name}
+        if business_address is not None:
+            body["businessAddress"] = business_address
+        if mailing_address is not None:
+            body["mailingAddress"] = mailing_address
+        if website is not None:
+            body["website"] = website
+        if debtor_no is not None:
+            body["debtorNo"] = debtor_no
+        if payment_reference is not None:
+            body["paymentReference"] = payment_reference
+        if payment_period is not None:
+            body["paymentPeriod"] = payment_period
+        if payment_period_end_of_month is not None:
+            body["paymentPeriodEndOfMonth"] = payment_period_end_of_month
+        if iban_no is not None:
+            body["ibanNo"] = iban_no
+        if bic_code is not None:
+            body["bicCode"] = bic_code
+        if bank_no is not None:
+            body["bankNo"] = bank_no
+        if uk_sort_code is not None:
+            body["ukSortCode"] = uk_sort_code
+        if vat_no is not None:
+            body["vatNo"] = vat_no
+        if vat_liable is not None:
+            body["vatLiable"] = vat_liable
+        if vat_liable_code is not None:
+            body["vatLiableCode"] = vat_liable_code
+        if chamber_of_commerce_no is not None:
+            body["chamberOfCommerceNo"] = chamber_of_commerce_no
+        if eori_no is not None:
+            body["eoriNo"] = eori_no
+        if language is not None:
+            body["language"] = language
+        if opening_hours is not None:
+            body["openingHours"] = opening_hours
+        if notes is not None:
+            body["notes"] = notes
+        if crm_notes is not None:
+            body["crmNotes"] = crm_notes
+        if invoice_surcharge is not None:
+            body["invoiceSurcharge"] = invoice_surcharge
+        if active is not None:
+            body["active"] = active
+        if external_id is not None:
+            body["externalId"] = external_id
+        if contacts is not None:
+            body["contacts"] = contacts
+
+        raw = self._make_rest_request(
+            "PUT", f"/customers/{customer_no}", json_body=body
+        )
+        return RestCustomer.from_dict(raw["data"])
+
     # =========================================================================
     # REST API — Carriers (branch accounts only)
     # =========================================================================

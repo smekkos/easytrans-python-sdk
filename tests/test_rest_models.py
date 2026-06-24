@@ -25,6 +25,7 @@ from easytrans.rest_models import (
     RestInvoice,
     RestLocation,
     RestMailingAddress,
+    RestOpeningHours,
     RestOrder,
     RestOrderAttributes,
     RestPackageType,
@@ -951,3 +952,58 @@ class TestRestInvoice:
         }
         invoice = RestInvoice.from_dict(data)
         assert invoice.invoice_pdf == "JVBERi0xLjQ..."
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Opening hours
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class TestRestOpeningHours:
+    def test_from_dict_present(self):
+        oh = RestOpeningHours.from_dict({"from": "08:30", "to": "17:30"})
+        assert oh is not None
+        assert oh.from_time == "08:30"
+        assert oh.to_time == "17:30"
+
+    def test_from_dict_none_returns_none(self):
+        """Absent openingHours key must not raise."""
+        assert RestOpeningHours.from_dict(None) is None
+
+    def test_from_dict_empty_dict_returns_none(self):
+        """Empty dict (e.g. API returns {}) must not raise."""
+        assert RestOpeningHours.from_dict({}) is None
+
+    def test_from_dict_null_values_returns_none(self):
+        """API returning {\"from\": null, \"to\": null} must yield None, not an empty object."""
+        assert RestOpeningHours.from_dict({"from": None, "to": None}) is None
+
+    def test_customer_with_opening_hours(self):
+        data = {
+            "type": "customer",
+            "id": 2001,
+            "attributes": {
+                "customerNo": 2001,
+                "companyName": "ACME BV",
+                "openingHours": {"from": "08:30", "to": "17:30"},
+                "contacts": [],
+            },
+        }
+        customer = RestCustomer.from_dict(data)
+        assert customer.opening_hours is not None
+        assert customer.opening_hours.from_time == "08:30"
+        assert customer.opening_hours.to_time == "17:30"
+
+    def test_customer_without_opening_hours(self):
+        """Customer records that omit openingHours must parse cleanly."""
+        data = {
+            "type": "customer",
+            "id": 2001,
+            "attributes": {
+                "customerNo": 2001,
+                "companyName": "ACME BV",
+                "contacts": [],
+            },
+        }
+        customer = RestCustomer.from_dict(data)
+        assert customer.opening_hours is None

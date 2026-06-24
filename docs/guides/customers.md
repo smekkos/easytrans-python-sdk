@@ -1,6 +1,7 @@
 # Managing Customers
 
-Customer records are created and updated via the **JSON Import API**.
+Customer records can be created or updated via the **JSON Import API**, and
+updated individually via the **REST API**.
 
 ## Creating a Customer
 
@@ -104,7 +105,57 @@ def find_customers_by_contact_email(client, email: str):
     """Return every customer that has a contact with the given e-mail."""
     return [
         customer
-        for customer in client.iter_customers()
+        for customer in client.get_customers().data
         if any(c.email == email for c in customer.contacts)
     ]
 ```
+
+## Updating a Customer via REST (PUT)
+
+`update_customer()` sends a `PUT /api/v1/customers/{customerNo}` request and
+returns the updated [`RestCustomer`](../api-reference/rest-models.md).
+This is available to **branch accounts only**.
+
+`company_name` is required by the API on every call.  All other arguments are
+optional — only the ones you supply are sent; the rest remain unchanged.
+
+```python
+# Update financial details
+customer = client.update_customer(
+    2001,
+    "ACME Logistics BV",
+    debtor_no="D-0042",
+    payment_period=30,
+    iban_no="NL63INGB0004511811",
+)
+print(customer.updated_at)
+
+# Update a contact by userId
+customer = client.update_customer(
+    2001,
+    "ACME Logistics BV",
+    contacts=[{"userId": 271, "email": "new@acme.nl"}],
+)
+
+# Update opening hours
+customer = client.update_customer(
+    2001,
+    "ACME Logistics BV",
+    opening_hours={"from": "08:30", "to": "17:30"},
+)
+if customer.opening_hours:
+    print(customer.opening_hours.from_time, "–", customer.opening_hours.to_time)
+
+# Deactivate a customer
+customer = client.update_customer(2001, "ACME Logistics BV", active=False)
+```
+
+### Two update paths compared
+
+| | Import API (`import_customers`) | REST PUT (`update_customer`) |
+|---|---|---|
+| Identify by | `customercode` (string) | `customerNo` (integer) |
+| Mode | `"test"` (validate) / `"effect"` (save) | Always writes immediately |
+| Contacts | Replaces all contacts | Updates individual contacts by `userId`/`contactNo` |
+| Branch only | No (customer accounts can import) | Yes |
+| Use when | Bulk data sync, creating customers | Targeted field updates on individual customers |

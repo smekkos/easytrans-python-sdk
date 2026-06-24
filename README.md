@@ -1,6 +1,6 @@
 # EasyTrans Python SDK
 
-A pure Python SDK for integrating with **EasyTrans Software** (Dutch TMS - Transport Management System).
+A pure Python SDK for integrating with **EasyTrans Software** TMS.
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -445,6 +445,32 @@ vehicle = client.get_fleet_vehicle(5)
 print(vehicle.name, vehicle.license_plate)
 ```
 
+### Updating a Customer
+
+Branch accounts only. `company_name` is required on every call; all other
+fields are optional and only the ones supplied are sent.
+
+```python
+# Update financial details
+customer = client.update_customer(
+    2001,
+    "ACME Logistics BV",
+    debtor_no="D-0042",
+    payment_period=30,
+)
+
+# Update a specific contact by userId
+customer = client.update_customer(
+    2001,
+    "ACME Logistics BV",
+    contacts=[{"userId": 271, "email": "new@acme.nl"}],
+)
+
+# Deactivate a customer
+customer = client.update_customer(2001, "ACME Logistics BV", active=False)
+print(customer.active)   # False
+```
+
 ### Invoices
 
 ```python
@@ -884,6 +910,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **EasyTrans Support**: support@easytrans.nl
 
 ## Changelog
+
+### Version 1.2.0 (2026-06-24)
+
+- New method `update_customer()` — REST `PUT /api/v1/customers/{customerNo}`
+  for targeted field updates on individual customers (branch accounts only)
+- New `RestOpeningHours` model; `RestCustomer` now exposes `opening_hours`
+  (guards gracefully against API responses that omit the field)
 
 ### Version 1.1.0 (2026-02-18)
 

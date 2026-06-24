@@ -666,6 +666,118 @@ class TestGetCustomer:
         assert customer.id == 2001
 
 
+class TestUpdateCustomer:
+    @rsps_lib.activate
+    def test_put_method_used(self, client):
+        rsps_lib.add(
+            rsps_lib.PUT,
+            f"{REST_BASE}/customers/2001",
+            json={"data": MINIMAL_CUSTOMER},
+            status=200,
+        )
+        client.update_customer(2001, "EasyTrans B.V.")
+        assert rsps_lib.calls[0].request.method == "PUT"
+
+    @rsps_lib.activate
+    def test_company_name_always_in_body(self, client):
+        rsps_lib.add(
+            rsps_lib.PUT,
+            f"{REST_BASE}/customers/2001",
+            json={"data": MINIMAL_CUSTOMER},
+            status=200,
+        )
+        client.update_customer(2001, "EasyTrans B.V.")
+        body = json.loads(rsps_lib.calls[0].request.body)
+        assert body["companyName"] == "EasyTrans B.V."
+
+    @rsps_lib.activate
+    def test_only_supplied_optional_fields_in_body(self, client):
+        rsps_lib.add(
+            rsps_lib.PUT,
+            f"{REST_BASE}/customers/2001",
+            json={"data": MINIMAL_CUSTOMER},
+            status=200,
+        )
+        client.update_customer(2001, "EasyTrans B.V.", debtor_no="D-001")
+        body = json.loads(rsps_lib.calls[0].request.body)
+        assert body["debtorNo"] == "D-001"
+        assert "website" not in body
+        assert "notes" not in body
+
+    @rsps_lib.activate
+    def test_active_false_included_in_body(self, client):
+        """active=False must be sent, not silently dropped."""
+        rsps_lib.add(
+            rsps_lib.PUT,
+            f"{REST_BASE}/customers/2001",
+            json={"data": MINIMAL_CUSTOMER},
+            status=200,
+        )
+        client.update_customer(2001, "EasyTrans B.V.", active=False)
+        body = json.loads(rsps_lib.calls[0].request.body)
+        assert body["active"] is False
+
+    @rsps_lib.activate
+    def test_nested_address_dict_passed_through(self, client):
+        rsps_lib.add(
+            rsps_lib.PUT,
+            f"{REST_BASE}/customers/2001",
+            json={"data": MINIMAL_CUSTOMER},
+            status=200,
+        )
+        addr = {"address": "Keulenstraat", "houseno": "1", "city": "Deventer", "country": "NL"}
+        client.update_customer(2001, "EasyTrans B.V.", business_address=addr)
+        body = json.loads(rsps_lib.calls[0].request.body)
+        assert body["businessAddress"] == addr
+
+    @rsps_lib.activate
+    def test_contacts_list_passed_through(self, client):
+        rsps_lib.add(
+            rsps_lib.PUT,
+            f"{REST_BASE}/customers/2001",
+            json={"data": MINIMAL_CUSTOMER},
+            status=200,
+        )
+        contacts = [{"userId": 271, "email": "new@acme.nl"}]
+        client.update_customer(2001, "EasyTrans B.V.", contacts=contacts)
+        body = json.loads(rsps_lib.calls[0].request.body)
+        assert body["contacts"] == contacts
+
+    @rsps_lib.activate
+    def test_returns_rest_customer(self, client):
+        rsps_lib.add(
+            rsps_lib.PUT,
+            f"{REST_BASE}/customers/2001",
+            json={"data": MINIMAL_CUSTOMER},
+            status=200,
+        )
+        result = client.update_customer(2001, "EasyTrans B.V.")
+        assert isinstance(result, RestCustomer)
+        assert result.customer_no == 2001
+
+    @rsps_lib.activate
+    def test_422_raises_validation_error(self, client):
+        rsps_lib.add(
+            rsps_lib.PUT,
+            f"{REST_BASE}/customers/2001",
+            json={"message": "The given data was invalid.", "errors": {"debtorNo": ["already taken"]}},
+            status=422,
+        )
+        with pytest.raises(EasyTransValidationError):
+            client.update_customer(2001, "EasyTrans B.V.", debtor_no="duplicate")
+
+    @rsps_lib.activate
+    def test_404_raises_not_found(self, client):
+        rsps_lib.add(
+            rsps_lib.PUT,
+            f"{REST_BASE}/customers/9999",
+            json={"message": "Not Found"},
+            status=404,
+        )
+        with pytest.raises(EasyTransNotFoundError):
+            client.update_customer(9999, "Ghost Company")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Carriers
 # ─────────────────────────────────────────────────────────────────────────────
