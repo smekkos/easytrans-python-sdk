@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "easytrans-sdk"
-version = "1.0.0"
+version = "1.3.0"
 description = "Python SDK for EasyTrans TMS API - A Dutch Transport Management System"
 authors = [{name = "EasyTrans SDK Contributors"}]
 readme = "README.md"

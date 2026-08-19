@@ -351,6 +351,22 @@ response = client.get_orders(
 
 # Sort by multiple fields
 response = client.get_orders(sort="status,-date")
+
+# Filter on the waybill number of any destination
+response = client.get_orders(filter={"waybillNo": "123456"})
+```
+
+### Attachments
+
+Destination `photos`, `signature_url` and `documents` are requested with
+`include_attachments`. Per the API documentation list responses only carry them
+when the flag is set; some installations return them regardless.
+
+```python
+response = client.get_orders(include_attachments=True)
+for order in response.data:
+    for dest in order.attributes.destinations:
+        print(dest.documents, dest.photos, dest.signature_url)
 ```
 
 ### Pagination
@@ -398,6 +414,43 @@ order = client.update_order(
         {"stopNo": 2, "date": "2024-12-31", "fromTime": "09:00", "toTime": "12:00"}
     ],
 )
+
+# Reschedule and set the status / substatus
+order = client.update_order(
+    35558,
+    date="2026-08-20",
+    time="09:30",
+    status="checked",              # "signed-off" or "checked"
+    substatus_no=12,               # 0 clears the substatus
+    carrier_user_id=5,             # 0 clears the carrier user
+)
+
+# Upload a document to a destination (PDF, max 20MB)
+import base64, pathlib
+
+encoded = base64.b64encode(pathlib.Path("POD.pdf").read_bytes()).decode()
+order = client.update_order(
+    35558,
+    destinations=[{
+        "stopNo": 2,
+        "documents": [{
+            "documentName": "POD.pdf",
+            "category": "delivery_note",
+            "internal": False,
+            "base64EncodedDocument": encoded,
+        }],
+    }],
+)
+```
+
+### Approving a Quote
+
+Orders with status `quote` can be converted into regular transport orders.
+The API rejects orders in any other status.
+
+```python
+order = client.approve_quote(35558)
+print(order.attributes.status)   # "planned"
 ```
 
 ### Reference Data
@@ -910,6 +963,23 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **EasyTrans Support**: support@easytrans.nl
 
 ## Changelog
+
+### Version 1.3.0 (2026-08-19)
+
+Synchronises the SDK with the EasyTrans API changes since 2026-02-23.
+
+- New method `approve_quote()` — REST `POST /api/v1/orders/{orderNo}/approve-quote`
+  converts a `quote` order into a regular transport order
+- `RestOrderAttributes` gains `stops`, `waiting_time` (minutes),
+  `loading_unloading_time` (minutes), `hours` and `composite_order_no`
+- `get_orders()` gains `include_attachments` — the documented way to request
+  destination `photos`, `signature_url` and `documents` in a list response
+- `update_order()` gains `date`, `time`, `status` (`signed-off` / `checked`),
+  `substatus_no` and `carrier_user_id`; document upload per destination is
+  documented under `destinations=[{"documents": [...]}]`
+- Filtering on `filter={"waybillNo": ...}` documented for `get_orders()`
+- Regenerated `openapi.yaml` / `api_intermediate.json` from the current API
+  documentation, which is now committed alongside them
 
 ### Version 1.2.0 (2026-06-24)
 
