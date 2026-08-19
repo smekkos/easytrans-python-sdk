@@ -415,6 +415,17 @@ components:
             language:
               type: string
               example: en
+            openingHours:
+              type: object
+              properties:
+                from:
+                  type: string
+                  format: time
+                  example: 08:30
+                to:
+                  type: string
+                  format: time
+                  example: '17:30'
             notes:
               type: string
             crmNotes:
@@ -634,6 +645,9 @@ components:
         branchNo:
           type: integer
           example: 0
+        compositeOrderNo:
+          type: integer
+          example: 0
         vehicleTypeNo:
           type: integer
           nullable: true
@@ -676,6 +690,22 @@ components:
           type: integer
           description: Distance in kilometres (EU) or miles (UK).
           example: 99
+        stops:
+          type: integer
+          description: Number of stops on the order.
+          example: 2
+        waitingTime:
+          type: integer
+          description: Waiting time in minutes.
+          example: 15
+        loadingUnloadingTime:
+          type: integer
+          description: Loading and unloading time in minutes.
+          example: 30
+        hours:
+          type: number
+          description: Total hours registered for the order.
+          example: 2.5
         orderPrice:
           type: string
           example: '132.48'
@@ -1244,6 +1274,13 @@ paths:
         schema:
           type: string
           example: ABCDE12345
+      - name: filter[waybillNo]
+        in: query
+        required: false
+        description: Filter by the waybill number field from the order destinations.
+        schema:
+          type: string
+          example: '123456'
       - name: filter[productNo]
         in: query
         required: false
@@ -1325,34 +1362,41 @@ paths:
         schema:
           type: string
           example: status,-date
+      - name: include_attachments
+        in: query
+        required: false
+        description: If true, returns any attachments (photos, signatureUrl, and documents) for the order destinations.
+        schema:
+          type: boolean
+          example: false
       - name: include_customer
         in: query
         required: false
         description: If true, returns the customer details.
         schema:
           type: boolean
-          example: true
+          example: false
       - name: include_carrier
         in: query
         required: false
         description: If true, returns the carrier details (only with branch account).
         schema:
           type: boolean
-          example: true
+          example: false
       - name: include_track_history
         in: query
         required: false
         description: If true, returns an array with the available order Track & Trace history.
         schema:
           type: boolean
-          example: true
+          example: false
       - name: include_sales_rates
         in: query
         required: false
         description: If true, returns an array with the sales rates.
         schema:
           type: boolean
-          example: true
+          example: false
       - name: include_purchase_rates
         in: query
         required: false
@@ -1396,6 +1440,7 @@ paths:
                     carrierNo: 44
                     carrierUserId: 5
                     branchNo: 0
+                    compositeOrderNo: 0
                     vehicleTypeNo: 2
                     vehicleTypeName: Small Van
                     fleetNo: 5
@@ -1405,8 +1450,12 @@ paths:
                     internalNotes: Upload POD before signing-off
                     recipientEmail: info@example.com
                     distance: 99
-                    orderPrice: '132.48'
-                    orderPurchasePrice: '294.82'
+                    stops: 0
+                    waitingTime: 60
+                    loadingUnloadingTime: 0
+                    hours: 0
+                    orderPrice: '142.33'
+                    orderPurchasePrice: '104.32'
                     prepaidAmount: '0.00'
                     readyForPurchaseInvoice: true
                     usernameCreated: Demo planner
@@ -1466,14 +1515,26 @@ paths:
                       date: '2024-12-31'
                       fromTime: '16:40'
                       toTime: '17:30'
-                      eta: 00:00
+                      eta: '10:42'
                       deliveryDate: null
                       deliveryTime: '16:48'
                       departureTime: '17:06'
                       deliveryName: Mr. Johnson
-                      signatureUrl: false
-                      photos: []
-                      documents: []
+                      signatureUrl: http://localhost//files/handtekeningen/2023/12/35558_2-c51618c7-d1a6-4808-a78c-f906b83aa243.png
+                      photos:
+                      - photoNo: 1
+                        fileType: jpg
+                        url: http://localhost//files/foto/2023/12/35558_2_1-39113bb5-6f52-427a-98b5-c97ef1882eb7.jpg
+                      documents:
+                      - documentId: 5
+                        documentNo: 1
+                        documentName: Test
+                        timestamp: '2026-04-22 03:53:18'
+                        fileType: pdf
+                        category: pod
+                        internal: false
+                        addedByCarrier: false
+                        url: http://localhost//files/documenten/2023/12/28417_203d07d7-f3ed-4e56-93e6-00f45e2f94b2.pdf
                       carrierNotes: Delivered at the neighbours
                     goods:
                     - packageId: 21370
@@ -1500,169 +1561,6 @@ paths:
                       width: 80
                       height: 100
                       description: ''
-                    customer:
-                      type: customer
-                      id: 2001
-                      createdAt: '2023-12-01T10:05:01+01:00'
-                      updatedAt: '2023-12-01T10:05:01+01:00'
-                      attributes:
-                        customerNo: 2001
-                        companyName: EasyTrans Software B.V.
-                        businessAddress:
-                          address: Keulenstraat
-                          houseno: '1'
-                          address2: Kantoor A3.5
-                          postcode: 7418 ET
-                          city: DEVENTER
-                          country: NL
-                        mailingAddress:
-                          attn: Accounts Payable
-                          address: Keulenstraat
-                          houseno: '1'
-                          address2: Kantoor A3.5
-                          postcode: 7418 ET
-                          city: Deventer
-                          country: NL
-                        website: www.easytrans.nl
-                        debtorNo: '123475'
-                        paymentReference: ABCD1234
-                        paymentPeriod: 21
-                        paymentPeriodEndOfMonth: false
-                        ibanNo: NL63INGB0004511811
-                        bicCode: INGBNL2A
-                        bankNo: ''
-                        ukSortCode: ''
-                        vatNo: NL864120576B01
-                        vatLiable: true
-                        vatLiableCode: 1
-                        chamberOfCommerceNo: '86861239'
-                        eoriNo: ''
-                        language: en
-                        notes: Register at reception before loading
-                        crmNotes: Agreed rates based on 50 orders per month
-                        invoiceSurcharge: 5.5
-                        active: true
-                        contacts:
-                        - userId: 271
-                          contactNo: 1
-                          salutation: 0
-                          name: Demo user
-                          phone: +3185 - 0479 475
-                          mobile: +316 - 123 456 78
-                          email: info@easytrans.nl
-                          useEmailForInvoice: false
-                          useEmailForReminder: false
-                          notes: Head of logistics
-                          username: klant
-                        externalId: 550e8400-e29b-41d4-a716-446655440000
-                    carrier:
-                      type: carrier
-                      id: 44
-                      createdAt: '2023-12-01T10:05:01+01:00'
-                      updatedAt: '2023-12-01T10:05:01+01:00'
-                      attributes:
-                        carrierNo: 44
-                        name: External carrier
-                        businessAddress:
-                          address: Keulenstraat
-                          houseno: '1'
-                          address2: ''
-                          postcode: 7418 ET
-                          city: DEVENTER
-                          country: NL
-                        mailingAddress:
-                          attn: ''
-                          address: Keulenstraat
-                          houseno: '1'
-                          address2: ''
-                          postcode: 7418 ET
-                          city: Deventer
-                          country: NL
-                        phone: +3185 - 0479 475
-                        mobile: ''
-                        email: info@easytrans.nl
-                        emailPurchaseInvoice: ''
-                        website: www.easytrans.nl
-                        notes: Available Mon-Thu
-                        creditorNo: '123475'
-                        paymentPeriod: 30
-                        paymentPeriodEndOfMonth: false
-                        ibanNo: NL63INGB0004511811
-                        bicCode: INGBNL2A
-                        bankNo: ''
-                        ukSortCode: ''
-                        vatNo: NL864120576B01
-                        vatLiable: true
-                        vatLiableCode: 1
-                        chamberOfCommerceNo: '86861239'
-                        licenseNo: '123456789'
-                        carrierAttributes:
-                        - charter_regular
-                        - refrigerated
-                        language: nl
-                        active: true
-                        contacts:
-                        - userId: 5
-                          name: Contact one
-                          phone: +3185 - 0479 475
-                          mobile: ''
-                          email: info@easytrans.nl
-                          notes: Available Mon-Thu
-                          username: import
-                        externalId: 18aa59a6-7eef-4491-837a-8ac2f04c0b6e
-                    salesRates:
-                    - rateNo: 0
-                      description: Parking costs
-                      ratePerUnit: '0.00000'
-                      subTotal: '10.00'
-                      isMinimumAmount: false
-                      isPercentage: false
-                    - rateNo: 388
-                      description: Distance Small Van
-                      ratePerUnit: '0.51000'
-                      subTotal: '50.49'
-                      isMinimumAmount: false
-                      isPercentage: false
-                    - rateNo: 391
-                      description: Additional insurance
-                      ratePerUnit: '3.00000'
-                      subTotal: '1.51'
-                      isMinimumAmount: false
-                      isPercentage: true
-                    - rateNo: 642
-                      description: Toll costs
-                      ratePerUnit: '25.00000'
-                      subTotal: '25.00'
-                      isMinimumAmount: false
-                      isPercentage: false
-                    - rateNo: 4
-                      description: Waiting time
-                      ratePerUnit: '0.80000'
-                      subTotal: '48.00'
-                      isMinimumAmount: false
-                      isPercentage: false
-                    - rateNo: 345
-                      description: Discount
-                      ratePerUnit: '-5.00000'
-                      subTotal: '-2.52'
-                      isMinimumAmount: false
-                      isPercentage: true
-                    trackHistory:
-                    - trackId: 6094
-                      name: Order created
-                      location: Deventer
-                      date: '2024-06-05'
-                      time: 08:15
-                    - trackId: 6095
-                      name: Collected
-                      location: Amsterdam
-                      date: '2024-06-05'
-                      time: '15:00'
-                    - trackId: 10165
-                      name: Delivered at the neighbours
-                      location: Duiven
-                      date: '2024-06-06'
-                      time: 08:30
                 links:
                   first: http://localhost/v1/orders?page=1
                   last: http://localhost/v1/orders?page=1
@@ -1733,14 +1631,14 @@ paths:
         description: If true, returns the customer details.
         schema:
           type: boolean
-          example: true
+          example: false
       - name: include_carrier
         in: query
         required: false
         description: If true, returns the carrier details (only with branch account).
         schema:
           type: boolean
-          example: true
+          example: false
       - name: include_track_history
         in: query
         required: false
@@ -1798,6 +1696,7 @@ paths:
                     carrierNo: 44
                     carrierUserId: 5
                     branchNo: 0
+                    compositeOrderNo: 0
                     vehicleTypeNo: 2
                     vehicleTypeName: Small Van
                     fleetNo: 5
@@ -1807,8 +1706,12 @@ paths:
                     internalNotes: Upload POD before signing-off
                     recipientEmail: info@example.com
                     distance: 99
-                    orderPrice: '132.48'
-                    orderPurchasePrice: '294.82'
+                    stops: 0
+                    waitingTime: 60
+                    loadingUnloadingTime: 0
+                    hours: 0
+                    orderPrice: '142.33'
+                    orderPurchasePrice: '104.32'
                     prepaidAmount: '0.00'
                     readyForPurchaseInvoice: true
                     usernameCreated: Demo planner
@@ -1868,14 +1771,26 @@ paths:
                       date: '2024-12-31'
                       fromTime: '16:40'
                       toTime: '17:30'
-                      eta: 00:00
+                      eta: '10:42'
                       deliveryDate: null
                       deliveryTime: '16:48'
                       departureTime: '17:06'
                       deliveryName: Mr. Johnson
-                      signatureUrl: false
-                      photos: []
-                      documents: []
+                      signatureUrl: http://localhost//files/handtekeningen/2023/12/35558_2-c51618c7-d1a6-4808-a78c-f906b83aa243.png
+                      photos:
+                      - photoNo: 1
+                        fileType: jpg
+                        url: http://localhost//files/foto/2023/12/35558_2_1-39113bb5-6f52-427a-98b5-c97ef1882eb7.jpg
+                      documents:
+                      - documentId: 5
+                        documentNo: 1
+                        documentName: Test
+                        timestamp: '2026-04-22 03:53:18'
+                        fileType: pdf
+                        category: pod
+                        internal: false
+                        addedByCarrier: false
+                        url: http://localhost//files/documenten/2023/12/28417_203d07d7-f3ed-4e56-93e6-00f45e2f94b2.pdf
                       carrierNotes: Delivered at the neighbours
                     goods:
                     - packageId: 21370
@@ -1902,127 +1817,11 @@ paths:
                       width: 80
                       height: 100
                       description: ''
-                    customer:
-                      type: customer
-                      id: 2001
-                      createdAt: '2023-12-01T10:05:01+01:00'
-                      updatedAt: '2023-12-01T10:05:01+01:00'
-                      attributes:
-                        customerNo: 2001
-                        companyName: EasyTrans Software B.V.
-                        businessAddress:
-                          address: Keulenstraat
-                          houseno: '1'
-                          address2: Kantoor A3.5
-                          postcode: 7418 ET
-                          city: DEVENTER
-                          country: NL
-                        mailingAddress:
-                          attn: Accounts Payable
-                          address: Keulenstraat
-                          houseno: '1'
-                          address2: Kantoor A3.5
-                          postcode: 7418 ET
-                          city: Deventer
-                          country: NL
-                        website: www.easytrans.nl
-                        debtorNo: '123475'
-                        paymentReference: ABCD1234
-                        paymentPeriod: 21
-                        paymentPeriodEndOfMonth: false
-                        ibanNo: NL63INGB0004511811
-                        bicCode: INGBNL2A
-                        bankNo: ''
-                        ukSortCode: ''
-                        vatNo: NL864120576B01
-                        vatLiable: true
-                        vatLiableCode: 1
-                        chamberOfCommerceNo: '86861239'
-                        eoriNo: ''
-                        language: en
-                        notes: Register at reception before loading
-                        crmNotes: Agreed rates based on 50 orders per month
-                        invoiceSurcharge: 5.5
-                        active: true
-                        contacts:
-                        - userId: 271
-                          contactNo: 1
-                          salutation: 0
-                          name: Demo user
-                          phone: +3185 - 0479 475
-                          mobile: +316 - 123 456 78
-                          email: info@easytrans.nl
-                          useEmailForInvoice: false
-                          useEmailForReminder: false
-                          notes: Head of logistics
-                          username: klant
-                        externalId: 550e8400-e29b-41d4-a716-446655440000
-                    carrier:
-                      type: carrier
-                      id: 44
-                      createdAt: '2023-12-01T10:05:01+01:00'
-                      updatedAt: '2023-12-01T10:05:01+01:00'
-                      attributes:
-                        carrierNo: 44
-                        name: External carrier
-                        businessAddress:
-                          address: Keulenstraat
-                          houseno: '1'
-                          address2: ''
-                          postcode: 7418 ET
-                          city: DEVENTER
-                          country: NL
-                        mailingAddress:
-                          attn: ''
-                          address: Keulenstraat
-                          houseno: '1'
-                          address2: ''
-                          postcode: 7418 ET
-                          city: Deventer
-                          country: NL
-                        phone: +3185 - 0479 475
-                        mobile: ''
-                        email: info@easytrans.nl
-                        emailPurchaseInvoice: ''
-                        website: www.easytrans.nl
-                        notes: Available Mon-Thu
-                        creditorNo: '123475'
-                        paymentPeriod: 30
-                        paymentPeriodEndOfMonth: false
-                        ibanNo: NL63INGB0004511811
-                        bicCode: INGBNL2A
-                        bankNo: ''
-                        ukSortCode: ''
-                        vatNo: NL864120576B01
-                        vatLiable: true
-                        vatLiableCode: 1
-                        chamberOfCommerceNo: '86861239'
-                        licenseNo: '123456789'
-                        carrierAttributes:
-                        - charter_regular
-                        - refrigerated
-                        language: nl
-                        active: true
-                        contacts:
-                        - userId: 5
-                          name: Contact one
-                          phone: +3185 - 0479 475
-                          mobile: ''
-                          email: info@easytrans.nl
-                          notes: Available Mon-Thu
-                          username: import
-                        externalId: 18aa59a6-7eef-4491-837a-8ac2f04c0b6e
                     salesRates:
                     - rateNo: 0
                       description: Parking costs
                       ratePerUnit: '0.00000'
                       subTotal: '10.00'
-                      isMinimumAmount: false
-                      isPercentage: false
-                    - rateNo: 388
-                      description: Distance Small Van
-                      ratePerUnit: '0.51000'
-                      subTotal: '50.49'
                       isMinimumAmount: false
                       isPercentage: false
                     - rateNo: 391
@@ -2031,10 +1830,40 @@ paths:
                       subTotal: '1.51'
                       isMinimumAmount: false
                       isPercentage: true
+                    - rateNo: 388
+                      description: Distance Small Van
+                      ratePerUnit: '0.51000'
+                      subTotal: '50.49'
+                      isMinimumAmount: false
+                      isPercentage: false
+                    - rateNo: 2
+                      description: Extra stop
+                      ratePerUnit: '6.50000'
+                      subTotal: '0.00'
+                      isMinimumAmount: false
+                      isPercentage: false
+                    - rateNo: 9
+                      description: Load/Unload time
+                      ratePerUnit: '0.85000'
+                      subTotal: '0.00'
+                      isMinimumAmount: false
+                      isPercentage: false
                     - rateNo: 642
                       description: Toll costs
                       ratePerUnit: '25.00000'
                       subTotal: '25.00'
+                      isMinimumAmount: false
+                      isPercentage: false
+                    - rateNo: 476
+                      description: Evening surcharge
+                      ratePerUnit: '50.00000'
+                      subTotal: '0.00'
+                      isMinimumAmount: false
+                      isPercentage: true
+                    - rateNo: 75
+                      description: Per hour
+                      ratePerUnit: '55.00000'
+                      subTotal: '0.00'
                       isMinimumAmount: false
                       isPercentage: false
                     - rateNo: 4
@@ -2043,10 +1872,22 @@ paths:
                       subTotal: '48.00'
                       isMinimumAmount: false
                       isPercentage: false
+                    - rateNo: 3
+                      description: Weekend surcharge
+                      ratePerUnit: '25.00000'
+                      subTotal: '0.00'
+                      isMinimumAmount: false
+                      isPercentage: true
                     - rateNo: 345
                       description: Discount
                       ratePerUnit: '-5.00000'
                       subTotal: '-2.52'
+                      isMinimumAmount: false
+                      isPercentage: true
+                    - rateNo: 10
+                      description: Fuel surcharge
+                      ratePerUnit: '10.00000'
+                      subTotal: '9.85'
                       isMinimumAmount: false
                       isPercentage: true
                     trackHistory:
@@ -2077,8 +1918,8 @@ paths:
         contains the updated order. Update destinations, goods and rates A destination can be updated by providing the addressId
         (or stopNo) together with the body parameters that need to be changed. A goods line can be updated by providing the
         packageId (or packageNo) together with the body parameters that need to be changed. Sales and purchase rates can be
-        updated by providing the rateNo and the ratePerUnit. The destinations, goods and rates properties expect an array.
-        This allows updating of multiple destinations/goods/rates in one request. See the example request, how to edit a destination,
+        updated by providing the rateNo and the ratePerUnit. The destinations, goods and rates properties expect an array,
+        so multiple destinations/goods/rates can be updated in one request. See the example request, how to edit a destination,
         goods line or rate.
       tags:
       - Orders
@@ -2104,7 +1945,7 @@ paths:
                   type: order
                   id: 35558
                   createdAt: '2023-12-01T10:05:01+01:00'
-                  updatedAt: '2026-02-16T18:41:30+01:00'
+                  updatedAt: '2026-08-17T17:34:01+02:00'
                   attributes:
                     orderNo: 35558
                     date: '2023-12-01'
@@ -2120,6 +1961,7 @@ paths:
                     carrierNo: 44
                     carrierUserId: 5
                     branchNo: 0
+                    compositeOrderNo: 0
                     vehicleTypeNo: 2
                     vehicleTypeName: Small Van
                     fleetNo: 5
@@ -2129,6 +1971,10 @@ paths:
                     internalNotes: Upload POD before signing-off
                     recipientEmail: info@example.com
                     distance: 99
+                    stops: 0
+                    waitingTime: 60
+                    loadingUnloadingTime: 0
+                    hours: 0
                     prepaidAmount: '0.00'
                     readyForPurchaseInvoice: false
                     usernameCreated: Demo planner
@@ -2188,14 +2034,35 @@ paths:
                       date: '2026-02-14'
                       fromTime: '16:30'
                       toTime: '17:30'
-                      eta: 00:00
-                      deliveryDate: null
+                      eta: '10:42'
+                      deliveryDate: '2026-02-14'
                       deliveryTime: '16:48'
                       departureTime: '17:05'
                       deliveryName: Mr. Johnson
-                      signatureUrl: false
-                      photos: []
-                      documents: []
+                      signatureUrl: http://localhost//files/handtekeningen/2023/12/35558_2-c51618c7-d1a6-4808-a78c-f906b83aa243.png
+                      photos:
+                      - photoNo: 1
+                        fileType: jpg
+                        url: http://localhost//files/foto/2023/12/35558_2_1-39113bb5-6f52-427a-98b5-c97ef1882eb7.jpg
+                      documents:
+                      - documentId: 5
+                        documentNo: 1
+                        documentName: Test
+                        timestamp: '2026-04-22 03:53:18'
+                        fileType: pdf
+                        category: pod
+                        internal: false
+                        addedByCarrier: false
+                        url: http://localhost//files/documenten/2023/12/28417_203d07d7-f3ed-4e56-93e6-00f45e2f94b2.pdf
+                      - documentId: 45
+                        documentNo: 2
+                        documentName: CMR 12345
+                        timestamp: '2026-08-17 17:34:01'
+                        fileType: pdf
+                        category: delivery_note
+                        internal: false
+                        addedByCarrier: false
+                        url: http://localhost//files/documenten/2023/12/28417_7decad43-dcf1-41df-bed9-f60d9b4329d9.pdf
                       carrierNotes: Delivered at the neighbours
                     goods:
                     - packageId: 21370
@@ -2238,16 +2105,36 @@ paths:
             schema:
               type: object
               properties:
+                date:
+                  type: string
+                  example: '2023-12-01'
+                  description: Sets the new date for this order in the format yyyy-mm-dd. Must be a valid date in the format
+                    Y-m-d .
+                time:
+                  type: string
+                  example: 08:00
+                  description: Sets the new time for this order in the format hh:mm. Must be a valid date in the format H:i
+                    .
+                status:
+                  type: string
+                  description: 'Changes the status of a planned order. Available options are: signed-off or checked.'
+                substatusNo:
+                  type: integer
+                  example: 12
+                  description: Sets the new substatus for this order. Supply 0 to remove the current substatus.
                 carrierNo:
                   type: integer
                   example: 44
                   description: Sets the new carrier for this order. Supplying 0 removes the carrier. The order status and
                     substatus will be updated accordingly (e.g. open -> planned).
+                carrierUserId:
+                  type: integer
+                  example: 5
+                  description: Sets the new carrier user for this order. Supplying 0 removes the carrier user.
                 fleetNo:
                   type: integer
                   example: 5
-                  description: 'Sets the new vehicle in the fleet for this order. Please note: Any vehicle type specific rates
-                    will not be updated.'
+                  description: Sets the new vehicle in the fleet for this order. Supplying 0 removes the vehicle.
                 waybillNotes:
                   type: string
                   example: 3 pallets and 16 boxes
@@ -2285,6 +2172,144 @@ paths:
                   type: string
                 purchaseRates:
                   type: string
+  /v1/orders/{orderNo}/approve-quote:
+    post:
+      operationId: createOrdersOrdernoApproveQuote
+      summary: Approve order quote
+      description: This endpoint approves a quote order for the authenticated customer or branch account. Only orders with
+        status 'quote' can be approved.
+      tags:
+      - Orders
+      security:
+      - basicAuth: []
+      parameters:
+      - name: orderNo
+        in: path
+        required: true
+        description: The order number.
+        schema:
+          type: integer
+          example: 41694
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderSingleResponse'
+              example:
+                data:
+                  type: order
+                  id: 41694
+                  createdAt: '2026-06-03T21:22:12+02:00'
+                  updatedAt: '2026-08-17T17:34:01+02:00'
+                  attributes:
+                    orderNo: 41694
+                    date: '2026-07-14'
+                    time: '11:20'
+                    status: planned
+                    substatusNo: 12
+                    substatusName: Out for delivery
+                    collected: false
+                    productNo: 361
+                    productName: DHL Express
+                    customerNo: 2001
+                    customerUserId: 271
+                    carrierNo: 20
+                    carrierUserId: null
+                    branchNo: 0
+                    compositeOrderNo: 0
+                    vehicleTypeNo: 0
+                    vehicleTypeName: ''
+                    fleetNo: 0
+                    waybillNotes: Register at reception before loading
+                    invoiceNotes: ''
+                    purchaseInvoiceNotes: ''
+                    internalNotes: Agreed rates based on 50 orders per month
+                    recipientEmail: ''
+                    distance: 0
+                    stops: 0
+                    waitingTime: 0
+                    loadingUnloadingTime: 0
+                    hours: 0
+                    prepaidAmount: '0.00'
+                    readyForPurchaseInvoice: false
+                    usernameCreated: Demo planner
+                    usernameAssigned: Demo planner
+                    invoiceId: 0
+                    trackingId: GIYDAMJNGQYTMOJU
+                    externalId: ''
+                    destinations:
+                    - addressId: 46709
+                      stopNo: 1
+                      taskType: pickup
+                      company: EasyTrans Software B.V.
+                      contact: Demo user
+                      address: Keulenstraat
+                      houseno: '1'
+                      address2: Kantoor A3.5
+                      postcode: 7418 ET
+                      city: DEVENTER
+                      country: NL
+                      location:
+                        latitude: null
+                        longitude: null
+                      phone: +3185 - 0479 475
+                      notes: ''
+                      customerReference: ''
+                      waybillNo: ''
+                      date: '2026-06-03'
+                      fromTime: null
+                      toTime: '17:00'
+                      eta: null
+                      deliveryDate: null
+                      deliveryTime: null
+                      departureTime: null
+                      deliveryName: ''
+                      carrierNotes: ''
+                    - addressId: 46710
+                      stopNo: 2
+                      taskType: delivery
+                      company: Bedrijf A
+                      contact: Dhr. Jansen
+                      address: Keizersgracht
+                      houseno: 1A
+                      address2: ''
+                      postcode: 1015CC
+                      city: AMSTERDAM
+                      country: NL
+                      location:
+                        latitude: null
+                        longitude: null
+                      phone: +3185 - 0479 475
+                      notes: ''
+                      customerReference: ''
+                      waybillNo: ''
+                      date: '2026-06-04'
+                      fromTime: null
+                      toTime: null
+                      eta: null
+                      deliveryDate: null
+                      deliveryTime: null
+                      departureTime: null
+                      deliveryName: ''
+                      carrierNotes: ''
+                    goods:
+                    - packageId: 37338
+                      packageNo: 1
+                      pickupDestination: 1
+                      deliveryDestination: 2
+                      amount: 1
+                      packageTypeNo: 0
+                      packageTypeName: ''
+                      weight: 105.5
+                      length: 40
+                      width: 30
+                      height: 20
+                      description: Folders
+        '401': *id001
+        '404': *id002
+        '429': *id003
   /v1/products:
     get:
       operationId: getProducts
@@ -2782,11 +2807,36 @@ paths:
                         chamberOfCommerceNo: '86861239'
                         eoriNo: ''
                         language: en
+                        openingHours:
+                          from: 08:30
+                          to: '17:30'
                         notes: Register at reception before loading
                         crmNotes: Agreed rates based on 50 orders per month
                         invoiceSurcharge: 5.5
                         active: true
-                        contacts: []
+                        contacts:
+                        - userId: 271
+                          contactNo: 1
+                          salutation: 0
+                          name: Demo user
+                          phone: +3185 - 0479 475
+                          mobile: +316 - 123 456 78
+                          email: info@easytrans.nl
+                          useEmailForInvoice: false
+                          useEmailForReminder: false
+                          notes: Head of logistics
+                          username: klant
+                        - userId: 272
+                          contactNo: 2
+                          salutation: 3
+                          name: Administration
+                          phone: +3185 - 0479 475
+                          mobile: ''
+                          email: administration@easytrans.nl
+                          useEmailForInvoice: true
+                          useEmailForReminder: true
+                          notes: ''
+                          username: ''
                         externalId: 550e8400-e29b-41d4-a716-446655440000
                 links:
                   first: http://localhost/v1/invoices?page=1
@@ -2911,11 +2961,36 @@ paths:
                         chamberOfCommerceNo: '86861239'
                         eoriNo: ''
                         language: en
+                        openingHours:
+                          from: 08:30
+                          to: '17:30'
                         notes: Register at reception before loading
                         crmNotes: Agreed rates based on 50 orders per month
                         invoiceSurcharge: 5.5
                         active: true
-                        contacts: []
+                        contacts:
+                        - userId: 271
+                          contactNo: 1
+                          salutation: 0
+                          name: Demo user
+                          phone: +3185 - 0479 475
+                          mobile: +316 - 123 456 78
+                          email: info@easytrans.nl
+                          useEmailForInvoice: false
+                          useEmailForReminder: false
+                          notes: Head of logistics
+                          username: klant
+                        - userId: 272
+                          contactNo: 2
+                          salutation: 3
+                          name: Administration
+                          phone: +3185 - 0479 475
+                          mobile: ''
+                          email: administration@easytrans.nl
+                          useEmailForInvoice: true
+                          useEmailForReminder: true
+                          notes: ''
+                          username: ''
                         externalId: 550e8400-e29b-41d4-a716-446655440000
         '401': *id001
         '404': *id002
@@ -3147,11 +3222,36 @@ paths:
                     chamberOfCommerceNo: '86861239'
                     eoriNo: ''
                     language: en
+                    openingHours:
+                      from: 08:30
+                      to: '17:30'
                     notes: Register at reception before loading
                     crmNotes: Agreed rates based on 50 orders per month
                     invoiceSurcharge: 5.5
                     active: true
-                    contacts: []
+                    contacts:
+                    - userId: 271
+                      contactNo: 1
+                      salutation: 0
+                      name: Demo user
+                      phone: +3185 - 0479 475
+                      mobile: +316 - 123 456 78
+                      email: info@easytrans.nl
+                      useEmailForInvoice: false
+                      useEmailForReminder: false
+                      notes: Head of logistics
+                      username: klant
+                    - userId: 272
+                      contactNo: 2
+                      salutation: 3
+                      name: Administration
+                      phone: +3185 - 0479 475
+                      mobile: ''
+                      email: administration@easytrans.nl
+                      useEmailForInvoice: true
+                      useEmailForReminder: true
+                      notes: ''
+                      username: ''
                     externalId: 550e8400-e29b-41d4-a716-446655440000
                 links:
                   first: http://localhost/v1/customers?page=1
@@ -3250,15 +3350,246 @@ paths:
                     chamberOfCommerceNo: '86861239'
                     eoriNo: ''
                     language: en
+                    openingHours:
+                      from: 08:30
+                      to: '17:30'
                     notes: Register at reception before loading
                     crmNotes: Agreed rates based on 50 orders per month
                     invoiceSurcharge: 5.5
                     active: true
-                    contacts: []
+                    contacts:
+                    - userId: 271
+                      contactNo: 1
+                      salutation: 0
+                      name: Demo user
+                      phone: +3185 - 0479 475
+                      mobile: +316 - 123 456 78
+                      email: info@easytrans.nl
+                      useEmailForInvoice: false
+                      useEmailForReminder: false
+                      notes: Head of logistics
+                      username: klant
+                    - userId: 272
+                      contactNo: 2
+                      salutation: 3
+                      name: Administration
+                      phone: +3185 - 0479 475
+                      mobile: ''
+                      email: administration@easytrans.nl
+                      useEmailForInvoice: true
+                      useEmailForReminder: true
+                      notes: ''
+                      username: ''
                     externalId: 550e8400-e29b-41d4-a716-446655440000
         '401': *id001
         '404': *id002
         '429': *id003
+    put:
+      operationId: updateCustomersCustomerno
+      summary: Update the specified customer
+      description: This endpoint updates the specified customer and its contacts for the authenticated branch. This endpoint
+        can only be used with branch accounts, not with customer accounts. Only the body parameters below can be updated.
+        The response contains the updated customer. Update contacts A contact can be updated by providing either the userId
+        or the contactNo together with the body parameters that need to be changed. The contacts property expects an array,
+        so multiple contacts can be updated in one request. See the example request, how to edit a contact.
+      tags:
+      - Customers
+      security:
+      - basicAuth: []
+      parameters:
+      - name: customerNo
+        in: path
+        required: true
+        description: The customer number.
+        schema:
+          type: integer
+          example: 2001
+      responses:
+        '200':
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSingleResponse'
+              example:
+                data:
+                  type: customer
+                  id: 2001
+                  createdAt: '2023-12-01T10:05:01+01:00'
+                  updatedAt: '2026-08-17T17:34:01+02:00'
+                  attributes:
+                    customerNo: 2001
+                    companyName: EasyTrans Software B.V.
+                    businessAddress:
+                      address: Keulenstraat
+                      houseno: '1'
+                      address2: Kantoor A3.5
+                      postcode: 7418 ET
+                      city: Deventer
+                      country: NL
+                    mailingAddress:
+                      attn: Accounts Payable
+                      address: Keulenstraat
+                      houseno: '1'
+                      address2: Kantoor A3.5
+                      postcode: 7418 ET
+                      city: Deventer
+                      country: NL
+                    website: www.easytrans.nl
+                    debtorNo: '123475'
+                    paymentReference: ABCD1234
+                    paymentPeriod: 30
+                    paymentPeriodEndOfMonth: false
+                    ibanNo: NL63INGB0004511811
+                    bicCode: INGBNL2A
+                    bankNo: ''
+                    ukSortCode: 20-00-00
+                    vatNo: NL864120576B01
+                    vatLiable: true
+                    vatLiableCode: 1
+                    chamberOfCommerceNo: '86861239'
+                    eoriNo: NL864120576
+                    language: nl
+                    openingHours:
+                      from: '17:34'
+                      to: '17:34'
+                    notes: Register at reception before loading
+                    crmNotes: Agreed rates based on 50 orders per month
+                    invoiceSurcharge: 5.5
+                    active: false
+                    contacts:
+                    - userId: 271
+                      contactNo: 1
+                      salutation: 0
+                      name: Demo user
+                      phone: +3185 - 0479 475
+                      mobile: +316 - 123 456 78
+                      email: info@easytrans.nl
+                      useEmailForInvoice: false
+                      useEmailForReminder: false
+                      notes: Head of logistics
+                      username: klant
+                    - userId: 272
+                      contactNo: 2
+                      salutation: 3
+                      name: Administration
+                      phone: +3185 - 0479 475
+                      mobile: ''
+                      email: administration@easytrans.nl
+                      useEmailForInvoice: true
+                      useEmailForReminder: true
+                      notes: ''
+                      username: ''
+                    externalId: 550e8400-e29b-41d4-a716-446655440000
+        '401': *id001
+        '404': *id002
+        '422': *id004
+        '429': *id003
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                companyName:
+                  type: string
+                  example: EasyTrans Software B.V.
+                  description: Customer company name. Must not be greater than 100 characters.
+                businessAddress:
+                  type: object
+                  description: Business address object.
+                mailingAddress:
+                  type: object
+                  description: Mailing address object.
+                website:
+                  type: string
+                  example: www.easytrans.nl
+                  description: Must not be greater than 255 characters.
+                debtorNo:
+                  type: string
+                  example: '123475'
+                  description: Debtor number. Optionally used for integration with external systems. Must be unique across
+                    customers. Must not be greater than 50 characters.
+                paymentReference:
+                  type: string
+                  example: ABCD1234
+                  description: For instance a PO number. Must not be greater than 100 characters.
+                paymentPeriod:
+                  type: integer
+                  example: 30
+                  description: Payment period in days.
+                paymentPeriodEndOfMonth:
+                  type: boolean
+                  example: false
+                  description: If true, the payment period is counted from end of month. If false, the payment period is counted
+                    from the invoice date.
+                ibanNo:
+                  type: string
+                  example: NL63INGB0004511811
+                  description: Must not be greater than 50 characters.
+                bicCode:
+                  type: string
+                  example: INGBNL2A
+                  description: BIC/SWIFT code. Must not be greater than 20 characters.
+                bankNo:
+                  type: string
+                  description: For banks outside the EU. Must not be greater than 50 characters.
+                ukSortCode:
+                  type: string
+                  example: 20-00-00
+                  description: Used for UK bank accounts. Must not be greater than 50 characters.
+                vatNo:
+                  type: string
+                  example: NL864120576B01
+                  description: Must not be greater than 50 characters.
+                vatLiable:
+                  type: boolean
+                  example: false
+                  description: Convenience flag for VAT liable status. True maps to vatLiableCode 1, false maps to 0 if vatLiableCode
+                    is not provided.
+                vatLiableCode:
+                  type: integer
+                  example: 1
+                  description: VAT liable. 0 = No (within EU), 1 = Yes, 2 = No (outside EU), 3 = No (fiscal unity). Takes
+                    precedence over vatLiable.
+                chamberOfCommerceNo:
+                  type: string
+                  example: '86861239'
+                  description: Chamber of Commerce number. Must not be greater than 50 characters.
+                eoriNo:
+                  type: string
+                  example: NL864120576
+                  description: Must not be greater than 50 characters.
+                language:
+                  type: string
+                  example: nl
+                  description: 'Customer language code. Available languages are: nl, en, de, fr.'
+                openingHours:
+                  type: object
+                notes:
+                  type: string
+                  example: Register at reception before loading
+                  description: These notes can be taken over on the transport documents.
+                crmNotes:
+                  type: string
+                  example: Agreed rates based on 50 orders per month
+                  description: CRM notes for this customer.
+                invoiceSurcharge:
+                  type: number
+                  example: '5.5'
+                  description: Invoice surcharge/discount percentage used in billing. For instance, 5.5 means a 5.5% surcharge,
+                    -1 means a 1% discount.
+                active:
+                  type: boolean
+                  example: false
+                  description: Whether the customer is active.
+                externalId:
+                  type: string
+                  example: 550e8400-e29b-41d4-a716-446655440000
+                  description: External system identifier for this customer. Must not be greater than 50 characters.
+                contacts:
+                  type: string
   /v1/carriers:
     get:
       operationId: getCarriers
@@ -3849,9 +4180,6 @@ paths:
                       deliveryTime: null
                       departureTime: null
                       deliveryName: ''
-                      signatureUrl: false
-                      photos: []
-                      documents: []
                       carrierNotes: ''
                     - addressId: 28417
                       stopNo: 2
@@ -3874,14 +4202,11 @@ paths:
                       date: '2024-12-31'
                       fromTime: '16:40'
                       toTime: '17:30'
-                      eta: 00:00
+                      eta: '10:42'
                       deliveryDate: null
                       deliveryTime: '16:48'
                       departureTime: '17:06'
                       deliveryName: Mr. Johnson
-                      signatureUrl: false
-                      photos: []
-                      documents: []
                       carrierNotes: Delivered at the neighbours
                     goods:
                     - packageId: 21370
@@ -4003,9 +4328,6 @@ paths:
                       deliveryTime: null
                       departureTime: null
                       deliveryName: ''
-                      signatureUrl: false
-                      photos: []
-                      documents: []
                       carrierNotes: ''
                     - addressId: 28417
                       stopNo: 2
@@ -4028,14 +4350,11 @@ paths:
                       date: '2024-12-31'
                       fromTime: '16:40'
                       toTime: '17:30'
-                      eta: 00:00
+                      eta: '10:42'
                       deliveryDate: null
                       deliveryTime: '16:48'
                       departureTime: '17:06'
                       deliveryName: Mr. Johnson
-                      signatureUrl: false
-                      photos: []
-                      documents: []
                       carrierNotes: Delivered at the neighbours
                     goods:
                     - packageId: 21370
@@ -4141,9 +4460,6 @@ paths:
                       deliveryTime: null
                       departureTime: null
                       deliveryName: ''
-                      signatureUrl: false
-                      photos: []
-                      documents: []
                       carrierNotes: ''
                     - addressId: 28417
                       stopNo: 2
@@ -4166,14 +4482,11 @@ paths:
                       date: '2025-12-01'
                       fromTime: '16:40'
                       toTime: '17:30'
-                      eta: 00:00
+                      eta: '10:42'
                       deliveryDate: null
                       deliveryTime: '16:48'
                       departureTime: '17:05'
                       deliveryName: Mr. Johnson
-                      signatureUrl: false
-                      photos: []
-                      documents: []
                       carrierNotes: Delivered at the neighbours
                     goods:
                     - packageId: 21370

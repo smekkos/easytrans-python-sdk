@@ -323,6 +323,13 @@ def build_customer_schema() -> dict:
                     "chamberOfCommerceNo": {"type": "string", "example": "86861239"},
                     "eoriNo": {"type": "string", "example": ""},
                     "language": {"type": "string", "example": "en"},
+                    "openingHours": {
+                        "type": "object",
+                        "properties": {
+                            "from": {"type": "string", "format": "time", "example": "08:30"},
+                            "to": {"type": "string", "format": "time", "example": "17:30"},
+                        },
+                    },
                     "notes": {"type": "string"},
                     "crmNotes": {"type": "string"},
                     "invoiceSurcharge": {"type": "number", "example": 5.5},
@@ -477,6 +484,7 @@ def build_order_attributes_schema() -> dict:
                 "example": 5,
             },
             "branchNo": {"type": "integer", "example": 0},
+            "compositeOrderNo": {"type": "integer", "example": 0},
             "vehicleTypeNo": {"type": "integer", "nullable": True, "example": 2},
             "vehicleTypeName": {"type": "string", "nullable": True, "example": "Small Van"},
             "fleetNo": {
@@ -511,6 +519,26 @@ def build_order_attributes_schema() -> dict:
                 "type": "integer",
                 "description": "Distance in kilometres (EU) or miles (UK).",
                 "example": 99,
+            },
+            "stops": {
+                "type": "integer",
+                "description": "Number of stops on the order.",
+                "example": 2,
+            },
+            "waitingTime": {
+                "type": "integer",
+                "description": "Waiting time in minutes.",
+                "example": 15,
+            },
+            "loadingUnloadingTime": {
+                "type": "integer",
+                "description": "Loading and unloading time in minutes.",
+                "example": 30,
+            },
+            "hours": {
+                "type": "number",
+                "description": "Total hours registered for the order.",
+                "example": 2.5,
             },
             "orderPrice": {"type": "string", "example": "132.48"},
             "orderPurchasePrice": {
@@ -972,6 +1000,7 @@ RESPONSE_SCHEMA_MAP = {
     ("GET",  "/v1/orders"):                    "OrderListResponse",
     ("GET",  "/v1/orders/{orderNo}"):           "OrderSingleResponse",
     ("PUT",  "/v1/orders/{orderNo}"):           "OrderSingleResponse",
+    ("POST", "/v1/orders/{orderNo}/approve-quote"): "OrderSingleResponse",
     ("GET",  "/v1/products"):                   "ProductListResponse",
     ("GET",  "/v1/products/{productNo}"):       "ProductSingleResponse",
     ("GET",  "/v1/substatuses"):                "SubstatusListResponse",
@@ -984,6 +1013,7 @@ RESPONSE_SCHEMA_MAP = {
     ("GET",  "/v1/invoices/{invoiceId}"):        "InvoiceSingleResponse",
     ("GET",  "/v1/customers"):                  "CustomerListResponse",
     ("GET",  "/v1/customers/{customerNo}"):     "CustomerSingleResponse",
+    ("PUT",  "/v1/customers/{customerNo}"):     "CustomerSingleResponse",
     ("GET",  "/v1/carriers"):                   "CarrierListResponse",
     ("GET",  "/v1/carriers/{carrierNo}"):       "CarrierSingleResponse",
     ("GET",  "/v1/fleet"):                      "FleetListResponse",
@@ -1015,6 +1045,9 @@ def make_operation_id(method: str, path: str) -> str:
     method_map = {"GET": "get", "PUT": "update", "POST": "create", "DELETE": "delete", "PATCH": "patch"}
     verb = method_map.get(method, method.lower())
     parts = path.replace("/v1/", "").replace("{", "").replace("}", "").split("/")
+    # Hyphenated segments (e.g. "approve-quote") become camel case rather than
+    # leaking a hyphen into the operationId, which breaks most client codegen.
+    parts = [seg for p in parts for seg in p.split("-")]
     name = "".join(p.capitalize() for p in parts if p)
     return f"{verb}{name}"
 

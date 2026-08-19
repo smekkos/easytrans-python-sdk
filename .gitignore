@@ -132,7 +132,6 @@ Thumbs.db
 # Project specific
 *.pdf
 test_output/
-EasyTrans Documentation/easytrans rest api.html
 
 # MkDocs build output
 site/
