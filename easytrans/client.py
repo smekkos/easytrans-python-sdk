@@ -477,11 +477,11 @@ class EasyTransClient:
         Make an authenticated request to the REST API.
 
         Args:
-            method: HTTP method, ``"GET"`` or ``"PUT"``.
+            method: HTTP method, ``"GET"``, ``"POST"`` or ``"PUT"``.
             path: URL path relative to the REST base URL
                   (e.g. ``"/orders"`` or ``"/orders/35558"``).
             params: Optional query parameters.
-            json_body: Optional JSON body (for PUT requests).
+            json_body: Optional JSON body (for POST/PUT requests).
 
         Returns:
             Parsed JSON response (``dict`` or ``list``).
@@ -505,6 +505,8 @@ class EasyTransClient:
                 response = self._rest_session.get(url, **request_kwargs)
             elif method == "PUT":
                 response = self._rest_session.put(url, **request_kwargs)
+            elif method == "POST":
+                response = self._rest_session.post(url, **request_kwargs)
             else:
                 raise EasyTransAPIError(f"Unsupported HTTP method: {method}")
         except requests.exceptions.Timeout as exc:
@@ -629,6 +631,7 @@ class EasyTransClient:
         include_track_history: bool = False,
         include_sales_rates: bool = False,
         include_purchase_rates: bool = False,
+        include_attachments: bool = False,
         include_deleted: bool = False,
         page: Optional[int] = None,
     ) -> "PagedResponse[RestOrder]":
@@ -653,6 +656,12 @@ class EasyTransClient:
             include_track_history: Include Track & Trace history array.
             include_sales_rates: Include sales rate breakdown.
             include_purchase_rates: Include purchase rates (branch only).
+            include_attachments: Request destination ``photos``,
+                ``signature_url`` and ``documents`` in the list response.
+                The API documentation states these are only returned when
+                this flag is set, but some installations return them
+                regardless. The API does not offer the parameter on the
+                single-order endpoint (``get_order()``).
             include_deleted: Include soft-deleted orders (branch only).
             page: Page number (1-based). Defaults to page 1.
 
@@ -688,6 +697,7 @@ class EasyTransClient:
             include_track_history="true" if include_track_history else None,
             include_sales_rates="true" if include_sales_rates else None,
             include_purchase_rates="true" if include_purchase_rates else None,
+            include_attachments="true" if include_attachments else None,
             include_deleted="true" if include_deleted else None,
         )
         raw = self._make_rest_list_request("/orders", params=params or None)
@@ -744,7 +754,12 @@ class EasyTransClient:
         self,
         order_no: int,
         *,
+        date: Optional[str] = None,
+        time: Optional[str] = None,
+        status: Optional[str] = None,
+        substatus_no: Optional[int] = None,
         carrier_no: Optional[int] = None,
+        carrier_user_id: Optional[int] = None,
         fleet_no: Optional[int] = None,
         waybill_notes: Optional[str] = None,
         invoice_notes: Optional[str] = None,
@@ -772,11 +787,31 @@ class EasyTransClient:
 
             goods=[{"packageNo": 1, "amount": 20}]
 
+        Documents are uploaded per destination as a list of PDFs (max 20MB
+        each), base64 encoded::
+
+            destinations=[{
+                "stopNo": 2,
+                "documents": [{
+                    "documentName": "POD.pdf",
+                    "category": "delivery_note",
+                    "internal": False,
+                    "base64EncodedDocument": encoded_pdf,
+                }],
+            }]
+
         Supplying ``carrier_no=0`` removes the assigned carrier.
 
         Args:
             order_no: The EasyTrans order number to update.
+            date: New order date, ``yyyy-mm-dd``.
+            time: New order time, ``hh:mm``.
+            status: New status for a planned order. The API accepts
+                ``"signed-off"`` and ``"checked"``.
+            substatus_no: New substatus. Supply ``0`` to clear it.
             carrier_no: Assign (or remove) a carrier.
+            carrier_user_id: Assign (or remove) a carrier user. Supply ``0``
+                to clear it.
             fleet_no: Assign a fleet vehicle.
             waybill_notes: Replace the waybill notes.
             invoice_notes: Replace the invoice notes.
@@ -797,8 +832,18 @@ class EasyTransClient:
             ``EasyTransValidationError``: Body failed server-side validation.
         """
         body: Dict[str, Any] = {}
+        if date is not None:
+            body["date"] = date
+        if time is not None:
+            body["time"] = time
+        if status is not None:
+            body["status"] = status
+        if substatus_no is not None:
+            body["substatusNo"] = substatus_no
         if carrier_no is not None:
             body["carrierNo"] = carrier_no
+        if carrier_user_id is not None:
+            body["carrierUserId"] = carrier_user_id
         if fleet_no is not None:
             body["fleetNo"] = fleet_no
         if waybill_notes is not None:
@@ -824,6 +869,34 @@ class EasyTransClient:
 
         raw = self._make_rest_request(
             "PUT", f"/orders/{order_no}", json_body=body
+        )
+        return RestOrder.from_dict(raw["data"])
+
+    def approve_quote(self, order_no: int) -> RestOrder:
+        """
+        Approve a quote order, turning it into a regular transport order.
+
+        Only orders with status ``quote`` can be approved; the API rejects
+        anything else. The approved order comes back with its new status
+        (typically ``planned``).
+
+        Args:
+            order_no: The EasyTrans order number to approve.
+
+        Returns:
+            The approved ``RestOrder``.
+
+        Raises:
+            ``EasyTransNotFoundError``: Order does not exist.
+            ``EasyTransValidationError``: Order is not in ``quote`` status.
+
+        Example::
+
+            order = client.approve_quote(35558)
+            print(order.attributes.status)  # "planned"
+        """
+        raw = self._make_rest_request(
+            "POST", f"/orders/{order_no}/approve-quote"
         )
         return RestOrder.from_dict(raw["data"])
 

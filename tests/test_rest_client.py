@@ -373,6 +373,28 @@ class TestGetOrders:
         assert "include_track_history=true" in rsps_lib.calls[0].request.url
 
     @rsps_lib.activate
+    def test_include_attachments_flag(self, client):
+        rsps_lib.add(
+            rsps_lib.GET,
+            f"{REST_BASE}/orders",
+            json=_pagination_envelope([]),
+            status=200,
+        )
+        client.get_orders(include_attachments=True)
+        assert "include_attachments=true" in rsps_lib.calls[0].request.url
+
+    @rsps_lib.activate
+    def test_include_attachments_omitted_by_default(self, client):
+        rsps_lib.add(
+            rsps_lib.GET,
+            f"{REST_BASE}/orders",
+            json=_pagination_envelope([]),
+            status=200,
+        )
+        client.get_orders()
+        assert "include_attachments" not in rsps_lib.calls[0].request.url
+
+    @rsps_lib.activate
     def test_sort_param(self, client):
         rsps_lib.add(
             rsps_lib.GET,
@@ -505,6 +527,69 @@ class TestUpdateOrder:
         assert body["destinations"] == dest_update
 
     @rsps_lib.activate
+    def test_scheduling_and_status_fields_in_body(self, client):
+        rsps_lib.add(
+            rsps_lib.PUT,
+            f"{REST_BASE}/orders/35558",
+            json={"data": MINIMAL_ORDER},
+            status=200,
+        )
+        client.update_order(
+            35558,
+            date="2026-08-20",
+            time="09:30",
+            status="checked",
+            substatus_no=12,
+            carrier_user_id=5,
+        )
+        body = json.loads(rsps_lib.calls[0].request.body)
+        assert body == {
+            "date": "2026-08-20",
+            "time": "09:30",
+            "status": "checked",
+            "substatusNo": 12,
+            "carrierUserId": 5,
+        }
+
+    @rsps_lib.activate
+    def test_zero_clears_substatus_and_carrier_user(self, client):
+        rsps_lib.add(
+            rsps_lib.PUT,
+            f"{REST_BASE}/orders/35558",
+            json={"data": MINIMAL_ORDER},
+            status=200,
+        )
+        client.update_order(35558, substatus_no=0, carrier_user_id=0)
+        body = json.loads(rsps_lib.calls[0].request.body)
+        assert body["substatusNo"] == 0
+        assert body["carrierUserId"] == 0
+
+    @rsps_lib.activate
+    def test_destination_documents_passed_through(self, client):
+        rsps_lib.add(
+            rsps_lib.PUT,
+            f"{REST_BASE}/orders/35558",
+            json={"data": MINIMAL_ORDER},
+            status=200,
+        )
+        dest_update = [
+            {
+                "stopNo": 2,
+                "documents": [
+                    {
+                        "documentName": "POD.pdf",
+                        "category": "delivery_note",
+                        "internal": False,
+                        "base64EncodedDocument": "JVBERi0=",
+                    }
+                ],
+            }
+        ]
+        client.update_order(35558, destinations=dest_update)
+        body = json.loads(rsps_lib.calls[0].request.body)
+        assert body["destinations"] == dest_update
+
+    @rsps_lib.activate
     def test_returns_rest_order(self, client):
         rsps_lib.add(
             rsps_lib.PUT,
@@ -514,6 +599,66 @@ class TestUpdateOrder:
         )
         order = client.update_order(35558, waybill_notes="x")
         assert isinstance(order, RestOrder)
+
+
+class TestApproveQuote:
+    @rsps_lib.activate
+    def test_posts_to_approve_quote_path(self, client):
+        rsps_lib.add(
+            rsps_lib.POST,
+            f"{REST_BASE}/orders/35558/approve-quote",
+            json={"data": MINIMAL_ORDER},
+            status=200,
+        )
+        client.approve_quote(35558)
+        assert rsps_lib.calls[0].request.method == "POST"
+        assert rsps_lib.calls[0].request.url.endswith("/orders/35558/approve-quote")
+
+    @rsps_lib.activate
+    def test_sends_no_body(self, client):
+        rsps_lib.add(
+            rsps_lib.POST,
+            f"{REST_BASE}/orders/35558/approve-quote",
+            json={"data": MINIMAL_ORDER},
+            status=200,
+        )
+        client.approve_quote(35558)
+        assert rsps_lib.calls[0].request.body is None
+
+    @rsps_lib.activate
+    def test_returns_rest_order(self, client):
+        rsps_lib.add(
+            rsps_lib.POST,
+            f"{REST_BASE}/orders/35558/approve-quote",
+            json={"data": MINIMAL_ORDER},
+            status=200,
+        )
+        order = client.approve_quote(35558)
+        assert isinstance(order, RestOrder)
+        assert order.attributes.order_no == 35558
+
+    @rsps_lib.activate
+    def test_not_found_raises(self, client):
+        rsps_lib.add(
+            rsps_lib.POST,
+            f"{REST_BASE}/orders/99999/approve-quote",
+            json={"message": "Not found"},
+            status=404,
+        )
+        with pytest.raises(EasyTransNotFoundError):
+            client.approve_quote(99999)
+
+    @rsps_lib.activate
+    def test_non_quote_order_raises_validation_error(self, client):
+        # The API rejects orders that are not in "quote" status.
+        rsps_lib.add(
+            rsps_lib.POST,
+            f"{REST_BASE}/orders/35558/approve-quote",
+            json={"message": "Only quote orders can be approved."},
+            status=422,
+        )
+        with pytest.raises(EasyTransValidationError):
+            client.approve_quote(35558)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -231,6 +231,7 @@ ORDER_DATA = {
         "carrierNo": 44,
         "carrierUserId": 5,
         "branchNo": 0,
+        "compositeOrderNo": 0,
         "vehicleTypeNo": 2,
         "vehicleTypeName": "Small Van",
         "fleetNo": 5,
@@ -240,6 +241,10 @@ ORDER_DATA = {
         "internalNotes": "Upload POD before signing-off",
         "recipientEmail": "info@example.com",
         "distance": 99,
+        "stops": 2,
+        "waitingTime": 15,
+        "loadingUnloadingTime": 30,
+        "hours": 2.5,
         "orderPrice": "132.48",
         "orderPurchasePrice": "294.82",
         "prepaidAmount": "0.00",
@@ -690,6 +695,36 @@ class TestRestOrderAttributes:
         assert attrs.carrier_no == 44
         assert attrs.fleet_no == 5
         assert attrs.purchase_invoice_notes == "Payment period 30 days"
+
+    def test_effort_fields(self):
+        attrs = RestOrderAttributes.from_dict(ORDER_DATA["attributes"])
+        assert attrs.composite_order_no == 0
+        assert attrs.stops == 2
+        assert attrs.waiting_time == 15
+        assert attrs.loading_unloading_time == 30
+        assert attrs.hours == 2.5
+
+    def test_effort_fields_default_when_absent(self):
+        # Customer accounts and older payloads omit these entirely; they must
+        # fall back to zero rather than None so arithmetic on them is safe.
+        data = {
+            k: v
+            for k, v in ORDER_DATA["attributes"].items()
+            if k
+            not in (
+                "compositeOrderNo",
+                "stops",
+                "waitingTime",
+                "loadingUnloadingTime",
+                "hours",
+            )
+        }
+        attrs = RestOrderAttributes.from_dict(data)
+        assert attrs.composite_order_no == 0
+        assert attrs.stops == 0
+        assert attrs.waiting_time == 0
+        assert attrs.loading_unloading_time == 0
+        assert attrs.hours == 0.0
 
     def test_destinations_parsed(self):
         attrs = RestOrderAttributes.from_dict(ORDER_DATA["attributes"])

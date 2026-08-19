@@ -652,6 +652,7 @@ class RestOrderAttributes:
     carrier_no: Optional[int] = None          # branch only
     carrier_user_id: Optional[int] = None     # branch only
     branch_no: int = 0
+    composite_order_no: int = 0
     vehicle_type_no: Optional[int] = None
     vehicle_type_name: Optional[str] = None
     fleet_no: Optional[int] = None            # branch only
@@ -663,6 +664,10 @@ class RestOrderAttributes:
     carrier_notes: Optional[str] = None           # branch only
     recipient_email: Optional[str] = None
     distance: Optional[int] = None
+    stops: int = 0                            # number of stops on the order
+    waiting_time: int = 0                     # minutes
+    loading_unloading_time: int = 0           # minutes
+    hours: float = 0.0
     order_price: Optional[str] = None
     order_purchase_price: Optional[str] = None    # branch only
     prepaid_amount: Optional[str] = None
@@ -698,6 +703,7 @@ class RestOrderAttributes:
             carrier_no=data.get("carrierNo"),
             carrier_user_id=data.get("carrierUserId"),
             branch_no=data.get("branchNo", 0),
+            composite_order_no=data.get("compositeOrderNo", 0),
             vehicle_type_no=data.get("vehicleTypeNo"),
             vehicle_type_name=data.get("vehicleTypeName"),
             fleet_no=data.get("fleetNo"),
@@ -709,6 +715,10 @@ class RestOrderAttributes:
             carrier_notes=data.get("carrierNotes"),
             recipient_email=data.get("recipientEmail"),
             distance=data.get("distance"),
+            stops=data.get("stops", 0),
+            waiting_time=data.get("waitingTime", 0),
+            loading_unloading_time=data.get("loadingUnloadingTime", 0),
+            hours=data.get("hours", 0.0),
             order_price=data.get("orderPrice"),
             order_purchase_price=data.get("orderPurchasePrice"),
             prepaid_amount=data.get("prepaidAmount"),
