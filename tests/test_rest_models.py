@@ -907,6 +907,98 @@ class TestRestFleetVehicle:
         vehicle = RestFleetVehicle.from_dict(data)
         assert vehicle.license_plate == "VH-357-V"
 
+    def test_spec_fields(self):
+        """All attributes from the official spec (GET /v1/fleet/{fleetNo})."""
+        data = {
+            "type": "fleet",
+            "id": 5,
+            "attributes": {
+                "fleetNo": 5,
+                "vehicleTypeNo": 2,
+                "registration": "VH-357-V",
+                "make": "Peugeot",
+                "model": "Partner",
+                "type": "Conditioned",
+                "colour": "White",
+                "capacity": "1 pallet - 500kg",
+                "notes": "APK tot 01-06-2024",
+            },
+        }
+        vehicle = RestFleetVehicle.from_dict(data)
+        assert vehicle.fleet_no == 5
+        assert vehicle.vehicle_type_no == 2
+        assert vehicle.registration == "VH-357-V"
+        assert vehicle.license_plate == "VH-357-V"
+        assert vehicle.make == "Peugeot"
+        assert vehicle.model == "Partner"
+        assert vehicle.vehicle_type == "Conditioned"
+        assert vehicle.colour == "White"
+        assert vehicle.capacity == "1 pallet - 500kg"
+        assert vehicle.notes == "APK tot 01-06-2024"
+
+
+class TestSpecAlignedReferenceData:
+    """Fields present in the official OpenAPI spec examples."""
+
+    def test_product_vat(self):
+        product = RestProduct.from_dict(
+            {
+                "type": "product",
+                "id": 1,
+                "attributes": {
+                    "productNo": 1,
+                    "productName": "Direct transport",
+                    "vat": "high",
+                },
+            }
+        )
+        assert product.name == "Direct transport"
+        assert product.vat == "high"
+
+    def test_package_type_rate_type_only_and_dimensions(self):
+        pkg = RestPackageType.from_dict(
+            {
+                "type": "packageType",
+                "id": 18,
+                "attributes": {
+                    "packageTypeNo": 18,
+                    "packageTypeName": "Europallet",
+                    "rateTypeOnly": False,
+                    "standardDimensions": {
+                        "weight": 500,
+                        "length": 120,
+                        "width": 80,
+                        "height": 50,
+                        "description": "Car parts",
+                    },
+                },
+            }
+        )
+        assert pkg.name == "Europallet"
+        assert pkg.rate_type_only is False
+        assert pkg.standard_dimensions is not None
+        assert pkg.standard_dimensions.weight == 500
+        assert pkg.standard_dimensions.length == 120
+        assert pkg.standard_dimensions.width == 80
+        assert pkg.standard_dimensions.height == 50
+        assert pkg.standard_dimensions.description == "Car parts"
+
+    def test_package_type_without_dimensions(self):
+        pkg = RestPackageType.from_dict(
+            {"type": "packageType", "id": 1, "attributes": {"packageTypeNo": 1}}
+        )
+        assert pkg.rate_type_only is None
+        assert pkg.standard_dimensions is None
+
+    def test_goods_line_barcodes(self):
+        line = RestGoodsLine.from_dict(
+            {"packageNo": 1, "amount": 2, "barcodes": ["3199900001", "3199900002"]}
+        )
+        assert line.barcodes == ["3199900001", "3199900002"]
+
+    def test_goods_line_barcodes_default_empty(self):
+        assert RestGoodsLine.from_dict({"packageNo": 1}).barcodes == []
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Invoice
@@ -973,6 +1065,55 @@ class TestRestInvoice:
         invoice = RestInvoice.from_dict(data)
         assert isinstance(invoice.invoice_no, str)
         assert invoice.invoice_no == "20240001"
+
+    # Attributes exactly as documented in the official OpenAPI spec
+    # (GET /v1/invoices/{invoiceId} example) and returned by the live API.
+    SPEC_ATTRS = {
+        "invoiceId": 284,
+        "invoiceNo": 20240123,
+        "invoiceNoPrefix": "F-",
+        "customerNo": 2001,
+        "invoiceDate": "2024-05-30",
+        "amountExclVat": "246.30",
+        "amountInclVat": "298.02",
+        "currency": "EUR",
+        "paymentMethod": "",
+        "onlinePaymentStatus": "",
+        "discountPercentage": 0,
+        "sentDate": "2024-05-30",
+        "paid": True,
+        "paidDate": "2025-08-09",
+        "exported": False,
+        "externalId": "",
+    }
+
+    def _spec_invoice(self):
+        return RestInvoice.from_dict(
+            {"type": "invoice", "id": 284, "attributes": dict(self.SPEC_ATTRS)}
+        )
+
+    def test_amounts_excl_and_incl_vat(self):
+        invoice = self._spec_invoice()
+        assert invoice.amount_excl_vat == "246.30"
+        assert invoice.amount_incl_vat == "298.02"
+
+    def test_total_amount_is_amount_incl_vat(self):
+        assert self._spec_invoice().total_amount == "298.02"
+
+    def test_vat_amount_is_difference_not_net_amount(self):
+        """Regression: vat_amount used to be filled with amountExclVat."""
+        assert self._spec_invoice().vat_amount == "51.72"
+
+    def test_vat_amount_none_when_amounts_missing(self):
+        invoice = RestInvoice.from_dict(
+            {"type": "invoice", "id": 1, "attributes": {"invoiceId": 1}}
+        )
+        assert invoice.vat_amount is None
+
+    def test_invoice_no_prefix_and_currency(self):
+        invoice = self._spec_invoice()
+        assert invoice.invoice_no_prefix == "F-"
+        assert invoice.currency == "EUR"
 
     def test_pdf_field(self):
         data = {

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import datetime
 from dataclasses import dataclass, field
+from decimal import Decimal, InvalidOperation
 from typing import Any, Dict, Generic, List, Optional, TypeVar, Union
 
 
@@ -25,6 +26,16 @@ from typing import Any, Dict, Generic, List, Optional, TypeVar, Union
 # ---------------------------------------------------------------------------
 
 T = TypeVar("T")
+
+
+def _decimal_difference(a: Optional[str], b: Optional[str]) -> Optional[str]:
+    """Return ``a - b`` for two decimal strings (e.g. amounts), or ``None``."""
+    if a is None or b is None:
+        return None
+    try:
+        return str(Decimal(str(a)) - Decimal(str(b)))
+    except InvalidOperation:
+        return None
 
 
 @dataclass
@@ -279,6 +290,7 @@ class RestGoodsLine:
     width: Optional[float] = None
     height: Optional[float] = None
     description: str = ""
+    barcodes: List[str] = field(default_factory=list)
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "RestGoodsLine":
@@ -295,6 +307,7 @@ class RestGoodsLine:
             width=data.get("width"),
             height=data.get("height"),
             description=data.get("description", ""),
+            barcodes=list(data.get("barcodes") or []),
         )
 
 
@@ -816,6 +829,7 @@ class RestProduct:
     id: int = 0
     product_no: int = 0
     name: str = ""
+    vat: str = ""  # VAT tariff, e.g. "high"
     is_deleted: Optional[bool] = None
 
     @classmethod
@@ -825,6 +839,7 @@ class RestProduct:
             id=data.get("id", 0),
             product_no=attrs.get("productNo", 0),
             name=attrs.get("name", attrs.get("productName", "")),
+            vat=attrs.get("vat") or "",
             is_deleted=attrs.get("isDeleted"),
         )
 
@@ -850,6 +865,31 @@ class RestSubstatus:
 
 
 @dataclass
+class RestStandardDimensions:
+    """Default dimensions of a package type (``standardDimensions``)."""
+
+    weight: Optional[float] = None
+    length: Optional[float] = None
+    width: Optional[float] = None
+    height: Optional[float] = None
+    description: str = ""
+
+    @classmethod
+    def from_dict(
+        cls, data: Optional[Dict[str, Any]]
+    ) -> Optional["RestStandardDimensions"]:
+        if not data:
+            return None
+        return cls(
+            weight=data.get("weight"),
+            length=data.get("length"),
+            width=data.get("width"),
+            height=data.get("height"),
+            description=data.get("description") or "",
+        )
+
+
+@dataclass
 class RestPackageType:
     """
     A package / rate type.
@@ -861,6 +901,8 @@ class RestPackageType:
     id: int = 0
     package_type_no: int = 0
     name: str = ""
+    rate_type_only: Optional[bool] = None
+    standard_dimensions: Optional[RestStandardDimensions] = None
     is_deleted: Optional[bool] = None
 
     @classmethod
@@ -870,6 +912,10 @@ class RestPackageType:
             id=data.get("id", 0),
             package_type_no=attrs.get("packageTypeNo", 0),
             name=attrs.get("name", attrs.get("packageTypeName", "")),
+            rate_type_only=attrs.get("rateTypeOnly"),
+            standard_dimensions=RestStandardDimensions.from_dict(
+                attrs.get("standardDimensions")
+            ),
             is_deleted=attrs.get("isDeleted"),
         )
 
@@ -900,6 +946,12 @@ class RestFleetVehicle:
     A vehicle from the branch's own fleet.
 
     Branch accounts only — not accessible with customer accounts.
+
+    ``registration`` is the licence plate; ``license_plate`` is kept as an
+    alias for backwards compatibility. ``vehicle_type`` holds the free-text
+    ``type`` attribute (e.g. "Conditioned"), not the vehicle type number.
+    ``name`` and ``active`` are not part of the official spec and stay at
+    their defaults unless the API returns them.
     """
 
     id: int = 0
@@ -909,18 +961,33 @@ class RestFleetVehicle:
     vehicle_type_no: Optional[int] = None
     active: bool = True
     is_deleted: Optional[bool] = None
+    registration: str = ""
+    make: str = ""
+    model: str = ""
+    vehicle_type: str = ""
+    colour: str = ""
+    capacity: str = ""
+    notes: str = ""
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "RestFleetVehicle":
         attrs = data.get("attributes") or {}
+        registration = attrs.get("registration", attrs.get("licensePlate")) or ""
         return cls(
             id=data.get("id", 0),
             fleet_no=attrs.get("fleetNo", 0),
             name=attrs.get("name", ""),
-            license_plate=attrs.get("licensePlate", attrs.get("registration", "")),
+            license_plate=attrs.get("licensePlate", registration) or "",
             vehicle_type_no=attrs.get("vehicleTypeNo"),
             active=attrs.get("active", True),
             is_deleted=attrs.get("isDeleted"),
+            registration=registration,
+            make=attrs.get("make") or "",
+            model=attrs.get("model") or "",
+            vehicle_type=attrs.get("type") or "",
+            colour=attrs.get("colour") or "",
+            capacity=attrs.get("capacity") or "",
+            notes=attrs.get("notes") or "",
         )
 
 
@@ -940,10 +1007,14 @@ class RestInvoice:
     id: int = 0
     invoice_id: int = 0
     invoice_no: str = ""
+    invoice_no_prefix: str = ""
     invoice_date: Optional[str] = None
     customer_no: int = 0
-    total_amount: Optional[str] = None
-    vat_amount: Optional[str] = None
+    amount_excl_vat: Optional[str] = None
+    amount_incl_vat: Optional[str] = None
+    currency: str = ""
+    total_amount: Optional[str] = None         # alias of amount_incl_vat
+    vat_amount: Optional[str] = None           # amount_incl_vat - amount_excl_vat
     payment_method: Optional[str] = None       # branch only
     online_payment_status: Optional[str] = None  # branch only
     discount_percentage: Optional[float] = None  # branch only
@@ -958,14 +1029,20 @@ class RestInvoice:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "RestInvoice":
         attrs = data.get("attributes") or data
+        excl = attrs.get("amountExclVat")
+        incl = attrs.get("amountInclVat")
         return cls(
             id=data.get("id", 0),
             invoice_id=attrs.get("invoiceId", 0),
             invoice_no=str(attrs.get("invoiceNo", "")),
+            invoice_no_prefix=attrs.get("invoiceNoPrefix") or "",
             invoice_date=attrs.get("invoiceDate"),
             customer_no=attrs.get("customerNo", 0),
-            total_amount=attrs.get("totalAmount", attrs.get("amountInclVat")),
-            vat_amount=attrs.get("vatAmount", attrs.get("amountExclVat")),
+            amount_excl_vat=excl,
+            amount_incl_vat=incl,
+            currency=attrs.get("currency") or "",
+            total_amount=attrs.get("totalAmount", incl),
+            vat_amount=attrs.get("vatAmount", _decimal_difference(incl, excl)),
             payment_method=attrs.get("paymentMethod"),
             online_payment_status=attrs.get("onlinePaymentStatus"),
             discount_percentage=attrs.get("discountPercentage"),
@@ -1008,6 +1085,7 @@ __all__ = [
     "RestProduct",
     "RestSubstatus",
     "RestPackageType",
+    "RestStandardDimensions",
     "RestVehicleType",
     "RestFleetVehicle",
     "RestInvoice",

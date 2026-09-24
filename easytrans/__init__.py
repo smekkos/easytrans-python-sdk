@@ -84,6 +84,7 @@ from easytrans.rest_models import (
     RestProduct,
     RestSubstatus,
     RestPackageType,
+    RestStandardDimensions,
     RestVehicleType,
     RestFleetVehicle,
     RestInvoice,
