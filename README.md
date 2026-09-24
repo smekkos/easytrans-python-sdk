@@ -495,7 +495,7 @@ print(carrier.carrier_attributes)   # e.g. ["charter_regular", "refrigerated"]
 # Fleet
 fleet   = client.get_fleet(filter_registration="VH-")
 vehicle = client.get_fleet_vehicle(5)
-print(vehicle.name, vehicle.license_plate)
+print(vehicle.registration, vehicle.make, vehicle.model, vehicle.capacity)
 ```
 
 ### Updating a Customer
@@ -533,7 +533,7 @@ invoices = client.get_invoices(
     include_customer=True,
 )
 for inv in invoices.data:
-    print(inv.invoice_no, inv.total_amount, inv.paid)
+    print(inv.invoice_no, inv.amount_excl_vat, inv.vat_amount, inv.amount_incl_vat, inv.paid)
 
 # Download invoice PDF (base64-encoded)
 import base64
@@ -952,6 +952,34 @@ ruff check easytrans tests
 mypy easytrans
 ```
 
+### Keeping up with the EasyTrans API spec
+
+EasyTrans publishes the REST API as OpenAPI at
+`https://www.mytrans3.nl/abtransport/api/docs.openapi`. A copy is vendored in
+`EasyTrans Documentation/openapi.yaml`.
+
+```bash
+# Show what changed upstream and update the vendored copy
+python scripts/sync_spec.py
+
+# CI-style check: exit 1 if the published spec differs
+python scripts/sync_spec.py --check
+```
+
+`tests/test_spec_contract.py` runs as part of the normal `pytest` suite. It
+fails when the spec contains an operation, response field, `include_*`
+parameter or request-body field the SDK does not handle, so after a spec
+update the failures are the to-do list. Intentional gaps go in the
+allow-lists at the top of that file.
+
+The `Sync EasyTrans OpenAPI spec` GitHub workflow
+(`.github/workflows/spec-sync.yml`) runs weekly. When the spec changed, it
+opens a pull request containing the new spec, the diff and the contract-test
+result.
+
+The spec covers the REST API only. The JSON Import API and webhooks are still
+maintained by hand against the PDFs in `EasyTrans Documentation/`.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -963,6 +991,31 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **EasyTrans Support**: support@easytrans.nl
 
 ## Changelog
+
+### Version 1.4.0 (2026-09-24)
+
+Aligns the SDK with the official OpenAPI spec that EasyTrans now publishes.
+
+- **Fix:** `RestInvoice.vat_amount` used to hold the amount *excluding* VAT
+  (`amountExclVat`). It is now the actual VAT amount
+  (`amountInclVat - amountExclVat`). If you relied on the old value, read
+  the new `amount_excl_vat` instead.
+- `RestInvoice` gains `amount_excl_vat`, `amount_incl_vat`, `currency` and
+  `invoice_no_prefix`. `total_amount` is unchanged (amount incl. VAT).
+- `RestFleetVehicle` gains `registration`, `make`, `model`, `vehicle_type`
+  (the free-text `type`), `colour`, `capacity` and `notes`.
+  `license_plate` stays as an alias of `registration`.
+- `RestProduct` gains `vat` (VAT tariff, e.g. `"high"`).
+- `RestPackageType` gains `rate_type_only` and `standard_dimensions`
+  (new `RestStandardDimensions` model).
+- `RestGoodsLine` gains `barcodes`.
+- The official spec replaces the HTML-scraped one in
+  `EasyTrans Documentation/openapi.yaml`; the scraper scripts and scraped
+  HTML/intermediate JSON are removed.
+- New `scripts/sync_spec.py`, `tests/test_spec_contract.py` and a weekly
+  spec-sync GitHub workflow (see *Keeping up with the EasyTrans API spec*).
+- `pyyaml` added to the `dev` extras (needed by the contract test and the
+  sync script).
 
 ### Version 1.3.0 (2026-08-19)
 

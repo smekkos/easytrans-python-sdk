@@ -102,7 +102,7 @@ from easytrans.constants import (
     TaskType,
 )
 
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 __all__ = [
     # ── Client ──────────────────────────────────────────────────────────────
@@ -149,6 +149,7 @@ __all__ = [
     "RestProduct",
     "RestSubstatus",
     "RestPackageType",
+    "RestStandardDimensions",
     "RestVehicleType",
     "RestFleetVehicle",
     "RestInvoice",

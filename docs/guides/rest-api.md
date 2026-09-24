@@ -182,7 +182,7 @@ print(carrier.name, carrier.email)
 # Fleet — filter on registration rather than a generic filter dict
 fleet = client.get_fleet(filter_registration="AB-123-C")
 for vehicle in fleet.data:
-    print(vehicle.fleet_no, vehicle.license_plate, vehicle.active)
+    print(vehicle.fleet_no, vehicle.registration, vehicle.make, vehicle.model)
 
 vehicle = client.get_fleet_vehicle(5)
 ```
@@ -196,7 +196,8 @@ Individual customer fields can be updated with `update_customer()`. Note that
 ```python
 invoices = client.get_invoices(filter={"invoiceDate": {"gte": "2026-01-01"}})
 for inv in invoices.data:
-    print(inv.invoice_no, inv.invoice_date, inv.total_amount, inv.paid)
+    print(inv.invoice_no_prefix + inv.invoice_no, inv.invoice_date,
+          inv.amount_excl_vat, inv.vat_amount, inv.amount_incl_vat, inv.paid)
 
 # Embed the customer record, or fetch the PDF as base64
 invoice = client.get_invoice(12345, include_customer=True, include_invoice_pdf=True)
