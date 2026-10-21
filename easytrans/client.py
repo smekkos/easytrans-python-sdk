@@ -33,6 +33,7 @@ from easytrans.models import (
 )
 from easytrans.rest_models import (
     PagedResponse,
+    RestAddressBookEntry,
     RestCarrier,
     RestCustomer,
     RestFleetVehicle,
@@ -477,14 +478,16 @@ class EasyTransClient:
         Make an authenticated request to the REST API.
 
         Args:
-            method: HTTP method, ``"GET"``, ``"POST"`` or ``"PUT"``.
+            method: HTTP method, ``"GET"``, ``"POST"``, ``"PUT"`` or
+                ``"DELETE"``.
             path: URL path relative to the REST base URL
                   (e.g. ``"/orders"`` or ``"/orders/35558"``).
             params: Optional query parameters.
             json_body: Optional JSON body (for POST/PUT requests).
 
         Returns:
-            Parsed JSON response (``dict`` or ``list``).
+            Parsed JSON response (``dict`` or ``list``), or ``None`` for
+            an empty response body (HTTP 204, e.g. after a DELETE).
 
         Raises:
             ``EasyTransAuthError``: HTTP 401 — invalid credentials.
@@ -507,6 +510,8 @@ class EasyTransClient:
                 response = self._rest_session.put(url, **request_kwargs)
             elif method == "POST":
                 response = self._rest_session.post(url, **request_kwargs)
+            elif method == "DELETE":
+                response = self._rest_session.delete(url, **request_kwargs)
             else:
                 raise EasyTransAPIError(f"Unsupported HTTP method: {method}")
         except requests.exceptions.Timeout as exc:
@@ -519,6 +524,9 @@ class EasyTransClient:
             raise EasyTransAPIError(f"REST request failed: {exc}") from exc
 
         self._handle_rest_error(response)
+
+        if response.status_code == 204 or not response.content:
+            return None
 
         try:
             return response.json()
@@ -1379,6 +1387,196 @@ class EasyTransClient:
             "PUT", f"/customers/{customer_no}", json_body=body
         )
         return RestCustomer.from_dict(raw["data"])
+
+    # =========================================================================
+    # REST API — Address book (branch and customer accounts)
+    # =========================================================================
+
+    def get_address_book(
+        self,
+        *,
+        filter: Optional[Dict[str, Any]] = None,  # noqa: A002
+        sort: Optional[str] = None,
+        page: Optional[int] = None,
+    ) -> "PagedResponse[RestAddressBookEntry]":
+        """
+        Return a paginated list of address book entries (100 per page).
+
+        A customer account only receives its own entries. A branch account
+        receives the entries of all its customers.
+
+        Args:
+            filter: Filter dict. Supported fields: ``addressNo`` and
+                    ``customerNo`` (branch accounts only). There is no
+                    text filter on company, city or postcode; the API
+                    answers HTTP 400 for other fields.
+            sort: Sort expression on ``addressNo``, ``customerNo`` and/or
+                  ``company``, e.g. ``"company,-addressNo"``.
+            page: Page number (1-based).
+
+        Returns:
+            ``PagedResponse[RestAddressBookEntry]``.
+        """
+        params = self._build_rest_params(filter=filter, sort=sort, page=page)
+        raw = self._make_rest_list_request("/address-book", params=params or None)
+        return PagedResponse.from_dict(raw, RestAddressBookEntry)
+
+    def get_address_book_entry(self, address_no: int) -> RestAddressBookEntry:
+        """
+        Return a single address book entry by address number.
+
+        Raises:
+            ``EasyTransNotFoundError``: The entry does not exist or belongs
+                to another customer.
+        """
+        raw = self._make_rest_request("GET", f"/address-book/{address_no}")
+        return RestAddressBookEntry.from_dict(raw["data"])
+
+    @staticmethod
+    def _address_book_body(
+        customer_no: Optional[int],
+        company: Optional[str],
+        contact: Optional[str],
+        address: Optional[str],
+        houseno: Optional[str],
+        address2: Optional[str],
+        postcode: Optional[str],
+        city: Optional[str],
+        country: Optional[str],
+        phone: Optional[str],
+        email: Optional[str],
+        notes: Optional[str],
+        opening_hours: Optional[Dict[str, Any]],
+        additional_field1: Optional[str],
+    ) -> Dict[str, Any]:
+        fields = {
+            "customerNo": customer_no,
+            "company": company,
+            "contact": contact,
+            "address": address,
+            "houseno": houseno,
+            "address2": address2,
+            "postcode": postcode,
+            "city": city,
+            "country": country,
+            "phone": phone,
+            "email": email,
+            "notes": notes,
+            "openingHours": opening_hours,
+            "additionalField1": additional_field1,
+        }
+        return {key: value for key, value in fields.items() if value is not None}
+
+    def create_address_book_entry(
+        self,
+        *,
+        customer_no: Optional[int] = None,
+        company: Optional[str] = None,
+        contact: Optional[str] = None,
+        address: Optional[str] = None,
+        houseno: Optional[str] = None,
+        address2: Optional[str] = None,
+        postcode: Optional[str] = None,
+        city: Optional[str] = None,
+        country: Optional[str] = None,
+        phone: Optional[str] = None,
+        email: Optional[str] = None,
+        notes: Optional[str] = None,
+        opening_hours: Optional[Dict[str, Any]] = None,
+        additional_field1: Optional[str] = None,
+    ) -> RestAddressBookEntry:
+        """
+        Create a new address book entry.
+
+        Only the supplied keyword arguments are sent. ``customer_no`` is only
+        for branch accounts; a customer account always creates the entry
+        for itself and can leave it out (verified against the live API,
+        although the spec lists it as required).
+
+        Args:
+            customer_no: Customer number (branch accounts only).
+            company: Company name (max 100 chars).
+            contact: Contact person (max 100 chars).
+            address: Street name (max 100 chars).
+            houseno: House number (max 60 chars).
+            address2: Additional address line (max 100 chars).
+            postcode: Postal code (max 12 chars).
+            city: City (max 100 chars).
+            country: ISO 3166-1 alpha-2 country code, e.g. ``"NL"``.
+            phone: Phone number (max 40 chars).
+            email: Email address (max 255 chars).
+            notes: Free-text notes.
+            opening_hours: Dict with ``"from"`` and ``"to"`` in ``H:i``
+                format, e.g. ``{"from": "09:00", "to": "17:00"}``.
+            additional_field1: Additional field 1.
+
+        Returns:
+            The created ``RestAddressBookEntry``.
+
+        Raises:
+            ``EasyTransValidationError``: Invalid body, or an address with
+                these details already exists for this customer (HTTP 422).
+        """
+        body = self._address_book_body(
+            customer_no, company, contact, address, houseno, address2,
+            postcode, city, country, phone, email, notes, opening_hours,
+            additional_field1,
+        )
+        raw = self._make_rest_request("POST", "/address-book", json_body=body)
+        return RestAddressBookEntry.from_dict(raw["data"])
+
+    def update_address_book_entry(
+        self,
+        address_no: int,
+        *,
+        customer_no: Optional[int] = None,
+        company: Optional[str] = None,
+        contact: Optional[str] = None,
+        address: Optional[str] = None,
+        houseno: Optional[str] = None,
+        address2: Optional[str] = None,
+        postcode: Optional[str] = None,
+        city: Optional[str] = None,
+        country: Optional[str] = None,
+        phone: Optional[str] = None,
+        email: Optional[str] = None,
+        notes: Optional[str] = None,
+        opening_hours: Optional[Dict[str, Any]] = None,
+        additional_field1: Optional[str] = None,
+    ) -> RestAddressBookEntry:
+        """
+        Update an existing address book entry.
+
+        Only the supplied keyword arguments are sent; other fields stay
+        unchanged on the server. See :meth:`create_address_book_entry` for
+        the field descriptions.
+
+        Returns:
+            The updated ``RestAddressBookEntry``.
+
+        Raises:
+            ``EasyTransNotFoundError``: The entry does not exist.
+            ``EasyTransValidationError``: Invalid body, or the change would
+                duplicate another entry of this customer (HTTP 422).
+        """
+        body = self._address_book_body(
+            customer_no, company, contact, address, houseno, address2,
+            postcode, city, country, phone, email, notes, opening_hours,
+            additional_field1,
+        )
+        raw = self._make_rest_request(
+            "PUT", f"/address-book/{address_no}", json_body=body
+        )
+        return RestAddressBookEntry.from_dict(raw["data"])
+
+    def delete_address_book_entry(self, address_no: int) -> None:
+        """
+        Delete an address book entry. The API answers HTTP 204.
+
+        Raises:
+            ``EasyTransNotFoundError``: The entry does not exist.
+        """
+        self._make_rest_request("DELETE", f"/address-book/{address_no}")
 
     # =========================================================================
     # REST API — Carriers (branch accounts only)

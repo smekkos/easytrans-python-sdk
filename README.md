@@ -992,6 +992,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Changelog
 
+### Version 1.5.0 (2026-10-21)
+
+- New address book support (`/v1/address-book`, customer and branch
+  accounts): `get_address_book()`, `get_address_book_entry()`,
+  `create_address_book_entry()`, `update_address_book_entry()` and
+  `delete_address_book_entry()`, with the new `RestAddressBookEntry` model.
+- The REST transport now supports `DELETE` and returns `None` for empty
+  (HTTP 204) responses.
+- `RestRate` gains `is_active`.
+- Vendored OpenAPI spec synced with the published spec.
+
 ### Version 1.4.0 (2026-09-24)
 
 Aligns the SDK with the official OpenAPI spec that EasyTrans now publishes.

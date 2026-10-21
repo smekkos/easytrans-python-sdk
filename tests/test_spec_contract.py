@@ -31,6 +31,7 @@ yaml = pytest.importorskip("yaml")
 from easytrans import EasyTransClient  # noqa: E402
 from easytrans.rest_models import (  # noqa: E402
     PagedResponse,
+    RestAddressBookEntry,
     RestCarrier,
     RestCustomer,
     RestFleetVehicle,
@@ -61,6 +62,11 @@ OPERATIONS: Dict[Tuple[str, str], Tuple[Optional[str], Any, bool]] = {
     ("GET", "/v1/customers"): ("get_customers", RestCustomer, True),
     ("GET", "/v1/customers/{customerNo}"): ("get_customer", RestCustomer, False),
     ("PUT", "/v1/customers/{customerNo}"): ("update_customer", RestCustomer, False),
+    ("GET", "/v1/address-book"): ("get_address_book", RestAddressBookEntry, True),
+    ("POST", "/v1/address-book"): ("create_address_book_entry", RestAddressBookEntry, False),
+    ("GET", "/v1/address-book/{addressNo}"): ("get_address_book_entry", RestAddressBookEntry, False),
+    ("PUT", "/v1/address-book/{addressNo}"): ("update_address_book_entry", RestAddressBookEntry, False),
+    ("DELETE", "/v1/address-book/{addressNo}"): ("delete_address_book_entry", None, False),
     ("GET", "/v1/carriers"): ("get_carriers", RestCarrier, True),
     ("GET", "/v1/carriers/{carrierNo}"): ("get_carrier", RestCarrier, False),
     ("GET", "/v1/fleet"): ("get_fleet", RestFleetVehicle, True),
@@ -231,7 +237,18 @@ def test_client_method_exists(key):
     assert callable(getattr(EasyTransClient, method_name, None)), method_name
 
 
-@pytest.mark.parametrize("key", sorted(OPERATIONS), ids=lambda k: f"{k[0]} {k[1]}")
+def _has_success_example(op: Dict[str, Any]) -> bool:
+    responses = op.get("responses") or {}
+    return (responses.get(200) or responses.get("200")) is not None
+
+
+# The spec documents no success example for some write operations (address
+# book POST/PUT/DELETE); those have nothing to check here.
+@pytest.mark.parametrize(
+    "key",
+    sorted(k for k in OPERATIONS if _has_success_example(SPEC_OPS[k])),
+    ids=lambda k: f"{k[0]} {k[1]}",
+)
 def test_response_example_fully_mapped(key):
     """Every field in the spec's response example is read by the model."""
     _, item_cls, is_list = OPERATIONS[key]

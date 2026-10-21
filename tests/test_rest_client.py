@@ -26,6 +26,7 @@ from easytrans.exceptions import (
 )
 from easytrans.rest_models import (
     PagedResponse,
+    RestAddressBookEntry,
     RestCarrier,
     RestCustomer,
     RestFleetVehicle,
@@ -1100,6 +1101,121 @@ class TestGetInvoice:
         )
         with pytest.raises(EasyTransNotFoundError):
             client.get_invoice(0)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Address book
+# ─────────────────────────────────────────────────────────────────────────────
+
+MINIMAL_ADDRESS_BOOK_ENTRY = {
+    "type": "addressBook",
+    "id": 1892,
+    "attributes": {
+        "addressNo": 1892,
+        "customerNo": 2001,
+        "company": "EasyTrans Software B.V.",
+        "contact": "Mr. Johnson",
+        "address": "Keulenstraat",
+        "houseno": "1",
+        "address2": "",
+        "postcode": "7418 ET",
+        "city": "Deventer",
+        "country": "NL",
+        "phone": "",
+        "email": "",
+        "notes": "Leave packages at the reception.",
+        "openingHours": {"from": None, "to": None},
+    },
+}
+
+
+class TestAddressBook:
+    @rsps_lib.activate
+    def test_list_with_sort_and_page(self, client):
+        rsps_lib.add(
+            rsps_lib.GET,
+            f"{REST_BASE}/address-book",
+            json=_pagination_envelope([MINIMAL_ADDRESS_BOOK_ENTRY]),
+            status=200,
+        )
+        result = client.get_address_book(sort="company", page=2)
+        assert isinstance(result.data[0], RestAddressBookEntry)
+        assert result.data[0].address_no == 1892
+        assert result.data[0].opening_hours is None
+        qs = rsps_lib.calls[0].request.url
+        assert "sort=company" in qs
+        assert "page=2" in qs
+
+    @rsps_lib.activate
+    def test_list_404_is_empty(self, client):
+        rsps_lib.add(
+            rsps_lib.GET, f"{REST_BASE}/address-book", json={}, status=404
+        )
+        assert client.get_address_book().data == []
+
+    @rsps_lib.activate
+    def test_get_entry(self, client):
+        rsps_lib.add(
+            rsps_lib.GET,
+            f"{REST_BASE}/address-book/1892",
+            json={"data": MINIMAL_ADDRESS_BOOK_ENTRY},
+            status=200,
+        )
+        entry = client.get_address_book_entry(1892)
+        assert entry.company == "EasyTrans Software B.V."
+        assert entry.notes == "Leave packages at the reception."
+
+    @rsps_lib.activate
+    def test_create_sends_only_supplied_fields(self, client):
+        rsps_lib.add(
+            rsps_lib.POST,
+            f"{REST_BASE}/address-book",
+            json={"data": MINIMAL_ADDRESS_BOOK_ENTRY},
+            status=201,
+        )
+        entry = client.create_address_book_entry(
+            company="EasyTrans Software B.V.",
+            houseno="1",
+            opening_hours={"from": "09:00", "to": "17:00"},
+        )
+        assert entry.address_no == 1892
+        body = json.loads(rsps_lib.calls[0].request.body)
+        assert body == {
+            "company": "EasyTrans Software B.V.",
+            "houseno": "1",
+            "openingHours": {"from": "09:00", "to": "17:00"},
+        }
+
+    @rsps_lib.activate
+    def test_create_duplicate_raises_validation_error(self, client):
+        message = "An address with these details already exists for this customer."
+        rsps_lib.add(
+            rsps_lib.POST,
+            f"{REST_BASE}/address-book",
+            json={"message": message, "errors": {"address": [message]}},
+            status=422,
+        )
+        with pytest.raises(EasyTransValidationError, match="already exists"):
+            client.create_address_book_entry(company="x")
+
+    @rsps_lib.activate
+    def test_update_partial(self, client):
+        rsps_lib.add(
+            rsps_lib.PUT,
+            f"{REST_BASE}/address-book/1892",
+            json={"data": MINIMAL_ADDRESS_BOOK_ENTRY},
+            status=200,
+        )
+        client.update_address_book_entry(1892, notes="Bel aan")
+        assert json.loads(rsps_lib.calls[0].request.body) == {"notes": "Bel aan"}
+
+    @rsps_lib.activate
+    def test_delete_handles_204(self, client):
+        rsps_lib.add(
+            rsps_lib.DELETE, f"{REST_BASE}/address-book/1892", status=204
+        )
+        assert client.delete_address_book_entry(1892) is None
+        assert rsps_lib.calls[0].request.headers["Authorization"] == EXPECTED_AUTH_HEADER
 
 
 # ─────────────────────────────────────────────────────────────────────────────

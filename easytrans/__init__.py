@@ -77,6 +77,7 @@ from easytrans.rest_models import (
     RestTrackHistoryEntry,
     RestCustomerContact,
     RestCustomer,
+    RestAddressBookEntry,
     RestCarrierContact,
     RestCarrier,
     RestOrderAttributes,
@@ -102,7 +103,7 @@ from easytrans.constants import (
     TaskType,
 )
 
-__version__ = "1.4.0"
+__version__ = "1.5.0"
 
 __all__ = [
     # ── Client ──────────────────────────────────────────────────────────────
@@ -142,6 +143,7 @@ __all__ = [
     "RestTrackHistoryEntry",
     "RestCustomerContact",
     "RestCustomer",
+    "RestAddressBookEntry",
     "RestCarrierContact",
     "RestCarrier",
     "RestOrderAttributes",

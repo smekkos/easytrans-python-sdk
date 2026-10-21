@@ -321,6 +321,7 @@ class RestRate:
     sub_total: str = "0.00"
     is_minimum_amount: bool = False
     is_percentage: bool = False
+    is_active: bool = True
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "RestRate":
@@ -331,6 +332,7 @@ class RestRate:
             sub_total=data.get("subTotal", "0.00"),
             is_minimum_amount=data.get("isMinimumAmount", False),
             is_percentage=data.get("isPercentage", False),
+            is_active=data.get("isActive", True),
         )
 
 
@@ -519,6 +521,58 @@ class RestCustomer:
             is_deleted=attrs.get("isDeleted"),
             contacts=contacts,
             external_id=attrs.get("externalId"),
+        )
+
+
+# ---------------------------------------------------------------------------
+# Address book models
+# ---------------------------------------------------------------------------
+
+@dataclass
+class RestAddressBookEntry:
+    """
+    Saved address from a customer's address book.
+
+    Available for customer and branch accounts via ``GET /v1/address-book``.
+    A customer account only sees its own entries; a branch account sees the
+    entries of all customers (filter on ``customerNo`` to narrow it down).
+    """
+
+    id: int = 0
+    address_no: int = 0
+    customer_no: int = 0
+    company: str = ""
+    contact: str = ""
+    address: str = ""
+    houseno: str = ""
+    address2: str = ""
+    postcode: str = ""
+    city: str = ""
+    country: str = ""
+    phone: str = ""
+    email: str = ""
+    notes: str = ""
+    opening_hours: Optional[RestOpeningHours] = None
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "RestAddressBookEntry":
+        attrs = data.get("attributes") or data
+        return cls(
+            id=data.get("id", 0),
+            address_no=attrs.get("addressNo", 0),
+            customer_no=attrs.get("customerNo", 0),
+            company=attrs.get("company", ""),
+            contact=attrs.get("contact", ""),
+            address=attrs.get("address", ""),
+            houseno=attrs.get("houseno", ""),
+            address2=attrs.get("address2", ""),
+            postcode=attrs.get("postcode", ""),
+            city=attrs.get("city", ""),
+            country=attrs.get("country", ""),
+            phone=attrs.get("phone", ""),
+            email=attrs.get("email", ""),
+            notes=attrs.get("notes", ""),
+            opening_hours=RestOpeningHours.from_dict(attrs.get("openingHours")),
         )
 
 

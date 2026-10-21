@@ -191,6 +191,33 @@ Individual customer fields can be updated with `update_customer()`. Note that
 `company_name` is required by the API on every call — see
 [Managing Customers](customers.md) for details.
 
+## Address Book
+
+Customer and branch accounts can read and maintain saved addresses. A
+customer account only sees its own entries; a branch account sees all of
+them and can filter on `customerNo`.
+
+```python
+# 100 entries per page; filter only on addressNo / customerNo
+book = client.get_address_book(sort="company")
+for entry in book.data:
+    print(entry.address_no, entry.company, entry.postcode, entry.city)
+
+entry = client.create_address_book_entry(
+    company="EasyTrans Software B.V.",
+    address="Keulenstraat",
+    houseno="1",
+    postcode="7418 ET",
+    city="Deventer",
+    country="NL",
+)
+client.update_address_book_entry(entry.address_no, notes="Ring at reception")
+client.delete_address_book_entry(entry.address_no)
+```
+
+Creating or updating an entry that duplicates an existing address of the same
+customer raises `EasyTransValidationError` (HTTP 422).
+
 ## Invoices
 
 ```python
