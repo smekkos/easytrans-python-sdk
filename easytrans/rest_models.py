@@ -313,7 +313,11 @@ class RestGoodsLine:
 
 @dataclass
 class RestRate:
-    """A sales or purchase rate line attached to an order."""
+    """A sales or purchase rate line attached to an order.
+
+    ``is_active`` is ``None`` when ``isActive`` is absent (unknown), rather
+    than assuming the rate is active or inactive.
+    """
 
     rate_no: int = 0
     description: str = ""
@@ -321,6 +325,7 @@ class RestRate:
     sub_total: str = "0.00"
     is_minimum_amount: bool = False
     is_percentage: bool = False
+    is_active: Optional[bool] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "RestRate":
@@ -331,6 +336,7 @@ class RestRate:
             sub_total=data.get("subTotal", "0.00"),
             is_minimum_amount=data.get("isMinimumAmount", False),
             is_percentage=data.get("isPercentage", False),
+            is_active=data.get("isActive"),
         )
 
 

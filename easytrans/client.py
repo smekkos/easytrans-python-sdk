@@ -802,6 +802,17 @@ class EasyTransClient:
 
         Supplying ``carrier_no=0`` removes the assigned carrier.
 
+        Rate updates remain dictionaries using API field names. Identify
+        each rate with ``rateNo`` and supply only the fields to change::
+
+            sales_rates=[{"rateNo": 642, "isActive": True}]
+            purchase_rates=[{"rateNo": 642, "isActive": False}]
+
+        Activation-only updates do not need ``ratePerUnit``. Both boolean
+        values are forwarded unchanged; omitting ``isActive`` leaves the
+        activation state unchanged. ``ratePerUnit`` changes the unit rate,
+        not the calculated total. Omitted rate collections are not sent.
+
         Args:
             order_no: The EasyTrans order number to update.
             date: New order date, ``yyyy-mm-dd``.
@@ -821,8 +832,10 @@ class EasyTransClient:
             external_id: Update the external reference (max 50 chars).
             destinations: List of destination update dicts.
             goods: List of goods line update dicts.
-            sales_rates: List of sales rate update dicts.
-            purchase_rates: List of purchase rate update dicts.
+            sales_rates: Sales rate dicts with ``rateNo`` and optional
+                ``ratePerUnit`` and/or ``isActive``.
+            purchase_rates: Purchase rate dicts with ``rateNo`` and optional
+                ``ratePerUnit`` and/or ``isActive``.
 
         Returns:
             Updated ``RestOrder``.

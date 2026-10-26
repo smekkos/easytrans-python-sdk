@@ -468,6 +468,20 @@ class TestRestGoodsLine:
 
 
 class TestRestRate:
+    @pytest.mark.parametrize("is_active", [True, False])
+    def test_is_active_from_dict(self, is_active):
+        rate = RestRate.from_dict({**RATE_DATA, "isActive": is_active})
+        assert rate.is_active is is_active
+
+    def test_missing_is_active_is_unknown(self):
+        assert "isActive" not in RATE_DATA
+        assert RestRate.from_dict(RATE_DATA).is_active is None
+
+    def test_existing_constructor_is_backward_compatible(self):
+        rate = RestRate(388, "Distance Small Van", "0.51000", "50.49", False, True)
+        assert rate.is_percentage is True
+        assert rate.is_active is None
+
     def test_from_dict(self):
         rate = RestRate.from_dict(RATE_DATA)
         assert rate.rate_no == 388

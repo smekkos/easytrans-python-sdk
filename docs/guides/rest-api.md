@@ -93,6 +93,46 @@ client.update_order(
 )
 ```
 
+### Activating or deactivating rates
+
+Rate updates use dictionaries with API field names. Use the `rateNo` from
+the corresponding sales or purchase rate; do not identify rates by description.
+For branch accounts, an activation-only update needs no `ratePerUnit`:
+
+```python
+# Illustrative write examples; replace these order/rate numbers before use.
+client.update_order(35558, sales_rates=[{"rateNo": 642, "isActive": True}])
+client.update_order(35558, sales_rates=[{"rateNo": 642, "isActive": False}])
+client.update_order(35558, purchase_rates=[{"rateNo": 643, "isActive": True}])
+client.update_order(35558, purchase_rates=[{"rateNo": 643, "isActive": False}])
+
+# Change only the unit rate, leaving activation unchanged.
+client.update_order(35558, sales_rates=[{"rateNo": 642, "ratePerUnit": 75.0}])
+```
+
+`True` and `False` are forwarded unchanged. Omit `isActive` to leave activation
+unchanged; omit `ratePerUnit` to leave the unit rate unchanged. Omitted (or `None`)
+`sales_rates` / `purchase_rates` collections are not included in the request.
+Both fields can also be supplied together in a rate dictionary.
+
+Read activation via `order.attributes.sales_rates[i].is_active` or
+`order.attributes.purchase_rates[i].is_active` after requesting the corresponding
+`include_sales_rates=True` or `include_purchase_rates=True`. The value is `True`
+or `False` when supplied by the API; when `isActive` is absent it is `None`
+(unknown). Check `is True`, `is False`, or `is None` rather than treating an
+unknown state as inactive.
+
+`ratePerUnit` is a unit rate, not a calculated total. For an hourly rate it is
+the price per hour; do not replace it with hours multiplied by that price.
+This does not add writes for rate quantity, order `hours`, or
+`loadingUnloadingTime`.
+
+The official OpenAPI request schema documents `rateNo`, `ratePerUnit` and
+`isActive` for both rate collections, without requiring `ratePerUnit` for an
+activation update. Its general endpoint prose still describes the older
+`rateNo` / `ratePerUnit` example; the field-level schema explicitly supports
+activation and deactivation.
+
 Documents are uploaded per destination as base64-encoded PDFs (max 20MB each):
 
 ```python

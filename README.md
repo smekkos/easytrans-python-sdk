@@ -992,6 +992,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Changelog
 
+### Unreleased
+
+- `RestRate.is_active` parses `isActive` for sales and purchase rates,
+  preserving explicit `False`; absent activation state is `None` (unknown).
+  Existing constructor arguments remain compatible.
+- Documented activation-only `update_order()` examples using the existing
+  `sales_rates` / `purchase_rates` dictionaries with `rateNo` and `isActive`.
+  No `ratePerUnit` is needed; omitted fields remain omitted. Added mocked
+  request coverage for activation/deactivation and existing unit-rate updates.
+- See the [rate activation guide](docs/guides/rest-api.md#activating-or-deactivating-rates)
+  for examples and the distinction between hourly unit rates and totals.
+
 ### Version 1.4.0 (2026-09-24)
 
 Aligns the SDK with the official OpenAPI spec that EasyTrans now publishes.

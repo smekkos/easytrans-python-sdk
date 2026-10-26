@@ -465,6 +465,68 @@ class TestGetOrder:
 
 
 class TestUpdateOrder:
+    @pytest.mark.parametrize(
+        "argument,field", [("sales_rates", "salesRates"), ("purchase_rates", "purchaseRates")]
+    )
+    @pytest.mark.parametrize("is_active", [True, False])
+    @rsps_lib.activate
+    def test_rate_activation_only_passed_through(self, client, argument, field, is_active):
+        rates = [{"rateNo": 642, "isActive": is_active}]
+        response_order = {
+            **MINIMAL_ORDER,
+            "attributes": {**MINIMAL_ORDER["attributes"], field: rates},
+        }
+        rsps_lib.add(
+            rsps_lib.PUT,
+            f"{REST_BASE}/orders/35558",
+            json={"data": response_order},
+            status=200,
+        )
+
+        order = client.update_order(35558, **{argument: rates})
+
+        assert len(rsps_lib.calls) == 1
+        request = rsps_lib.calls[0].request
+        assert json.loads(request.body) == {field: [{"rateNo": 642, "isActive": is_active}]}
+        assert rates == [{"rateNo": 642, "isActive": is_active}]
+        _assert_basic_auth(request)
+        assert getattr(order.attributes, argument)[0].is_active is is_active
+
+    @pytest.mark.parametrize(
+        "argument,field", [("sales_rates", "salesRates"), ("purchase_rates", "purchaseRates")]
+    )
+    @pytest.mark.parametrize("rate_per_unit", [150.75, 0])
+    @rsps_lib.activate
+    def test_rate_per_unit_preserves_omitted_activation(self, client, argument, field, rate_per_unit):
+        rsps_lib.add(
+            rsps_lib.PUT,
+            f"{REST_BASE}/orders/35558",
+            json={"data": MINIMAL_ORDER},
+            status=200,
+        )
+        rates = [{"rateNo": 642, "ratePerUnit": rate_per_unit}]
+
+        client.update_order(35558, **{argument: rates})
+
+        assert json.loads(rsps_lib.calls[0].request.body) == {
+            field: [{"rateNo": 642, "ratePerUnit": rate_per_unit}]
+        }
+        assert rates == [{"rateNo": 642, "ratePerUnit": rate_per_unit}]
+
+    @pytest.mark.parametrize("kwargs", [{}, {"sales_rates": None, "purchase_rates": None}])
+    @rsps_lib.activate
+    def test_unsupplied_rate_collections_omitted(self, client, kwargs):
+        rsps_lib.add(
+            rsps_lib.PUT,
+            f"{REST_BASE}/orders/35558",
+            json={"data": MINIMAL_ORDER},
+            status=200,
+        )
+
+        client.update_order(35558, waybill_notes="New notes", **kwargs)
+
+        assert json.loads(rsps_lib.calls[0].request.body) == {"waybillNotes": "New notes"}
+
     @rsps_lib.activate
     def test_put_method_used(self, client):
         rsps_lib.add(

@@ -28,6 +28,18 @@ Typed dataclass models returned by the REST API (`/api/v1/`) methods.
 
 ::: easytrans.rest_models.RestTrackHistoryEntry
 
+## RestRate
+
+Sales and purchase rate response lines expose `is_active: Optional[bool]`,
+parsed from `isActive`. Explicit `False` is preserved. Missing `isActive`
+means `None` (unknown), not an assumed active or inactive state. Existing
+constructor arguments retain their positions; the new field is appended.
+
+Use API dictionaries, not `RestRate` objects, for `update_order` rate inputs.
+See [rate activation examples](../guides/rest-api.md#activating-or-deactivating-rates).
+
+::: easytrans.rest_models.RestRate
+
 ## RestCustomer
 
 ::: easytrans.rest_models.RestCustomer
