@@ -74,6 +74,7 @@ nav:
     - REST API: guides/rest-api.md
     - Webhook Handling: guides/webhooks.md
     - Error Handling: guides/error-handling.md
+  - API Compatibility: api-compatibility-2026-11.md
   - API Reference:
     - api-reference/index.md
     - Client: api-reference/client.md

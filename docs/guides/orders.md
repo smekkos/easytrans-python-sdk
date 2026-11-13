@@ -69,6 +69,17 @@ order = Order(
 )
 ```
 
+## JSON Order Import v5.4 fields
+
+Optional additions preserve existing payloads when omitted:
+
+- `Order.userid`: assign a customer contact (branch accounts only).
+- `Destination.delivery_date_from`: earliest pickup/delivery date, `YYYY-MM-DD`.
+- `Document.category`: `delivery_note`, `invoice`, `adr`, `export`, `pod`, `sales`,
+  `purchase` or `other`. The file format remains `Document.type`.
+
+See the [official-source compatibility audit](../api-compatibility-2026-11.md).
+
 ## Dry-Run (Test Mode)
 
 Use `mode="test"` to validate an order without creating it in EasyTrans:

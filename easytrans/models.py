@@ -36,12 +36,13 @@ class Document:
     Document to upload with order destination.
     
     Supports PDF, Excel, and Word documents encoded as base64.
-    Maximum 2 documents per destination.
+    The limited Document Storage module allows 2 documents per destination.
     """
 
     type: str  # "pdf" | "xls" | "xlsx" | "doc" | "docx"
     base64_content: str
     name: str = ""
+    category: str = ""  # delivery_note | invoice | adr | export | pod | sales | purchase | other
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
@@ -81,6 +82,7 @@ class Destination:
     delivery_time: str = ""
     delivery_time_from: str = ""
     documents: List[Document] = field(default_factory=list)
+    delivery_date_from: str = ""  # Earliest pickup/delivery date (yyyy-mm-dd).
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
@@ -162,6 +164,7 @@ class Order:
     carrier_options: str = ""  # Comma-separated options
     external_id: str = ""  # Reference to external system
     order_packages: List[Package] = field(default_factory=list)
+    userid: Optional[int] = None  # Customer contact to assign (branch accounts only).
 
     def __post_init__(self):
         """Validate order after initialization."""
@@ -412,6 +415,7 @@ class TaskResult:
     base64EncodedSignature: Optional[str] = None
     latitude: Optional[str] = None
     longitude: Optional[str] = None
+    documents: List[Dict[str, str]] = field(default_factory=list)
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "TaskResult":
@@ -430,6 +434,9 @@ class WebhookDestination:
     notes: str
     taskType: str  # "pickup" | "delivery" | "pickup/delivery"
     taskResult: TaskResult
+    date: Optional[str] = None
+    fromTime: Optional[str] = None  # noqa: N815 - preserve webhook wire names
+    toTime: Optional[str] = None  # noqa: N815 - preserve webhook wire names
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "WebhookDestination":

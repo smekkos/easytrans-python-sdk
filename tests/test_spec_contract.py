@@ -31,6 +31,7 @@ yaml = pytest.importorskip("yaml")
 from easytrans import EasyTransClient  # noqa: E402
 from easytrans.rest_models import (  # noqa: E402
     PagedResponse,
+    RestAddressBookEntry,
     RestCarrier,
     RestCustomer,
     RestFleetVehicle,
@@ -46,6 +47,16 @@ SPEC_PATH = Path(__file__).resolve().parent.parent / "EasyTrans Documentation" /
 
 # (METHOD, path) -> (client method name or None, response item model, is_list)
 OPERATIONS: Dict[Tuple[str, str], Tuple[Optional[str], Any, bool]] = {
+    ("GET", "/v1/address-book"): ("get_address_book", RestAddressBookEntry, True),
+    ("GET", "/v1/address-book/{addressNo}"): (
+        "get_address_book_entry",
+        RestAddressBookEntry,
+        False,
+    ),
+    # No success response schema is published for address-book writes: raw JSON/None.
+    ("POST", "/v1/address-book"): ("create_address_book_entry", None, False),
+    ("PUT", "/v1/address-book/{addressNo}"): ("update_address_book_entry", None, False),
+    ("DELETE", "/v1/address-book/{addressNo}"): ("delete_address_book_entry", None, False),
     ("GET", "/v1/orders"): ("get_orders", RestOrder, True),
     ("GET", "/v1/orders/{orderNo}"): ("get_order", RestOrder, False),
     ("PUT", "/v1/orders/{orderNo}"): ("update_order", RestOrder, False),
@@ -125,10 +136,11 @@ def _spec_operations() -> Dict[Tuple[str, str], Dict[str, Any]]:
 SPEC_OPS = _spec_operations()
 
 
-def _success_example(op: Dict[str, Any]) -> Dict[str, Any]:
-    responses = op["responses"]
-    resp = responses.get(200) or responses.get("200")
-    return resp["content"]["application/json"]["schema"]["example"]
+def _success_example(op: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    for code, response in op["responses"].items():
+        if str(code).startswith("2"):
+            return response["content"]["application/json"]["schema"]["example"]
+    return None
 
 
 def _camel_to_snake(name: str) -> str:
@@ -236,6 +248,10 @@ def test_response_example_fully_mapped(key):
     """Every field in the spec's response example is read by the model."""
     _, item_cls, is_list = OPERATIONS[key]
     example = _success_example(SPEC_OPS[key])
+    if example is None:
+        assert item_cls is None, f"{key}: expected a documented response example"
+        return
+    assert item_cls is not None, f"{key}: new success schema needs a model"
     seen: Set[str] = set()
 
     if is_list:

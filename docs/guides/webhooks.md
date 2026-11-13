@@ -18,10 +18,19 @@ raw_body: bytes = request.body          # Django / Flask / FastAPI raw request b
 data: dict = json.loads(raw_body)
 payload = WebhookPayload.from_dict(data)
 
-print(payload.orderno)       # e.g. 'ET-100001'
-print(payload.status)        # e.g. 'delivered'
-print(payload.datetime)      # ISO-8601 timestamp string
+print(payload.order.orderNo)  # e.g. 1234
+print(payload.order.status)   # e.g. "finished"
+print(payload.eventTime)      # ISO-8601 timestamp string
 ```
+
+## Scheduling and POD documents
+
+The current v5.4 webhook retains destination `date`, `fromTime` and `toTime`
+(optional/nullable). `destination.taskResult.documents` is a list of dictionaries
+with `name` and `base64EncodedDocument`; missing documents default to an empty list.
+The existing `taskResult.date` is the actual task date, not the scheduled date.
+
+See the [official-source compatibility audit](../api-compatibility-2026-11.md).
 
 ## Django Example
 
@@ -44,7 +53,7 @@ def easytrans_webhook(request):
         return JsonResponse({"error": str(exc)}, status=400)
 
     # Handle the event
-    handle_status_update(payload.orderno, payload.status)
+    handle_status_update(payload.order.orderNo, payload.order.status)
     return HttpResponse(status=200)
 ```
 
@@ -59,7 +68,7 @@ app = Flask(__name__)
 @app.post("/webhooks/easytrans")
 def easytrans_webhook():
     payload = WebhookPayload.from_dict(request.get_json(force=True))
-    handle_status_update(payload.orderno, payload.status)
+    handle_status_update(payload.order.orderNo, payload.order.status)
     return jsonify({"ok": True})
 ```
 

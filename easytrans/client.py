@@ -33,6 +33,7 @@ from easytrans.models import (
 )
 from easytrans.rest_models import (
     PagedResponse,
+    RestAddressBookEntry,
     RestCarrier,
     RestCustomer,
     RestFleetVehicle,
@@ -477,14 +478,14 @@ class EasyTransClient:
         Make an authenticated request to the REST API.
 
         Args:
-            method: HTTP method, ``"GET"``, ``"POST"`` or ``"PUT"``.
+            method: HTTP method, ``"GET"``, ``"POST"``, ``"PUT"`` or ``"DELETE"``.
             path: URL path relative to the REST base URL
                   (e.g. ``"/orders"`` or ``"/orders/35558"``).
             params: Optional query parameters.
             json_body: Optional JSON body (for POST/PUT requests).
 
         Returns:
-            Parsed JSON response (``dict`` or ``list``).
+            Parsed JSON response, or ``None`` for HTTP 204.
 
         Raises:
             ``EasyTransAuthError``: HTTP 401 — invalid credentials.
@@ -507,6 +508,8 @@ class EasyTransClient:
                 response = self._rest_session.put(url, **request_kwargs)
             elif method == "POST":
                 response = self._rest_session.post(url, **request_kwargs)
+            elif method == "DELETE":
+                response = self._rest_session.delete(url, **request_kwargs)
             else:
                 raise EasyTransAPIError(f"Unsupported HTTP method: {method}")
         except requests.exceptions.Timeout as exc:
@@ -519,6 +522,8 @@ class EasyTransClient:
             raise EasyTransAPIError(f"REST request failed: {exc}") from exc
 
         self._handle_rest_error(response)
+        if response.status_code == 204:
+            return None
 
         try:
             return response.json()
@@ -817,8 +822,9 @@ class EasyTransClient:
             order_no: The EasyTrans order number to update.
             date: New order date, ``yyyy-mm-dd``.
             time: New order time, ``hh:mm``.
-            status: New status for a planned order. The API accepts
-                ``"signed-off"`` and ``"checked"``.
+            status: Target status: ``"quote"``, ``"open"``, ``"signed-off"``
+                or ``"checked"``. The server validates allowed transitions;
+                assign/remove carrier_no to move between open and planned.
             substatus_no: New substatus. Supply ``0`` to clear it.
             carrier_no: Assign (or remove) a carrier.
             carrier_user_id: Assign (or remove) a carrier user. Supply ``0``
@@ -1137,6 +1143,140 @@ class EasyTransClient:
             "GET", f"/vehicletypes/{vehicle_type_no}", params=params or None
         )
         return RestVehicleType.from_dict(raw["data"])
+
+    # =========================================================================
+    # REST API — Address book (customer or branch accounts)
+    # =========================================================================
+
+    def get_address_book(
+        self,
+        *,
+        filter: Optional[Dict[str, Any]] = None,  # noqa: A002
+        sort: Optional[str] = None,
+        page: Optional[int] = None,
+    ) -> "PagedResponse[RestAddressBookEntry]":
+        """List addresses, filtered by addressNo/customerNo; sort by company or either number.
+
+        Pagination uses the same page/links/meta interface as other list methods.
+        Available to customer and branch accounts.
+        """
+        params = self._build_rest_params(filter=filter, sort=sort, page=page)
+        raw = self._make_rest_list_request("/address-book", params=params or None)
+        return PagedResponse.from_dict(raw, RestAddressBookEntry)
+
+    def get_address_book_entry(self, address_no: int) -> RestAddressBookEntry:
+        """Return one address-book entry by its addressNo."""
+        raw = self._make_rest_request("GET", f"/address-book/{address_no}")
+        return RestAddressBookEntry.from_dict(raw["data"])
+
+    def create_address_book_entry(
+        self,
+        *,
+        customer_no: Optional[int] = None,
+        company: Optional[str] = None,
+        contact: Optional[str] = None,
+        address: Optional[str] = None,
+        houseno: Optional[str] = None,
+        address2: Optional[str] = None,
+        postcode: Optional[str] = None,
+        city: Optional[str] = None,
+        country: Optional[str] = None,
+        phone: Optional[str] = None,
+        email: Optional[str] = None,
+        notes: Optional[str] = None,
+        opening_hours: Optional[Dict[str, Any]] = None,
+        additional_field1: Optional[str] = None,
+    ) -> Any:
+        """Create an address-book entry (customer or branch account).
+
+        Only non-None keywords are sent; empty strings and zero are preserved.
+        customer_no is branch-only; the POST schema marks it required while
+        its description limits it to branch accounts. Server validation applies.
+        opening_hours uses wire keys "from"/"to" (nullable HH:MM strings).
+        additional_field1 maps to the published additionalField1 extension.
+        The spec defines no success schema: return raw JSON, or None for 204.
+        REST writes are immediate, regardless of the JSON import default_mode.
+        """
+        body = {
+            "customerNo": customer_no,
+            "company": company,
+            "contact": contact,
+            "address": address,
+            "houseno": houseno,
+            "address2": address2,
+            "postcode": postcode,
+            "city": city,
+            "country": country,
+            "phone": phone,
+            "email": email,
+            "notes": notes,
+            "openingHours": opening_hours,
+            "additionalField1": additional_field1,
+        }
+        return self._make_rest_request(
+            "POST",
+            "/address-book",
+            json_body={key: value for key, value in body.items() if value is not None},
+        )
+
+    def update_address_book_entry(
+        self,
+        address_no: int,
+        *,
+        customer_no: Optional[int] = None,
+        company: Optional[str] = None,
+        contact: Optional[str] = None,
+        address: Optional[str] = None,
+        houseno: Optional[str] = None,
+        address2: Optional[str] = None,
+        postcode: Optional[str] = None,
+        city: Optional[str] = None,
+        country: Optional[str] = None,
+        phone: Optional[str] = None,
+        email: Optional[str] = None,
+        notes: Optional[str] = None,
+        opening_hours: Optional[Dict[str, Any]] = None,
+        additional_field1: Optional[str] = None,
+    ) -> Any:
+        """Update an address-book entry (customer or branch account).
+
+        Only non-None keywords are sent; empty strings and zero are preserved.
+        customer_no is branch-only; the POST schema marks it required while
+        its description limits it to branch accounts. Server validation applies.
+        opening_hours uses wire keys "from"/"to" (nullable HH:MM strings).
+        additional_field1 maps to the published additionalField1 extension.
+        The spec defines no success schema: return raw JSON, or None for 204.
+        REST writes are immediate, regardless of the JSON import default_mode.
+        """
+        body = {
+            "customerNo": customer_no,
+            "company": company,
+            "contact": contact,
+            "address": address,
+            "houseno": houseno,
+            "address2": address2,
+            "postcode": postcode,
+            "city": city,
+            "country": country,
+            "phone": phone,
+            "email": email,
+            "notes": notes,
+            "openingHours": opening_hours,
+            "additionalField1": additional_field1,
+        }
+        return self._make_rest_request(
+            "PUT",
+            f"/address-book/{address_no}",
+            json_body={key: value for key, value in body.items() if value is not None},
+        )
+
+    def delete_address_book_entry(self, address_no: int) -> Any:
+        """Delete an address immediately; return raw JSON or None for HTTP 204.
+
+        The published spec does not define a success response for this operation.
+        The JSON import default_mode does not apply to REST writes.
+        """
+        return self._make_rest_request("DELETE", f"/address-book/{address_no}")
 
     # =========================================================================
     # REST API — Customers (branch accounts only)
