@@ -1,6 +1,7 @@
 # REST API
 
-The EasyTrans REST API (`/api/v1/`) lets you **read** orders, customers, carriers, invoices and reference data.
+The EasyTrans REST API (`/api/v1/`) lets you read orders, customers, carriers, invoices and reference data,
+update orders/customers, and manage address-book entries.
 All REST methods are available directly on [`EasyTransClient`](../api-reference/client.md).
 
 ## Reading Orders
@@ -76,7 +77,7 @@ client.update_order(
     35558,
     date="2026-08-20",
     time="09:30",
-    status="checked",          # "signed-off" or "checked"
+    status="checked",          # quote, open, signed-off or checked; transition rules apply
     substatus_no=12,           # 0 clears the substatus
     waybill_notes="Left at door",
 )
@@ -153,6 +154,40 @@ client.update_order(
     }],
 )
 ```
+
+## Address Book
+
+Customer and branch accounts can use `get_address_book(filter=..., sort=..., page=...)`
+and `get_address_book_entry(address_no)`. Reads return `RestAddressBookEntry` objects
+(with `address_no`, `customer_no`, address/contact fields and `opening_hours`). Lists
+use the standard `PagedResponse` links/meta interface. Filter by `addressNo` or
+`customerNo`; sort by `addressNo`, `customerNo` or `company`.
+
+```python
+page = client.get_address_book(filter={"customerNo": 2001}, sort="company")
+entry = client.get_address_book_entry(1892)
+```
+
+`create_address_book_entry(...)`, `update_address_book_entry(address_no, ...)`
+and `delete_address_book_entry(address_no)` perform immediate REST writes;
+**the JSON import test mode does not apply**. Create/update accept typed keywords
+`customer_no`, `company`, `contact`, `address`, `houseno`, `address2`, `postcode`,
+`city`, `country`, `phone`, `email`, `notes`, `opening_hours`, `additional_field1`.
+Only non-`None` values are sent; empty strings and zero are preserved.
+`opening_hours` uses wire keys `from` / `to` with nullable HH:MM values.
+
+The official spec marks POST `customerNo` required but describes it as branch-only;
+SDK keywords remain optional for customer-account compatibility and the server
+validates account-specific requirements. The write operations have **no documented
+success schema** (POST/PUT show only 422; DELETE shows no responses). Therefore they
+return raw JSON, or `None` for HTTP 204, rather than inventing a typed success shape.
+Read the entry back with `get_address_book_entry()` when its number is known.
+
+The published order-update schema now also permits `quote` and `open`, already
+forwarded by `update_order()`. Documented transitions: pending-acceptation/open →
+quote; quote/pending-acceptation → open; planned → signed-off; planned/signed-off →
+checked. Open/planned transitions use carrier assignment/removal instead. These
+are server rules, not SDK business policy, and were not live-write tested.
 
 ## Approving a Quote
 

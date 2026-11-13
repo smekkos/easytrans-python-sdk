@@ -407,6 +407,48 @@ class RestOpeningHours:
         )
 
 @dataclass
+class RestAddressBookEntry:
+    """Address-book resource for customer or branch accounts."""
+
+    id: int = 0
+    address_no: int = 0
+    customer_no: Optional[int] = None
+    company: str = ""
+    contact: str = ""
+    address: str = ""
+    houseno: str = ""
+    address2: str = ""
+    postcode: str = ""
+    city: str = ""
+    country: str = ""
+    phone: str = ""
+    email: str = ""
+    notes: str = ""
+    opening_hours: Optional[RestOpeningHours] = None
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "RestAddressBookEntry":
+        attrs = data.get("attributes", {})
+        return cls(
+            id=data.get("id", 0),
+            address_no=attrs.get("addressNo", 0),
+            customer_no=attrs.get("customerNo"),
+            company=attrs.get("company", ""),
+            contact=attrs.get("contact", ""),
+            address=attrs.get("address", ""),
+            houseno=attrs.get("houseno", ""),
+            address2=attrs.get("address2", ""),
+            postcode=attrs.get("postcode", ""),
+            city=attrs.get("city", ""),
+            country=attrs.get("country", ""),
+            phone=attrs.get("phone", ""),
+            email=attrs.get("email", ""),
+            notes=attrs.get("notes", ""),
+            opening_hours=RestOpeningHours.from_dict(attrs.get("openingHours")),
+        )
+
+
+@dataclass
 class RestCustomerContact:
     """A contact person belonging to a customer record."""
 
@@ -1075,6 +1117,7 @@ __all__ = [
     "PaginationMeta",
     "PagedResponse",
     "RestAddress",
+    "RestAddressBookEntry",
     "RestMailingAddress",
     "RestLocation",
     "RestDestination",

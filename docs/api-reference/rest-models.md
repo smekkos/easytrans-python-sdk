@@ -40,6 +40,10 @@ See [rate activation examples](../guides/rest-api.md#activating-or-deactivating-
 
 ::: easytrans.rest_models.RestRate
 
+## RestAddressBookEntry
+
+::: easytrans.rest_models.RestAddressBookEntry
+
 ## RestCustomer
 
 ::: easytrans.rest_models.RestCustomer
