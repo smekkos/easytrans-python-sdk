@@ -356,6 +356,7 @@ paths:
                         internalNotes: 'Upload POD before signing-off'
                         recipientEmail: info@example.com
                         distance: 99
+                        distancePurchase: 103
                         stops: 0
                         waitingTime: 60
                         loadingUnloadingTime: 0
@@ -534,6 +535,7 @@ paths:
                           internalNotes: 'Upload POD before signing-off'
                           recipientEmail: info@example.com
                           distance: 99
+                          distancePurchase: 103
                           stops: 0
                           waitingTime: 60
                           loadingUnloadingTime: 0
@@ -739,6 +741,9 @@ paths:
                             distance:
                               type: integer
                               example: 99
+                            distancePurchase:
+                              type: integer
+                              example: 103
                             stops:
                               type: integer
                               example: 0
@@ -1210,6 +1215,7 @@ paths:
                       internalNotes: 'Upload POD before signing-off'
                       recipientEmail: info@example.com
                       distance: 99
+                      distancePurchase: 103
                       stops: 0
                       waitingTime: 60
                       loadingUnloadingTime: 0
@@ -1251,10 +1257,10 @@ paths:
                           deliveryTime: null
                           departureTime: null
                           deliveryName: ''
+                          carrierNotes: ''
                           signatureUrl: false
                           photos: []
                           documents: []
-                          carrierNotes: ''
                         -
                           addressId: 28417
                           stopNo: 2
@@ -1282,6 +1288,7 @@ paths:
                           deliveryTime: '16:48'
                           departureTime: '17:06'
                           deliveryName: 'Mr. Johnson'
+                          carrierNotes: 'Delivered at the neighbours'
                           signatureUrl: false
                           photos: []
                           documents:
@@ -1295,7 +1302,6 @@ paths:
                               internal: false
                               addedByCarrier: false
                               url: 'https://localhost//files/documenten/2023/12/28417_203d07d7-f3ed-4e56-93e6-00f45e2f94b2.pdf'
-                          carrierNotes: 'Delivered at the neighbours'
                       goods:
                         -
                           packageId: 21370
@@ -1351,14 +1357,6 @@ paths:
                           isMinimumAmount: false
                           isPercentage: false
                         -
-                          rateNo: 391
-                          description: 'Additional insurance'
-                          ratePerUnit: '3.00000'
-                          subTotal: '1.51'
-                          isActive: true
-                          isMinimumAmount: false
-                          isPercentage: true
-                        -
                           rateNo: 388
                           description: 'Distance Small Van'
                           ratePerUnit: '0.51000'
@@ -1366,6 +1364,14 @@ paths:
                           isActive: true
                           isMinimumAmount: false
                           isPercentage: false
+                        -
+                          rateNo: 391
+                          description: 'Additional insurance'
+                          ratePerUnit: '3.00000'
+                          subTotal: '1.51'
+                          isActive: true
+                          isMinimumAmount: false
+                          isPercentage: true
                         -
                           rateNo: 2
                           description: 'Extra stop'
@@ -1548,6 +1554,9 @@ paths:
                           distance:
                             type: integer
                             example: 99
+                          distancePurchase:
+                            type: integer
+                            example: 103
                           stops:
                             type: integer
                             example: 0
@@ -1617,10 +1626,10 @@ paths:
                                 deliveryTime: null
                                 departureTime: null
                                 deliveryName: ''
+                                carrierNotes: ''
                                 signatureUrl: false
                                 photos: []
                                 documents: []
-                                carrierNotes: ''
                               -
                                 addressId: 28417
                                 stopNo: 2
@@ -1648,6 +1657,7 @@ paths:
                                 deliveryTime: '16:48'
                                 departureTime: '17:06'
                                 deliveryName: 'Mr. Johnson'
+                                carrierNotes: 'Delivered at the neighbours'
                                 signatureUrl: false
                                 photos: []
                                 documents:
@@ -1661,7 +1671,6 @@ paths:
                                     internal: false
                                     addedByCarrier: false
                                     url: 'https://localhost//files/documenten/2023/12/28417_203d07d7-f3ed-4e56-93e6-00f45e2f94b2.pdf'
-                                carrierNotes: 'Delivered at the neighbours'
                             items:
                               type: object
                               properties:
@@ -1747,6 +1756,9 @@ paths:
                                 deliveryName:
                                   type: string
                                   example: ''
+                                carrierNotes:
+                                  type: string
+                                  example: ''
                                 signatureUrl:
                                   type: boolean
                                   example: false
@@ -1756,9 +1768,6 @@ paths:
                                 documents:
                                   type: array
                                   example: []
-                                carrierNotes:
-                                  type: string
-                                  example: ''
                           goods:
                             type: array
                             example:
@@ -1878,14 +1887,6 @@ paths:
                                 isMinimumAmount: false
                                 isPercentage: false
                               -
-                                rateNo: 391
-                                description: 'Additional insurance'
-                                ratePerUnit: '3.00000'
-                                subTotal: '1.51'
-                                isActive: true
-                                isMinimumAmount: false
-                                isPercentage: true
-                              -
                                 rateNo: 388
                                 description: 'Distance Small Van'
                                 ratePerUnit: '0.51000'
@@ -1893,6 +1894,14 @@ paths:
                                 isActive: true
                                 isMinimumAmount: false
                                 isPercentage: false
+                              -
+                                rateNo: 391
+                                description: 'Additional insurance'
+                                ratePerUnit: '3.00000'
+                                subTotal: '1.51'
+                                isActive: true
+                                isMinimumAmount: false
+                                isPercentage: true
                               -
                                 rateNo: 2
                                 description: 'Extra stop'
@@ -2047,7 +2056,7 @@ paths:
                     type: order
                     id: 35558
                     createdAt: '2023-12-01T10:05:01+01:00'
-                    updatedAt: '2026-10-07T14:38:07+02:00'
+                    updatedAt: '2026-11-15T17:06:26+01:00'
                     attributes:
                       orderNo: 35558
                       date: '2023-12-01'
@@ -2072,11 +2081,12 @@ paths:
                       purchaseInvoiceNotes: 'Payment period 30 days'
                       internalNotes: 'Upload POD before signing-off'
                       recipientEmail: info@example.com
-                      distance: 99
-                      stops: 0
-                      waitingTime: 60
-                      loadingUnloadingTime: 0
-                      hours: 0
+                      distance: 120
+                      distancePurchase: 100
+                      stops: 3
+                      waitingTime: 30
+                      loadingUnloadingTime: 45
+                      hours: 6.75
                       prepaidAmount: '0.00'
                       readyForPurchaseInvoice: true
                       usernameCreated: 'Demo planner'
@@ -2112,10 +2122,10 @@ paths:
                           deliveryTime: null
                           departureTime: null
                           deliveryName: ''
+                          carrierNotes: ''
                           signatureUrl: false
                           photos: []
                           documents: []
-                          carrierNotes: ''
                         -
                           addressId: 28417
                           stopNo: 2
@@ -2143,6 +2153,7 @@ paths:
                           deliveryTime: '16:48'
                           departureTime: '17:05'
                           deliveryName: 'Mr. Johnson'
+                          carrierNotes: 'Delivered at the neighbours'
                           signatureUrl: false
                           photos: []
                           documents:
@@ -2157,16 +2168,15 @@ paths:
                               addedByCarrier: false
                               url: 'https://localhost//files/documenten/2023/12/28417_203d07d7-f3ed-4e56-93e6-00f45e2f94b2.pdf'
                             -
-                              documentId: 132
+                              documentId: 136
                               documentNo: 2
                               documentName: 'CMR 12345'
-                              timestamp: '2026-10-07T14:38:07+02:00'
+                              timestamp: '2026-11-15T17:06:26+01:00'
                               fileType: pdf
                               category: delivery_note
                               internal: false
                               addedByCarrier: false
-                              url: 'https://localhost//files/documenten/2023/12/28417_a2e004cc-eb19-44e0-a4eb-cec1f3c77473.pdf'
-                          carrierNotes: 'Delivered at the neighbours'
+                              url: 'https://localhost//files/documenten/2023/12/28417_4c5c2df2-4774-4f64-b419-1351aea9e6b7.pdf'
                       goods:
                         -
                           packageId: 21370
@@ -2212,9 +2222,9 @@ paths:
                           height: 60
                           description: Folders
                           barcodes:
-                            - '319990000355580018'
-                            - '319990000355580025'
-                            - '319990000355580032'
+                            - '319990000355580179'
+                            - '319990000355580186'
+                            - '319990000355580193'
                 properties:
                   data:
                     type: object
@@ -2230,7 +2240,7 @@ paths:
                         example: '2023-12-01T10:05:01+01:00'
                       updatedAt:
                         type: string
-                        example: '2026-10-07T14:38:07+02:00'
+                        example: '2026-11-15T17:06:26+01:00'
                       attributes:
                         type: object
                         properties:
@@ -2305,19 +2315,22 @@ paths:
                             example: info@example.com
                           distance:
                             type: integer
-                            example: 99
+                            example: 120
+                          distancePurchase:
+                            type: integer
+                            example: 100
                           stops:
                             type: integer
-                            example: 0
+                            example: 3
                           waitingTime:
                             type: integer
-                            example: 60
+                            example: 30
                           loadingUnloadingTime:
                             type: integer
-                            example: 0
+                            example: 45
                           hours:
-                            type: integer
-                            example: 0
+                            type: number
+                            example: 6.75
                           prepaidAmount:
                             type: string
                             example: '0.00'
@@ -2369,10 +2382,10 @@ paths:
                                 deliveryTime: null
                                 departureTime: null
                                 deliveryName: ''
+                                carrierNotes: ''
                                 signatureUrl: false
                                 photos: []
                                 documents: []
-                                carrierNotes: ''
                               -
                                 addressId: 28417
                                 stopNo: 2
@@ -2400,6 +2413,7 @@ paths:
                                 deliveryTime: '16:48'
                                 departureTime: '17:05'
                                 deliveryName: 'Mr. Johnson'
+                                carrierNotes: 'Delivered at the neighbours'
                                 signatureUrl: false
                                 photos: []
                                 documents:
@@ -2414,16 +2428,15 @@ paths:
                                     addedByCarrier: false
                                     url: 'https://localhost//files/documenten/2023/12/28417_203d07d7-f3ed-4e56-93e6-00f45e2f94b2.pdf'
                                   -
-                                    documentId: 132
+                                    documentId: 136
                                     documentNo: 2
                                     documentName: 'CMR 12345'
-                                    timestamp: '2026-10-07T14:38:07+02:00'
+                                    timestamp: '2026-11-15T17:06:26+01:00'
                                     fileType: pdf
                                     category: delivery_note
                                     internal: false
                                     addedByCarrier: false
-                                    url: 'https://localhost//files/documenten/2023/12/28417_a2e004cc-eb19-44e0-a4eb-cec1f3c77473.pdf'
-                                carrierNotes: 'Delivered at the neighbours'
+                                    url: 'https://localhost//files/documenten/2023/12/28417_4c5c2df2-4774-4f64-b419-1351aea9e6b7.pdf'
                             items:
                               type: object
                               properties:
@@ -2509,6 +2522,9 @@ paths:
                                 deliveryName:
                                   type: string
                                   example: ''
+                                carrierNotes:
+                                  type: string
+                                  example: ''
                                 signatureUrl:
                                   type: boolean
                                   example: false
@@ -2518,9 +2534,6 @@ paths:
                                 documents:
                                   type: array
                                   example: []
-                                carrierNotes:
-                                  type: string
-                                  example: ''
                           goods:
                             type: array
                             example:
@@ -2568,9 +2581,9 @@ paths:
                                 height: 60
                                 description: Folders
                                 barcodes:
-                                  - '319990000355580018'
-                                  - '319990000355580025'
-                                  - '319990000355580032'
+                                  - '319990000355580179'
+                                  - '319990000355580186'
+                                  - '319990000355580193'
                             items:
                               type: object
                               properties:
@@ -2699,6 +2712,36 @@ paths:
                   description: 'Notes that are only internally visible (not visible for customers and carriers). Updating this field will delete any existing internal notes.'
                   example: 'Upload POD before signing-off'
                   nullable: true
+                distance:
+                  type: integer
+                  description: 'Distance in kilometers or miles.'
+                  example: 120
+                  nullable: true
+                distancePurchase:
+                  type: integer
+                  description: 'Purchase distance in kilometers or miles.'
+                  example: 100
+                  nullable: true
+                stops:
+                  type: integer
+                  description: 'Number of stops for this order.'
+                  example: 3
+                  nullable: true
+                waitingTime:
+                  type: integer
+                  description: 'Waiting time in minutes for this order.'
+                  example: 30
+                  nullable: true
+                loadingUnloadingTime:
+                  type: integer
+                  description: 'Loading and unloading time in minutes for this order.'
+                  example: 45
+                  nullable: true
+                hours:
+                  type: number
+                  description: 'Number of hours for this order. Use decimal format, e.g. 6:45 = 6.75.'
+                  example: 6.75
+                  nullable: true
                 readyForPurchaseInvoice:
                   type: boolean
                   description: 'Marks the order as ready to create a purchase invoice.'
@@ -2725,98 +2768,103 @@ paths:
                         example: 2
                       company:
                         type: string
-                        description: 'Sets the new company name for this destination. Must not be greater than 100 characters.'
+                        description: 'Sets or updates the company name for this destination. Must not be greater than 100 characters.'
                         example: 'Gamma Duiven'
                         nullable: true
                       contact:
                         type: string
-                        description: 'Sets the new contact person for this destination. Must not be greater than 100 characters.'
+                        description: 'Sets or updates the contact person for this destination. Must not be greater than 100 characters.'
                         example: 'Piet Klaassen'
                         nullable: true
                       address:
                         type: string
-                        description: 'Sets the new address for this destination. Must not be greater than 100 characters.'
+                        description: 'Sets or updates the address for this destination. Must not be greater than 100 characters.'
                         example: Lithograaf
                         nullable: true
                       houseno:
                         type: string
-                        description: 'Sets the new house number for this destination. May also be combined with the address if not available separate. Must not be greater than 60 characters.'
+                        description: 'Sets or updates the house number for this destination. May also be combined with the address if not available separate. Must not be greater than 60 characters.'
                         example: '1'
                         nullable: true
                       address2:
                         type: string
-                        description: 'Sets the new second address line for this destination. Must not be greater than 100 characters.'
+                        description: 'Sets or updates the second address line for this destination. Must not be greater than 100 characters.'
                         example: ''
                         nullable: true
                       postcode:
                         type: string
-                        description: 'Sets the new postcode for this destination. Must not be greater than 12 characters.'
+                        description: 'Sets or updates the postcode for this destination. Must not be greater than 12 characters.'
                         example: '6921 VA'
                         nullable: true
                       city:
                         type: string
-                        description: 'Sets the new city for this destination. Must not be greater than 100 characters.'
+                        description: 'Sets or updates the city for this destination. Must not be greater than 100 characters.'
                         example: DUIVEN
                         nullable: true
                       country:
                         type: string
-                        description: 'Sets the new country for this destination. The country can be set with the 2 or 3 letter country code or with the full country name. Must not be greater than 50 characters.'
+                        description: 'Sets or updates the country for this destination. The country can be set with the 2 or 3 letter country code or with the full country name. Must not be greater than 50 characters.'
                         example: NL
                         nullable: true
                       phone:
                         type: string
-                        description: 'Sets the new phone number for this destination. Must not be greater than 40 characters.'
+                        description: 'Sets or updates the phone number for this destination. Must not be greater than 40 characters.'
                         example: '+3185 - 0479 475'
                         nullable: true
                       notes:
                         type: string
-                        description: 'Sets the new notes for this destination.'
+                        description: 'Sets or updates the notes for this destination.'
                         example: 'Delivery at warehouse'
                         nullable: true
                       customerReference:
                         type: string
-                        description: 'Sets the new customer reference for this destination. Must not be greater than 255 characters.'
+                        description: 'Sets or updates the customer reference for this destination. Must not be greater than 255 characters.'
                         example: ''
                         nullable: true
                       waybillNo:
                         type: string
-                        description: 'Sets the new waybill/delivery note number for this destination. Must not be greater than 255 characters.'
+                        description: 'Sets or updates the waybill/delivery note number for this destination. Must not be greater than 255 characters.'
                         example: '123456'
                         nullable: true
                       date:
                         type: string
-                        description: 'Sets the new requested date for this destination in the format yyyy-mm-dd. Must be a valid date in the format <code>Y-m-d</code>. Must be a date after <code>-5 year</code>.'
+                        description: 'Sets or updates the requested date for this destination in the format yyyy-mm-dd. Must be a valid date in the format <code>Y-m-d</code>. Must be a date after <code>-5 year</code>.'
                         example: '2026-02-14'
                         nullable: true
                       fromTime:
                         type: string
-                        description: 'Sets the new requested from time for this destination in the format hh:mm (use local time). Must be a valid date in the format <code>H:i</code>.'
+                        description: 'Sets or updates the requested from time for this destination in the format hh:mm (use local time). Must be a valid date in the format <code>H:i</code>.'
                         example: '16:30'
                         nullable: true
                       toTime:
                         type: string
-                        description: 'Sets the new requested to time for this destination in the format hh:mm (use local time). Must be a valid date in the format <code>H:i</code>.'
+                        description: 'Sets or updates the requested to time for this destination in the format hh:mm (use local time). Must be a valid date in the format <code>H:i</code>.'
                         example: '17:30'
                         nullable: true
                       deliveryDate:
                         type: string
-                        description: 'Sets the new actual delivery date for this destination in the format yyyy-mm-dd. Must be a valid date in the format <code>Y-m-d</code>. Must be a date after <code>-5 year</code>.'
+                        description: 'Sets or updates the actual delivery date for this destination in the format yyyy-mm-dd. Must be a valid date in the format <code>Y-m-d</code>. Must be a date after <code>-5 year</code>.'
                         example: '2026-02-14'
                         nullable: true
                       deliveryTime:
                         type: string
-                        description: 'Sets the new actual delivery time for this destination in the format hh:mm (use local time). Must be a valid date in the format <code>H:i</code>.'
+                        description: 'Sets or updates the actual delivery time for this destination in the format hh:mm (use local time). Must be a valid date in the format <code>H:i</code>.'
                         example: '16:48'
                         nullable: true
                       departureTime:
                         type: string
-                        description: 'Sets the new actual departure time for this destination in the format hh:mm (use local time). Must be a valid date in the format <code>H:i</code>.'
+                        description: 'Sets or updates the actual departure time for this destination in the format hh:mm (use local time). Must be a valid date in the format <code>H:i</code>.'
                         example: '17:05'
                         nullable: true
                       deliveryName:
                         type: string
-                        description: 'Sets the name of the person who signed for this destination. Must not be greater than 100 characters.'
+                        description: 'Sets or updates the name of the person who signed for this destination. Must not be greater than 100 characters.'
                         example: 'Mr. Johnson'
+                        nullable: true
+                      carrierNotes:
+                        type: string
+                        description: 'Sets or updates the carrier note for this destination.'
+                        example: 'Delivered at the neighbours'
                         nullable: true
                       documents:
                         type: array
@@ -2870,7 +2918,7 @@ paths:
                         example: 2
                       amount:
                         type: number
-                        description: 'Sets the new amount of packages for this goods line.'
+                        description: 'Sets or updates the amount of packages for this goods line.'
                         example: 3.0
                       packageTypeId:
                         type: integer
@@ -2878,23 +2926,23 @@ paths:
                         example: 18
                       weight:
                         type: number
-                        description: 'Sets the new weight in kg for this goods line.'
+                        description: 'Sets or updates the weight in kg for this goods line.'
                         example: 300.0
                       length:
                         type: number
-                        description: 'Sets the new length in cm for this goods line.'
+                        description: 'Sets or updates the length in cm for this goods line.'
                         example: 120.0
                       width:
                         type: number
-                        description: 'Sets the new width in cm for this goods line.'
+                        description: 'Sets or updates the width in cm for this goods line.'
                         example: 80.0
                       height:
                         type: number
-                        description: 'Sets the new height in cm for this goods line.'
+                        description: 'Sets or updates the height in cm for this goods line.'
                         example: 60.0
                       description:
                         type: string
-                        description: 'Sets the new description for this goods line.'
+                        description: 'Sets or updates the description for this goods line.'
                         example: Folders
                         nullable: true
                 salesRates:
@@ -2910,7 +2958,7 @@ paths:
                         example: 642
                       ratePerUnit:
                         type: number
-                        description: 'Sets the new rate per unit for this sales rate.'
+                        description: 'Sets or updates the rate per unit for this sales rate.'
                         example: 150.75
                       isActive:
                         type: boolean
@@ -2929,7 +2977,7 @@ paths:
                         example: 642
                       ratePerUnit:
                         type: number
-                        description: 'Sets the new rate per unit for this purchase rate.'
+                        description: 'Sets or updates the rate per unit for this purchase rate.'
                         example: 120.5
                       isActive:
                         type: boolean
@@ -2962,7 +3010,7 @@ paths:
                     type: order
                     id: 41694
                     createdAt: '2026-06-03T21:22:12+02:00'
-                    updatedAt: '2026-10-07T14:38:07+02:00'
+                    updatedAt: '2026-11-15T17:06:25+01:00'
                     attributes:
                       orderNo: 41694
                       date: '2026-07-14'
@@ -2988,6 +3036,7 @@ paths:
                       internalNotes: 'Agreed rates based on 50 orders per month'
                       recipientEmail: ''
                       distance: 0
+                      distancePurchase: 0
                       stops: 0
                       waitingTime: 0
                       loadingUnloadingTime: 0
@@ -3087,7 +3136,7 @@ paths:
                         example: '2026-06-03T21:22:12+02:00'
                       updatedAt:
                         type: string
-                        example: '2026-10-07T14:38:07+02:00'
+                        example: '2026-11-15T17:06:25+01:00'
                       attributes:
                         type: object
                         properties:
@@ -3162,6 +3211,9 @@ paths:
                             type: string
                             example: ''
                           distance:
+                            type: integer
+                            example: 0
+                          distancePurchase:
                             type: integer
                             example: 0
                           stops:
@@ -6551,7 +6603,7 @@ paths:
                     type: customer
                     id: 2001
                     createdAt: '2023-12-01T10:05:01+01:00'
-                    updatedAt: '2026-10-07T14:38:08+02:00'
+                    updatedAt: '2026-11-15T17:06:27+01:00'
                     attributes:
                       customerNo: 2001
                       companyName: 'EasyTrans Software B.V.'
@@ -6633,7 +6685,7 @@ paths:
                         example: '2023-12-01T10:05:01+01:00'
                       updatedAt:
                         type: string
-                        example: '2026-10-07T14:38:08+02:00'
+                        example: '2026-11-15T17:06:27+01:00'
                       attributes:
                         type: object
                         properties:
@@ -9927,32 +9979,32 @@ paths:
                         example: 2
                       date:
                         type: string
-                        description: 'Sets the new date for this destination in the format yyyy-mm-dd. Must be a valid date in the format <code>Y-m-d</code>. Must be a date after <code>-5 year</code>.'
+                        description: 'Sets or updates the date for this destination in the format yyyy-mm-dd. Must be a valid date in the format <code>Y-m-d</code>. Must be a date after <code>-5 year</code>.'
                         example: '2025-12-01'
                         nullable: true
                       deliveryTime:
                         type: string
-                        description: 'Sets the new delivery time for this destination in the format hh:mm (use local time). Must be a valid date in the format <code>H:i</code>.'
+                        description: 'Sets or updates the delivery time for this destination in the format hh:mm (use local time). Must be a valid date in the format <code>H:i</code>.'
                         example: '16:48'
                         nullable: true
                       departureTime:
                         type: string
-                        description: 'Sets the new departure time for this destination in the format hh:mm (use local time). Must be a valid date in the format <code>H:i</code>.'
+                        description: 'Sets or updates the departure time for this destination in the format hh:mm (use local time). Must be a valid date in the format <code>H:i</code>.'
                         example: '17:05'
                         nullable: true
                       deliveryName:
                         type: string
-                        description: 'Sets the name of the person or department that signed for delivery. Must not be greater than 100 characters.'
+                        description: 'Sets or updates the name of the person or department that signed for delivery. Must not be greater than 100 characters.'
                         example: 'Mr. Johnson'
                         nullable: true
                       carrierNotes:
                         type: string
-                        description: 'Adds a new carrier note to this destination.'
+                        description: 'Sets or updates the carrier note for this destination.'
                         example: 'Delivered at the neighbours'
                         nullable: true
                       base64EncodedSignature:
                         type: string
-                        description: 'Adds a new base 64 encoded signature to this destination. The signature must be an image with a maximum size of 512KB.'
+                        description: 'Adds or updates the base 64 encoded signature for this destination. The signature must be an image with a maximum size of 512KB.'
                         example: ''
                       documentName:
                         type: string
