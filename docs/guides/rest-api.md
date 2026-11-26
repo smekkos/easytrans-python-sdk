@@ -201,14 +201,29 @@ print(order.attributes.status)   # "planned"
 
 ## Order Effort Fields
 
-Alongside `distance`, orders carry the planned effort for the job:
+Branch accounts can update all six effort fields. Omitted fields keep their
+current values; an explicit `0` sets the field to zero. To update a note on a
+single destination, use the API key `carrierNotes` and identify the stop:
+
+```python
+order = client.update_order(
+    35558, distance=120, distance_purchase=100, stops=3,
+    waiting_time=0, loading_unloading_time=45, hours=6.75,
+    destinations=[{"stopNo": 2, "carrierNotes": "Use the side entrance"}],
+)
+print(order.attributes.distance_purchase)
+```
+
+Read these values on `order.attributes`:
 
 | Attribute | Unit | Description |
 |-----------|------|-------------|
+| `distance` | distance | Order distance |
+| `distance_purchase` | distance | Purchase distance; `None` if not returned |
 | `stops` | count | Number of stops on the order |
 | `waiting_time` | minutes | Waiting time |
 | `loading_unloading_time` | minutes | Loading and unloading time |
-| `hours` | hours | Total hours registered for the order |
+| `hours` | decimal hours | Total registered time; `6.75` means 6 hours 45 minutes |
 | `composite_order_no` | — | Order number of the composite order, `0` when standalone |
 
 ```python

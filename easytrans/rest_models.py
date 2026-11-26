@@ -746,6 +746,7 @@ class RestOrderAttributes:
     sales_rates: List[RestRate] = field(default_factory=list)
     purchase_rates: List[RestRate] = field(default_factory=list)
     track_history: List[RestTrackHistoryEntry] = field(default_factory=list)
+    distance_purchase: Optional[int] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "RestOrderAttributes":
@@ -776,6 +777,7 @@ class RestOrderAttributes:
             carrier_notes=data.get("carrierNotes"),
             recipient_email=data.get("recipientEmail"),
             distance=data.get("distance"),
+            distance_purchase=data.get("distancePurchase"),
             stops=data.get("stops", 0),
             waiting_time=data.get("waitingTime", 0),
             loading_unloading_time=data.get("loadingUnloadingTime", 0),
