@@ -52,3 +52,21 @@ def test_product_and_fleet_identifiers_are_preserved(path, method, field):
     responses.get(url, json=payload)
     client = EasyTransClient("example.invalid", "demo", "dummy", "dummy")
     assert getattr(getattr(client, method)(number), field) == number
+
+
+@pytest.mark.parametrize("zero", [False, True])
+@responses.activate
+def test_order_metrics_round_trip(zero):
+    values = (0, 0, 0, 0, 0, 0.0) if zero else (120, 100, 3, 30, 45, 6.75)
+    distance, purchase, stops, waiting, loading, hours = values
+    metrics = dict(zip(("distance", "distancePurchase", "stops", "waitingTime",
+                        "loadingUnloadingTime", "hours"), values))
+    destination = {"stopNo": 2, "carrierNotes": "Delivered next door"}
+    responses.put(BASE + "/orders/1234", json={"data": {"attributes": metrics}})
+    client = EasyTransClient("example.invalid", "demo", "dummy", "dummy")
+    order = client.update_order(1234, distance=distance, distance_purchase=purchase,
+                                stops=stops, waiting_time=waiting, loading_unloading_time=loading,
+                                hours=hours, destinations=[destination])
+    assert json.loads(responses.calls[0].request.body) == {**metrics, "destinations": [destination]}
+    assert order.attributes.distance_purchase == purchase
+    assert order.attributes.hours == hours

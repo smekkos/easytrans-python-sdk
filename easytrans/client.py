@@ -776,6 +776,12 @@ class EasyTransClient:
         goods: Optional[List[Dict[str, Any]]] = None,
         sales_rates: Optional[List[Dict[str, Any]]] = None,
         purchase_rates: Optional[List[Dict[str, Any]]] = None,
+        distance: Optional[int] = None,
+        distance_purchase: Optional[int] = None,
+        stops: Optional[int] = None,
+        waiting_time: Optional[int] = None,
+        loading_unloading_time: Optional[int] = None,
+        hours: Optional[float] = None,
     ) -> RestOrder:
         """
         Update an existing order (branch accounts only).
@@ -832,6 +838,12 @@ class EasyTransClient:
             fleet_no: Assign a fleet vehicle.
             waybill_notes: Replace the waybill notes.
             invoice_notes: Replace the invoice notes.
+            distance: Order distance in kilometres or miles.
+            distance_purchase: Purchase distance in the same units as distance.
+            stops: Number of stops.
+            waiting_time: Waiting time in minutes.
+            loading_unloading_time: Loading and unloading time in minutes.
+            hours: Decimal order hours (e.g. 6.75 for 6 hours 45 minutes).
             purchase_invoice_notes: Replace the purchase invoice notes.
             internal_notes: Replace the internal notes.
             ready_for_purchase_invoice: Toggle purchase-invoice readiness.
@@ -885,6 +897,18 @@ class EasyTransClient:
             body["salesRates"] = sales_rates
         if purchase_rates is not None:
             body["purchaseRates"] = purchase_rates
+        if distance is not None:
+            body["distance"] = distance
+        if distance_purchase is not None:
+            body["distancePurchase"] = distance_purchase
+        if stops is not None:
+            body["stops"] = stops
+        if waiting_time is not None:
+            body["waitingTime"] = waiting_time
+        if loading_unloading_time is not None:
+            body["loadingUnloadingTime"] = loading_unloading_time
+        if hours is not None:
+            body["hours"] = hours
 
         raw = self._make_rest_request(
             "PUT", f"/orders/{order_no}", json_body=body
