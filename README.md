@@ -392,6 +392,19 @@ if response.links.next:
 
 Updating is available for **branch accounts** only.
 
+Omit a field to leave it unchanged. Pass `0` to set it to zero. For example,
+this records 6 hours 45 minutes, clears waiting time, and adds a note to stop 2:
+
+```python
+order = client.update_order(
+    35558, hours=6.75, waiting_time=0,
+    destinations=[{"stopNo": 2, "carrierNotes": "Use the side entrance"}],
+)
+print(order.attributes.distance_purchase)
+```
+
+See the [REST guide](docs/guides/rest-api.md#order-effort-fields) for all six fields.
+
 ```python
 # Assign a carrier
 order = client.update_order(35558, carrier_no=44)
